@@ -97,7 +97,7 @@
         <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden">
           <div class="absolute -right-10 -top-10 text-9xl opacity-10">🤖</div>
           <h3 class="text-lg font-bold mb-2">Skaner Trendów Rynkowych</h3>
-          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota, aby przeszukał polskie portale HR, przepisy prawne i wygenerował propozycje nowych wpisów na bloga Bazy Wiedzy.</p>
+          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota, aby przeszukał polskie portale HR, przepisy prawne i wygenerował propozycje nowych wpisów na bloga Bazy Wiedzy ze wskazanymi źródłami.</p>
           
           <button onclick="simulateAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
             <span>⚡ Generuj Nowe Szkice</span>
@@ -268,7 +268,7 @@ async function loadDrafts() {
             <div class="flex-grow">
                 <div class="flex items-center gap-2 mb-1">
                     <span class="bg-amber-100 text-amber-700 text-[9px] font-black uppercase px-2 py-0.5 rounded">Oczekuje na recenzję</span>
-                    ${art.ai_generated ? `<span class="text-[10px] font-bold text-brand-purple flex items-center gap-1">🤖 Generowane przez AI</span>` : ''}
+                    ${art.ai_generated ? `<span class="text-[10px] font-bold text-brand-purple flex items-center gap-1">🤖 AI + 🔗 Źródło</span>` : ''}
                 </div>
                 <h4 class="font-bold text-brand-navy text-lg">${art.title}</h4>
                 <p class="text-xs text-slate-500 mt-1 line-clamp-1">${art.excerpt}</p>
@@ -297,7 +297,7 @@ async function rejectArticle(id) {
     loadDrafts();
 }
 
-// ─── SYMULATOR BOTA AI ───
+// ─── SYMULATOR BOTA AI Z OZNACZANIEM ŹRÓDEŁ ───
 async function simulateAIGeneration() {
     const btn = document.getElementById('btnGenerateAI');
     const status = document.getElementById('aiStatus');
@@ -305,20 +305,30 @@ async function simulateAIGeneration() {
     btn.disabled = true;
     btn.classList.add('opacity-50', 'cursor-wait');
     status.classList.remove('hidden');
-    status.textContent = 'Analizowanie portali HR (Gowork, Pracuj.pl)...';
+    status.textContent = 'Analizowanie portali HR i przepisów prawa...';
 
-    // Baza mockowych artykułów wygenerowanych przez AI
+    // Baza mockowych artykułów z wprowadzonym systemem źródeł "Anti-Hallucination"
     const mockTopics = [
         {
             title: "Work-Life Balance 2.0: Czego oczekują pracownicy w 2026 roku?",
             excerpt: "Standardowe pakiety medyczne to już za mało. Badania pokazują, że polscy pracownicy stawiają nacisk na wsparcie psychologiczne i elastyczność.",
-            content: "<h3>Nowa definicja benefitów</h3><p>Według najnowszych raportów rynkowych, karta sportowa i podstawowa opieka medyczna przestały być wyróżnikiem pracodawcy, stając się rynkowym standardem (tzw. 'must-have').</p><p>Obecnie kandydaci pytają przede wszystkim o <strong>wsparcie psychologiczne</strong>, dodatkowe dni urlopu zdrowotnego (tzw. wellness days) oraz dofinansowanie do ergonomicznego sprzętu do pracy zdalnej.</p><h3>Dlaczego pakiety medyczne z psychologiem są kluczowe?</h3><p>Koszt wypalenia zawodowego (burnout) w organizacjach jest wyższy niż kiedykolwiek. Inwestycja w rozszerzone pakiety medyczne (np. Tier 3 z nielimitowanym dostępem do psychiatry i psychoterapeuty) zwraca się firmie wielokrotnie dzięki redukcji absencji chorobowych.</p>",
+            content: "<h3>Nowa definicja benefitów</h3><p>Według najnowszych raportów rynkowych, karta sportowa i podstawowa opieka medyczna przestały być wyróżnikiem pracodawcy, stając się rynkowym standardem (tzw. 'must-have').</p><p>Obecnie kandydaci pytają przede wszystkim o <strong>wsparcie psychologiczne</strong>, dodatkowe dni urlopu zdrowotnego (tzw. wellness days) oraz dofinansowanie do ergonomicznego sprzętu do pracy zdalnej.</p><h3>Dlaczego pakiety medyczne z psychologiem są kluczowe?</h3><p>Koszt wypalenia zawodowego (burnout) w organizacjach jest wyższy niż kiedykolwiek. Inwestycja w rozszerzone pakiety medyczne (np. Tier 3 z nielimitowanym dostępem do psychiatry i psychoterapeuty) zwraca się firmie wielokrotnie dzięki redukcji absencji chorobowych.</p>" + 
+            "<div class=\"mt-8 p-5 bg-indigo-50/50 border-l-4 border-brand-purple rounded-r-xl\">" +
+            "<p class=\"text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1\">Źródło opracowania bota AI:</p>" +
+            "<p class=\"text-sm font-semibold text-brand-navy\">Raport Pracuj.pl: Środowisko pracy i oczekiwania pracowników 2026</p>" +
+            "<a href=\"#\" class=\"text-xs text-brand-purple font-bold hover:underline mt-1 inline-block\">Zobacz pełny raport zewnętrzny →</a>" +
+            "</div>",
             tags: ["Trendy 2026", "Benefity", "Wellbeing"]
         },
         {
             title: "Zmiany w prawie pracy i ich wpływ na ubezpieczenia grupowe",
             excerpt: "Szykują się nowe regulacje dotyczące współfinansowania składek przez pracodawcę. Jak przygotować na nie swoją firmę?",
-            content: "<h3>Przegląd nadchodzących ustaw</h3><p>Ministerstwo Pracy zapowiedziało wdrożenie nowych dyrektyw unijnych, które mogą uatrakcyjnić podatkowo modele współfinansowane (sponsorowane częściowo przez pracodawcę) w ramach ubezpieczeń na życie i zdrowie.</p><p>Dzięki platformom takim jak <strong>AuraBenefits</strong>, brokerzy mogą w kilka minut zaktualizować polisy swoich klientów, dostosowując je do nowych wymogów kosztowych i błyskawicznie przedstawić zarządom opłacalne warianty.</p>",
+            content: "<h3>Przegląd nadchodzących ustaw</h3><p>Ministerstwo Pracy zapowiedziało wdrożenie nowych dyrektyw unijnych, które mogą uatrakcyjnić podatkowo modele współfinansowane (sponsorowane częściowo przez pracodawcę) w ramach ubezpieczeń na życie i zdrowie.</p><p>Dzięki platformom takim jak <strong>AuraBenefits</strong>, brokerzy mogą w kilka minut zaktualizować polisy swoich klientów, dostosowując je do nowych wymogów kosztowych i błyskawicznie przedstawić zarządom opłacalne warianty.</p>" +
+            "<div class=\"mt-8 p-5 bg-indigo-50/50 border-l-4 border-brand-purple rounded-r-xl\">" +
+            "<p class=\"text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1\">Źródło opracowania bota AI:</p>" +
+            "<p class=\"text-sm font-semibold text-brand-navy\">Biuletyn Informacji Publicznej (Gov.pl) - Nowelizacja Kodeksu Pracy</p>" +
+            "<a href=\"#\" class=\"text-xs text-brand-purple font-bold hover:underline mt-1 inline-block\">Przejdź do wykazu prac legislacyjnych →</a>" +
+            "</div>",
             tags: ["Prawo Pracy", "Podatki", "Ubezpieczenia"]
         }
     ];
@@ -327,7 +337,7 @@ async function simulateAIGeneration() {
     const newDraft = mockTopics[Math.floor(Math.random() * mockTopics.length)];
 
     // Symulacja opóźnienia AI (pisanie artykułu)
-    setTimeout(() => { status.textContent = 'Generowanie treści przez AI (Opracowywanie tekstu)...'; }, 1500);
+    setTimeout(() => { status.textContent = 'Komponowanie tekstu z cytowaniami...'; }, 1500);
     
     setTimeout(async () => {
         // Zapis do bazy jako DRAFT
@@ -345,7 +355,7 @@ async function simulateAIGeneration() {
         btn.classList.remove('opacity-50', 'cursor-wait');
 
         if(!error) {
-            alert("🤖 AI zakończyło pracę! Nowy szkic czeka na Twoją recenzję.");
+            alert("🤖 AI zakończyło pracę! Nowy szkic wraz ze źródłami czeka na Twoją recenzję.");
             loadDrafts();
         } else {
             alert("Błąd zapisu do bazy: " + error.message);
