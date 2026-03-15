@@ -23,7 +23,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.1</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.2</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap hidden" id="mainNav">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -198,8 +198,9 @@
     <button id="btnLogin" onclick="doAuth('login')" class="w-full bg-brand-blue hover:bg-blue-900 text-white font-bold py-3 rounded-xl shadow-md transition-colors mb-3">Zaloguj się</button>
     <button id="btnRegister" onclick="doAuth('register')" class="w-full bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold py-3 rounded-xl transition-colors text-sm">Zarejestruj nowe konto (Trial)</button>
     
-    <p id="authError" class="text-red-500 text-xs text-center font-bold mt-4 hidden"></p>
-    <p id="authSuccess" class="text-emerald-600 text-xs text-center font-bold mt-4 hidden"></p>
+    <!-- Tutaj będą pojawiać się dokładne błędy z Supabase -->
+    <div id="authError" class="bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl p-3 mt-4 hidden"></div>
+    <div id="authSuccess" class="bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs rounded-xl p-3 mt-4 hidden"></div>
   </div>
   <div class="mt-8 text-slate-400 text-xs font-bold uppercase tracking-widest">Powered by Supabase Auth</div>
 </div>
@@ -211,30 +212,52 @@
   <span id="ubRole" class="bg-white/20 text-blue-100 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-widest">BROKER</span>
 </div>
 
-<!-- (TUTAJ ZNAJDUJĄ SIĘ UKRYTE MODALE Z POPRZEDNIEJ WERSJI - KLIENCI I CHOROBY) -->
+<!-- UKRYTE MODALE (KLIENCI, OFERTY, CHOROBY) -->
 <div id="modalNowyKlient" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
   <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
-    <button onclick="document.getElementById('modalNowyKlient').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400">&times;</button>
-    <h2 class="text-xl font-black text-brand-blue mb-6">➕ Dodaj Klienta</h2>
+    <button onclick="document.getElementById('modalNowyKlient').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
+    <h2 class="text-xl font-black text-brand-blue mb-6">➕ Dodaj Klienta (B2B)</h2>
     <div class="space-y-4 mb-6">
-      <div><label class="lbl">Nazwa Firmy</label><input type="text" id="nkNazwa" class="inp font-bold"></div>
-      <div><label class="lbl">NIP</label><input type="text" id="nkNip" class="inp"></div>
+      <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+        <label class="lbl text-brand-blue">Numer NIP</label>
+        <div class="flex gap-2">
+          <input type="text" id="nkNip" class="inp border-blue-200 font-bold" placeholder="np. 5250000000" oninput="resetGUSStatus()">
+          <button onclick="pobierzDaneGUS()" class="bg-brand-blue hover:bg-blue-900 text-white font-bold px-4 rounded-xl text-xs transition-colors shadow-sm whitespace-nowrap active:scale-95">Pobierz z GUS</button>
+        </div>
+        <p id="gusStatus" class="text-[10px] font-bold mt-2 hidden"></p>
+      </div>
+      <div><label class="lbl">Nazwa Firmy</label><input type="text" id="nkNazwa" class="inp font-bold text-slate-700" placeholder="Automatycznie lub wpisz ręcznie"></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="lbl">Branża</label><input type="text" id="nkBranza" class="inp" placeholder="np. IT, Produkcja"></div>
+        <div><label class="lbl">Liczba prac.</label><input type="number" id="nkPracownicy" class="inp" placeholder="np. 50"></div>
+      </div>
+      <div><label class="lbl">Osoba kontaktowa (Opcjonalnie)</label><input type="text" id="nkOsoba" class="inp" placeholder="Imię i nazwisko osoby decyzyjnej"></div>
     </div>
-    <button onclick="zapiszKlienta()" class="w-full bg-brand-gold hover:bg-amber-600 text-white font-bold py-3 rounded-xl">Zapisz Klienta</button>
+    <button onclick="zapiszKlienta()" class="w-full bg-brand-gold hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors">Zapisz Klienta w Bazie</button>
   </div>
 </div>
+
 <div id="modalOferty" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
   <div class="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative max-h-[80vh] flex flex-col">
-    <button onclick="document.getElementById('modalOferty').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400">&times;</button>
-    <div class="mb-4 border-b border-slate-100 pb-4"><h2 id="moTitle" class="text-2xl font-black text-brand-blue"></h2></div>
-    <div class="overflow-y-auto custom-scroll flex-grow" id="moLista"></div>
+    <button onclick="document.getElementById('modalOferty').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
+    <div class="mb-4 border-b border-slate-100 pb-4">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Historia zapisanych ofert</div>
+      <h2 id="moTitle" class="text-2xl font-black text-brand-blue"></h2>
+    </div>
+    <div class="overflow-y-auto custom-scroll flex-grow pr-2" id="moLista"></div>
   </div>
 </div>
+
 <div id="modalChoroby" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
   <div class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative max-h-[80vh] flex flex-col">
-    <button onclick="document.getElementById('modalChoroby').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400">&times;</button>
-    <div class="mb-4 border-b border-slate-100 pb-4"><h2 id="mcTitle" class="text-2xl font-black text-brand-blue"></h2></div>
-    <div class="overflow-y-auto custom-scroll flex-grow pr-2"><ul id="mcLista" class="space-y-2 text-sm text-slate-600 font-semibold list-disc pl-4 marker:text-brand-gold"></ul></div>
+    <button onclick="document.getElementById('modalChoroby').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
+    <div class="mb-4 border-b border-slate-100 pb-4">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Katalog Poważnych Zachorowań</div>
+      <h2 id="mcTitle" class="text-2xl font-black text-brand-blue"></h2>
+    </div>
+    <div class="overflow-y-auto custom-scroll flex-grow pr-2">
+      <ul id="mcLista" class="space-y-2 text-sm text-slate-600 font-semibold list-disc pl-4 marker:text-brand-gold"></ul>
+    </div>
   </div>
 </div>
 
@@ -264,7 +287,7 @@ function switchTab(id, btn){
   document.querySelectorAll('.tab-btn').forEach(b=>{
     b.classList.remove('bg-white','text-brand-blue','shadow-sm');
     b.classList.add('text-blue-200');
-    if(b.id === 'btn-admin') b.classList.add('text-amber-300'); // Reset koloru admina
+    if(b.id === 'btn-admin') b.classList.add('text-amber-300'); 
   });
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('bg-white','text-brand-blue','shadow-sm');
@@ -278,14 +301,6 @@ function switchTab(id, btn){
 
 // ─── START I AUTORYZACJA ───
 window.onload = async () => {
-  if (!SB_URL || !SB_KEY || SB_URL === 'https://glphioldqqgbmccmufnm.supabase.co') {
-    document.getElementById('loginModal').classList.remove('hidden');
-    document.getElementById('loginModal').classList.add('flex');
-    document.getElementById('authError').textContent = "Brak kluczy bazy danych (Supabase) w kodzie.";
-    document.getElementById('authError').classList.remove('hidden');
-    return;
-  }
-  
   SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
   
   const { data: { session } } = await SB_CLIENT.auth.getSession();
@@ -305,14 +320,22 @@ async function doAuth(akcja) {
   const succ = document.getElementById('authSuccess');
   
   err.classList.add('hidden'); succ.classList.add('hidden');
-  if(!email || !pass) { err.textContent = "Podaj e-mail i hasło!"; err.classList.remove('hidden'); return; }
+  if(!email || !pass) { err.innerHTML = "<strong>Błąd:</strong> Podaj e-mail i hasło!"; err.classList.remove('hidden'); return; }
 
   document.getElementById('btnLogin').textContent = "Ładowanie...";
 
   if(akcja === 'login') {
       const { data, error } = await SB_CLIENT.auth.signInWithPassword({ email, password: pass });
       if(error) {
-          err.textContent = "Błędne dane logowania."; err.classList.remove('hidden');
+          // Lepsza diagnostyka błędów
+          let msg = error.message;
+          if(msg.includes('Email not confirmed')) {
+             msg = `Konto nie zostało aktywowane. <br><br><b>Wskazówka:</b> Wyłącz opcję <i>"Confirm email"</i> w panelu Supabase (Authentication -> Providers -> Email), aby logować się bez potwierdzania adresu z linku.`;
+          } else if(msg.includes('Invalid login credentials')) {
+             msg = `Nieprawidłowy e-mail lub hasło.`;
+          }
+          err.innerHTML = `<strong>Błąd logowania:</strong><br/>${msg}`; 
+          err.classList.remove('hidden');
       } else {
           currentUser = data.user;
           await inicjalizujSesje();
@@ -320,9 +343,11 @@ async function doAuth(akcja) {
   } else if (akcja === 'register') {
       const { data, error } = await SB_CLIENT.auth.signUp({ email, password: pass });
       if(error) {
-          err.textContent = error.message; err.classList.remove('hidden');
+          err.innerHTML = `<strong>Błąd rejestracji:</strong><br/>${error.message}`; 
+          err.classList.remove('hidden');
       } else {
-          succ.textContent = "Konto utworzone! Możesz się teraz zalogować."; succ.classList.remove('hidden');
+          succ.innerHTML = "<strong>Konto utworzone!</strong><br>Jeśli wyłączyłeś Confirm Email w Supabase, możesz się teraz zalogować."; 
+          succ.classList.remove('hidden');
       }
   }
   document.getElementById('btnLogin').textContent = "Zaloguj się";
@@ -339,21 +364,26 @@ async function inicjalizujSesje() {
     document.getElementById('mainNav').classList.remove('hidden');
     document.getElementById('userBar').classList.remove('hidden');
     
-    // Sprawdzamy rolę i profil w nowej tabeli `profiles`
-    const { data } = await SB_CLIENT.from('profiles').select('*').eq('id', currentUser.id).single();
+    // Sprawdzamy rolę i profil w tabeli `profiles`
+    const { data, error } = await SB_CLIENT.from('profiles').select('*').eq('id', currentUser.id).single();
     
     if(data) {
         currentRole = data.rola || 'broker';
-        document.getElementById('ubName').textContent = data.full_name || data.email;
+        document.getElementById('ubName').textContent = data.full_name || data.email || currentUser.email;
         document.getElementById('ubRole').textContent = currentRole;
         if(currentRole === 'admin') document.getElementById('btn-admin').classList.remove('hidden');
+    } else {
+        // Failsafe (Zabezpieczenie, jeśli trigger nie utworzył profilu z jakiegoś powodu)
+        currentRole = 'broker';
+        document.getElementById('ubName').textContent = currentUser.email;
+        document.getElementById('ubRole').textContent = 'BROKER';
     }
 
     await zaladujSłownikiStartowe();
     await zaladujKlientow();
 }
 
-// ─── ZARZĄDZANIE PROFILEM (MOJE KONTO) ───
+// ─── RESZTA GŁÓWNEGO KODU ───
 async function wczytajProfil() {
     if(!SB_CLIENT || !currentUser) return;
     const { data } = await SB_CLIENT.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -362,7 +392,6 @@ async function wczytajProfil() {
         document.getElementById('accFirma').value = data.firma || '';
         document.getElementById('accNip').value = data.nip || '';
         document.getElementById('accTel').value = data.telefon || '';
-        
         document.getElementById('planBadge').textContent = (data.plan || 'trial').toUpperCase();
         document.getElementById('planDo').textContent = data.plan_do ? new Date(data.plan_do).toLocaleDateString('pl-PL') : 'Brak limitu';
     }
@@ -371,95 +400,47 @@ async function wczytajProfil() {
 async function saveProfile() {
     const statusEl = document.getElementById('accStatus');
     statusEl.textContent = "Zapisywanie..."; statusEl.className = "mt-3 text-sm font-semibold text-slate-500";
-    
-    const body = {
-        full_name: document.getElementById('accName').value,
-        firma: document.getElementById('accFirma').value,
-        nip: document.getElementById('accNip').value,
-        telefon: document.getElementById('accTel').value
-    };
-    
+    const body = { full_name: document.getElementById('accName').value, firma: document.getElementById('accFirma').value, nip: document.getElementById('accNip').value, telefon: document.getElementById('accTel').value };
     const { error } = await SB_CLIENT.from('profiles').update(body).eq('id', currentUser.id);
-    
-    if(error) {
-        statusEl.textContent = "Błąd zapisu: " + error.message; statusEl.classList.add('text-red-500');
-    } else {
-        statusEl.textContent = "✅ Profil zapisany pomyślnie!"; statusEl.classList.add('text-emerald-600');
-        document.getElementById('ubName').textContent = body.full_name || currentUser.email;
-    }
+    if(error) { statusEl.textContent = "Błąd zapisu: " + error.message; statusEl.classList.add('text-red-500'); } 
+    else { statusEl.textContent = "✅ Profil zapisany pomyślnie!"; statusEl.classList.add('text-emerald-600'); document.getElementById('ubName').textContent = body.full_name || currentUser.email; }
 }
 
-// ─── PANEL ADMINA (ZARZĄDZANIE BROKERAMI) ───
 async function loadAdminUsers() {
     if(currentRole !== 'admin') return;
     const cont = document.getElementById('adminTableContainer');
     cont.innerHTML = '<div class="text-center py-8 text-slate-400">Ładowanie użytkowników...</div>';
-    
-    // Pobieramy dane ze stworzonego widoku v_admin_users
     const { data, error } = await SB_CLIENT.from('v_admin_users').select('*').order('created_at', {ascending: false});
+    if(error || !data) { cont.innerHTML = '<div class="text-red-500 text-center py-8">Błąd pobierania bazy (Upewnij się, że wgrałeś kod SQL z widokiem i jesteś Adminem).</div>'; return; }
     
-    if(error || !data) { cont.innerHTML = '<div class="text-red-500 text-center py-8">Błąd pobierania bazy (Upewnij się, że wgrałeś kod SQL z widokiem).</div>'; return; }
-    
-    let html = `<table class="w-full text-sm text-left">
-      <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500">
-        <tr><th class="p-4">Email</th><th class="p-4">Imię / Firma</th><th class="p-4 text-center">Rola</th><th class="p-4 text-center">Plan</th><th class="p-4 text-center">Ważny Do</th><th class="p-4 text-center">Faktury</th><th class="p-4 text-right">Akcje</th></tr>
-      </thead>
-      <tbody class="divide-y divide-slate-100">`;
-      
+    let html = `<table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500"><tr><th class="p-4">Email</th><th class="p-4">Imię / Firma</th><th class="p-4 text-center">Rola</th><th class="p-4 text-center">Plan</th><th class="p-4 text-center">Ważny Do</th><th class="p-4 text-center">Faktury</th><th class="p-4 text-right">Akcje</th></tr></thead><tbody class="divide-y divide-slate-100">`;
     data.forEach(u => {
         let d = u.plan_do ? new Date(u.plan_do).toLocaleDateString('pl-PL') : 'Brak';
         html += `<tr class="hover:bg-slate-50 transition-colors">
-           <td class="p-4 font-bold text-brand-blue">${u.email}</td>
-           <td class="p-4">${u.full_name || '–'}<br><span class="text-xs text-slate-400">${u.firma || 'Brak danych'}</span></td>
-           <td class="p-4 text-center">
-              <select onchange="updateUser('${u.id}', 'rola', this.value)" class="inp text-xs py-1 px-2 font-bold w-24">
-                 <option value="viewer" ${u.rola==='viewer'?'selected':''}>Viewer</option>
-                 <option value="broker" ${u.rola==='broker'?'selected':''}>Broker</option>
-                 <option value="admin" ${u.rola==='admin'?'selected':''}>Admin</option>
-              </select>
-           </td>
-           <td class="p-4 text-center">
-              <select onchange="updateUser('${u.id}', 'plan', this.value)" class="inp text-xs py-1 px-2 font-bold text-brand-gold w-24">
-                 <option value="trial" ${u.plan==='trial'?'selected':''}>Trial</option>
-                 <option value="pro" ${u.plan==='pro'?'selected':''}>PRO</option>
-                 <option value="agency" ${u.plan==='agency'?'selected':''}>Agency</option>
-              </select>
-           </td>
-           <td class="p-4 text-center font-semibold text-slate-600">${d}</td>
-           <td class="p-4 text-center font-black">${u.liczba_transakcji || 0}</td>
-           <td class="p-4 text-right">
-              <button onclick="extendPlan('${u.id}')" class="text-xs bg-brand-blue hover:bg-blue-900 text-white font-bold px-4 py-2 rounded-lg shadow-sm transition-colors">Przedłuż</button>
-           </td>
+           <td class="p-4 font-bold text-brand-blue">${u.email}</td><td class="p-4">${u.full_name || '–'}<br><span class="text-xs text-slate-400">${u.firma || 'Brak danych'}</span></td>
+           <td class="p-4 text-center"><select onchange="updateUser('${u.id}', 'rola', this.value)" class="inp text-xs py-1 px-2 font-bold w-24"><option value="viewer" ${u.rola==='viewer'?'selected':''}>Viewer</option><option value="broker" ${u.rola==='broker'?'selected':''}>Broker</option><option value="admin" ${u.rola==='admin'?'selected':''}>Admin</option></select></td>
+           <td class="p-4 text-center"><select onchange="updateUser('${u.id}', 'plan', this.value)" class="inp text-xs py-1 px-2 font-bold text-brand-gold w-24"><option value="trial" ${u.plan==='trial'?'selected':''}>Trial</option><option value="pro" ${u.plan==='pro'?'selected':''}>PRO</option><option value="agency" ${u.plan==='agency'?'selected':''}>Agency</option></select></td>
+           <td class="p-4 text-center font-semibold text-slate-600">${d}</td><td class="p-4 text-center font-black">${u.liczba_transakcji || 0}</td>
+           <td class="p-4 text-right"><button onclick="extendPlan('${u.id}')" class="text-xs bg-brand-blue hover:bg-blue-900 text-white font-bold px-4 py-2 rounded-lg shadow-sm transition-colors">Przedłuż</button></td>
         </tr>`;
     });
     html += `</tbody></table>`;
     cont.innerHTML = html;
 }
 
-async function updateUser(id, field, value) {
-    const body = {}; body[field] = value;
-    await SB_CLIENT.from('profiles').update(body).eq('id', id);
-    // Powiadomienie ciche (sukces)
-}
+async function updateUser(id, field, value) { const body = {}; body[field] = value; await SB_CLIENT.from('profiles').update(body).eq('id', id); }
 
 async function extendPlan(id) {
     const miesiace = prompt("O ile miesięcy chcesz przedłużyć licencję dla tego konta?", "12");
     if(!miesiace || isNaN(miesiace)) return;
-    
-    // Pobranie obecnej daty z bazy by dodać miesiące
     const { data } = await SB_CLIENT.from('profiles').select('plan_do').eq('id', id).single();
     let currentDate = data.plan_do ? new Date(data.plan_do) : new Date();
-    if(currentDate < new Date()) currentDate = new Date(); // Jeśli wygasło, przedłużamy od dziś
-    
+    if(currentDate < new Date()) currentDate = new Date();
     currentDate.setMonth(currentDate.getMonth() + parseInt(miesiace));
-    
     await SB_CLIENT.from('profiles').update({ plan_do: currentDate.toISOString() }).eq('id', id);
-    loadAdminUsers(); // Odśwież widok
+    loadAdminUsers();
 }
 
-
-// ─── RESZTA GŁÓWNEGO KODU APLIKACJI (Klienci, Oferty) ───
-// W celach optymalizacji pliku zachowałem strukturę wcześniejszych skryptów bazowych
 async function zaladujKlientow() {
   if(!SB_CLIENT) return;
   const { data } = await SB_CLIENT.from('klienci').select('*').order('utworzono', {ascending: false});
@@ -523,6 +504,27 @@ function utworzSzkicKalkulacji() {
   document.getElementById('matrycaTabela').innerHTML = `<thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">${thHtml}</thead>${htmlBodies}`;
   document.getElementById('kreatorWorkspace').classList.remove('hidden');
 }
+
+// ─── POBIERANIE Z GUS ───
+async function pobierzDaneGUS() {
+  const nipInput = document.getElementById('nkNip').value.trim();
+  const cleanNip = nipInput.replace(/[\ \-]/gi, '');
+  const statusEl = document.getElementById('gusStatus');
+  statusEl.classList.remove('hidden');
+  if (!cleanNip || cleanNip.length !== 10) { statusEl.textContent = "Wpisz poprawny 10-cyfrowy NIP."; statusEl.className = "text-[10px] font-bold mt-2 text-red-500"; return; }
+  statusEl.textContent = "⏳ Pobieranie z GUS..."; statusEl.className = "text-[10px] font-bold mt-2 text-blue-500";
+  try {
+      const dzisiaj = new Date().toISOString().split('T')[0];
+      const res = await fetch(`https://wl-api.mf.gov.pl/api/search/nip/${cleanNip}?date=${dzisiaj}`);
+      if (!res.ok) throw new Error("Błąd API");
+      const data = await res.json();
+      if (data?.result?.subject?.name) {
+          document.getElementById('nkNazwa').value = data.result.subject.name;
+          statusEl.textContent = "✅ Pobrano z MF."; statusEl.className = "text-[10px] font-bold mt-2 text-emerald-600";
+      } else { statusEl.textContent = "Brak w Białej Liście VAT."; statusEl.className = "text-[10px] font-bold mt-2 text-amber-500"; }
+  } catch (error) { statusEl.textContent = "Błąd połączenia z bazą MF."; statusEl.className = "text-[10px] font-bold mt-2 text-red-500"; }
+}
+function resetGUSStatus() { document.getElementById('gusStatus').classList.add('hidden'); }
 </script>
 </body>
 </html>
