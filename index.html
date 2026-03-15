@@ -23,7 +23,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.0</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.1</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap hidden" id="mainNav">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -278,7 +278,7 @@ function switchTab(id, btn){
 
 // ─── START I AUTORYZACJA ───
 window.onload = async () => {
-  if (!SB_URL || !SB_KEY || SB_URL === 'WKLEJ_TUTAJ_SWOJ_URL') {
+  if (!SB_URL || !SB_KEY || SB_URL === 'https://glphioldqqgbmccmufnm.supabase.co') {
     document.getElementById('loginModal').classList.remove('hidden');
     document.getElementById('loginModal').classList.add('flex');
     document.getElementById('authError').textContent = "Brak kluczy bazy danych (Supabase) w kodzie.";
