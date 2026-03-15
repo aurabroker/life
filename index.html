@@ -14,6 +14,9 @@
     .inp{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-size:13px;outline:none;transition: border-color .2s;}
     .inp:focus{border-color:#1e3a8a}
     .lbl{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+    
+    /* Własne style dla checkboxów */
+    .tu-check-wrapper input:checked + div { background-color: #1e3a8a; border-color: #1e3a8a; color: white; }
   </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -22,7 +25,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.0</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.3.0</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -58,23 +61,23 @@
             </tr>
           </thead>
           <tbody id="listaKlientowTbody" class="divide-y divide-slate-100">
-            <tr><td colspan="5" class="p-8 text-center text-slate-400">Ładowanie klientów... (Podłącz klucze Supabase)</td></tr>
+            <tr><td colspan="5" class="p-8 text-center text-slate-400">Ładowanie klientów...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════ KREATOR OFERTY (Zarządzanie ryzykami i cenami) -->
+  <!-- ══════════════════════════════ KREATOR OFERTY -->
   <div id="tab-kreator" class="tab-panel">
     <div class="mb-6">
       <h2 class="text-2xl font-black text-brand-blue">Kreator Ofert Grupowych</h2>
-      <p class="text-sm text-slate-500">Krok 1: Budowa wariantu. Krok 2: Wprowadzenie cen od ubezpieczycieli.</p>
+      <p class="text-sm text-slate-500">Wybierz firmy do porównania i zbuduj matrycę ryzyk.</p>
     </div>
 
-    <!-- Wybór klienta i podstawowe info -->
+    <!-- KONFIGURACJA WARIANTU (KLIENT + TU) -->
     <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <label class="lbl">Wybierz Klienta z bazy</label>
           <select id="kreatorKlient" class="inp bg-slate-100 font-bold text-brand-blue border-brand-blue/20">
@@ -82,77 +85,40 @@
           </select>
         </div>
         <div>
-          <label class="lbl">Nazwa Wariantu (np. Dyrekcja)</label>
-          <input type="text" id="kreatorWariant" class="inp" placeholder="np. Wariant Podstawowy">
+          <label class="lbl">Nazwa Wariantu (np. Zarząd)</label>
+          <input type="text" id="kreatorWariant" class="inp font-bold" placeholder="np. Wariant Podstawowy">
         </div>
-        <div class="flex items-end">
-          <button onclick="utworzSzkicKalkulacji()" class="w-full bg-brand-blue hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform active:scale-95">Utwórz Szkic Porównania</button>
+      </div>
+      
+      <div class="border-t border-slate-200 pt-6">
+        <label class="lbl mb-3">Wybierz ubezpieczycieli do porównania (max. 4)</label>
+        <div id="kreatorUbezpieczycieleList" class="flex flex-wrap gap-3">
+           <span class="text-xs text-slate-400">Ładowanie ubezpieczycieli...</span>
         </div>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button onclick="utworzSzkicKalkulacji()" class="bg-brand-blue hover:bg-blue-900 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-transform active:scale-95">▶ Utwórz Matrycę Porównania</button>
       </div>
     </div>
 
-    <!-- Workspace Wariantu (pokazywany po utworzeniu szkicu) -->
+    <!-- WORKSPACE MATRYCY -->
     <div id="kreatorWorkspace" class="hidden bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-      <div class="flex justify-between border-b border-slate-200 pb-4 mb-6">
+      <div class="flex justify-between items-end border-b border-slate-200 pb-4 mb-6">
         <div>
-          <h3 class="text-lg font-black text-brand-blue" id="kwTitle">Wariant: ...</h3>
-          <p class="text-xs text-slate-400" id="kwSub">Klient: ... | Wersja: 1</p>
+          <h3 class="text-xl font-black text-brand-blue" id="kwTitle">Wariant: ...</h3>
+          <p class="text-xs font-bold text-slate-400 mt-1" id="kwSub">Klient: ... | Wersja: 1</p>
         </div>
         <div class="flex gap-2">
-          <button class="text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2 rounded-lg">Pobierz Excel</button>
-          <button class="text-xs font-bold bg-brand-gold text-white px-4 py-2 rounded-lg shadow-sm">Generuj Raport PDF</button>
+          <button class="text-xs font-bold bg-brand-gold text-white px-5 py-2.5 rounded-xl shadow-sm hover:bg-amber-600 transition-colors">Generuj Raport PDF</button>
         </div>
       </div>
 
-      <!-- Tabela konstrukcji wariantu -->
       <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left border border-slate-200 rounded-xl overflow-hidden">
-          <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
-            <tr>
-              <th class="p-3 w-1/3">Zdarzenie ubezpieczeniowe (Ryzyko)</th>
-              <th class="p-3 w-48 text-center bg-brand-blue/5">Suma Ubezp. (SU)</th>
-              <th class="p-3 text-center border-l border-slate-200">PZU Życie (Cena)</th>
-              <th class="p-3 text-center">Warta (Cena)</th>
-              <th class="p-3 text-center">Generali (Cena)</th>
-              <th class="p-3 text-center"></th>
-            </tr>
-          </thead>
-          <tbody id="kreatorRyzykaTbody" class="divide-y divide-slate-100">
-            <!-- Wiersz dodawania nowego ryzyka -->
-            <tr class="bg-slate-50/50">
-              <td class="p-3">
-                <input type="text" id="noweRyzykoNazwa" list="dl-ryzyka" class="inp" placeholder="Wyszukaj z Almanachu...">
-              </td>
-              <td class="p-3 bg-brand-blue/5">
-                <input type="number" id="noweRyzykoSU" class="inp text-center font-bold text-brand-blue" placeholder="np. 50000">
-              </td>
-              <td colspan="4" class="p-3">
-                <button onclick="dodajRyzykoDoKalkulacji()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition-colors">➕ Dodaj Ryzyko do Matrycy</button>
-              </td>
-            </tr>
-            <!-- Przykładowy wyrenderowany wiersz -->
-            <tr>
-              <td class="p-3 font-semibold text-slate-700">Zgon w następstwie nieszczęśliwego wypadku (NW)</td>
-              <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue">100 000 zł</td>
-              <td class="p-3 border-l border-slate-200 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
-              <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
-              <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
-              <td class="p-3 text-center"><button class="text-red-500 font-bold hover:bg-red-50 p-1 rounded">✕</button></td>
-            </tr>
-          </tbody>
-          <tfoot class="bg-slate-100 font-black text-brand-blue border-t-2 border-slate-200">
-            <tr>
-              <td class="p-4 text-right uppercase tracking-widest text-xs text-slate-500">Łączna składka miesięczna za osobę:</td>
-              <td class="p-4 bg-brand-blue/10"></td>
-              <td class="p-4 text-center border-l border-slate-200">0.00 zł</td>
-              <td class="p-4 text-center">0.00 zł</td>
-              <td class="p-4 text-center">0.00 zł</td>
-              <td></td>
-            </tr>
-          </tfoot>
+        <table class="w-full text-sm text-left border border-slate-200 rounded-xl overflow-hidden" id="matrycaTabela">
+          <!-- Wnętrze tabeli zostanie w całości wygenerowane przez JS po kliknięciu Utwórz -->
         </table>
       </div>
-      <datalist id="dl-ryzyka"></datalist>
     </div>
   </div>
 
@@ -160,11 +126,9 @@
   <div id="tab-ryzyka" class="tab-panel">
     <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-6">
       <h2 class="text-xl font-bold text-brand-blue mb-2">📑 Słownik Ryzyk (Almanach)</h2>
-      <p class="text-sm text-slate-500 mb-6">Wspólna baza ryzyk, na której bazują wszystkie kalkulacje.</p>
-      
+      <p class="text-sm text-slate-500 mb-6">Wspólna baza ryzyk (pogrupowana wg kategorii), na której bazują wszystkie kalkulacje.</p>
       <div id="ryzykaTabela" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Renderowane przez JS -->
-        <div class="text-slate-400 text-sm">Podłącz bazę Supabase...</div>
+        <div class="text-slate-400 text-sm">Ładowanie bazy z Supabase...</div>
       </div>
     </div>
   </div>
@@ -172,16 +136,11 @@
   <!-- ══════════════════════════════ BAZA DANYCH (ADMIN) -->
   <div id="tab-admin" class="tab-panel">
     <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-6">
-      <h2 class="text-xl font-bold text-brand-blue mb-4">🔌 Konfiguracja Bazy Danych Supabase</h2>
-      <p class="text-sm text-slate-500 mb-6">Aby system zadziałał, wgraj plik <strong>lifeaura_db.sql</strong> do nowego projektu Supabase, a następnie wklej tu klucze dostępowe.</p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div><label class="lbl">Supabase URL</label><input type="text" id="cfgUrl" class="inp" placeholder="https://....supabase.co"/></div>
-        <div><label class="lbl">Supabase Anon Key</label><input type="password" id="cfgKey" class="inp" placeholder="eyJhbGciOi..."/></div>
-      </div>
+      <h2 class="text-xl font-bold text-brand-blue mb-4">🔌 Status Połączenia z Bazą (Zintegrowane)</h2>
+      <p class="text-sm text-slate-500 mb-6">Klucze dla projektu LifeAura zostały zintegrowane bezpośrednio w kodzie, aby zapewnić płynny i bezpieczny UX.</p>
       <div class="flex gap-4 items-center">
-        <button onclick="zapiszConfig()" class="bg-brand-blue text-white font-bold py-3 px-8 rounded-xl shadow-md transition-transform active:scale-95">💾 Zapisz konfigurację</button>
-        <span id="connStatus" class="text-sm font-bold text-slate-500">Brak połączenia</span>
+        <button onclick="checkDbStatus()" class="bg-brand-blue text-white font-bold py-3 px-8 rounded-xl shadow-md transition-transform active:scale-95">Sprawdź stan połączenia</button>
+        <span id="connStatus" class="text-sm font-bold text-slate-500">Oczekuję na test...</span>
       </div>
     </div>
   </div>
@@ -192,31 +151,65 @@
 <div id="modalNowyKlient" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
   <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
     <button onclick="document.getElementById('modalNowyKlient').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
-    <h2 class="text-xl font-black text-brand-blue mb-6">➕ Dodaj nowego Klienta</h2>
+    <h2 class="text-xl font-black text-brand-blue mb-6">➕ Dodaj Klienta (B2B)</h2>
     
     <div class="space-y-4 mb-6">
-      <div><label class="lbl">Nazwa Firmy</label><input type="text" id="nkNazwa" class="inp" placeholder="np. ACME Sp. z o.o."></div>
-      <div><label class="lbl">NIP</label><input type="text" id="nkNip" class="inp" placeholder="000-000-00-00"></div>
+      <!-- Sekcja NIP z weryfikacją -->
+      <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+        <label class="lbl text-brand-blue">Numer NIP</label>
+        <div class="flex gap-2">
+          <input type="text" id="nkNip" class="inp border-blue-200 font-bold" placeholder="np. 5250000000" oninput="resetGUSStatus()">
+          <button onclick="pobierzDaneGUS()" class="bg-brand-blue hover:bg-blue-900 text-white font-bold px-4 rounded-xl text-xs transition-colors shadow-sm whitespace-nowrap active:scale-95">Pobierz z GUS</button>
+        </div>
+        <p id="gusStatus" class="text-[10px] font-bold mt-2 hidden"></p>
+      </div>
+
+      <div><label class="lbl">Nazwa Firmy</label><input type="text" id="nkNazwa" class="inp font-bold text-slate-700" placeholder="Automatycznie lub wpisz ręcznie"></div>
+      
       <div class="grid grid-cols-2 gap-4">
-        <div><label class="lbl">Branża</label><input type="text" id="nkBranza" class="inp" placeholder="np. IT"></div>
+        <div><label class="lbl">Branża</label><input type="text" id="nkBranza" class="inp" placeholder="np. IT, Produkcja"></div>
         <div><label class="lbl">Liczba prac.</label><input type="number" id="nkPracownicy" class="inp" placeholder="np. 50"></div>
       </div>
-      <div><label class="lbl">Osoba kontaktowa (Opcjonalnie)</label><input type="text" id="nkOsoba" class="inp"></div>
+      <div><label class="lbl">Osoba kontaktowa (Opcjonalnie)</label><input type="text" id="nkOsoba" class="inp" placeholder="Imię i nazwisko osoby decyzyjnej"></div>
     </div>
     
     <button onclick="zapiszKlienta()" class="w-full bg-brand-gold hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors">Zapisz Klienta w Bazie</button>
   </div>
 </div>
 
-<script>
-// ─── OBSŁUGA ZAKŁADEK I STANU APLIKACJI ───
-let SB_URL = localStorage.getItem('lifeaura_url') || '';
-let SB_KEY = localStorage.getItem('lifeaura_key') || '';
-let SB_CLIENT = null;
+<!-- MODAL CHORÓB UBEZPIECZYCIELA -->
+<div id="modalChoroby" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative max-h-[80vh] flex flex-col">
+    <button onclick="document.getElementById('modalChoroby').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
+    <div class="mb-4 border-b border-slate-100 pb-4">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Katalog Poważnych Zachorowań</div>
+      <h2 id="mcTitle" class="text-2xl font-black text-brand-blue"></h2>
+    </div>
+    
+    <div class="overflow-y-auto custom-scroll flex-grow pr-2">
+      <ul id="mcLista" class="space-y-2 text-sm text-slate-600 font-semibold list-disc pl-4 marker:text-brand-gold">
+        <!-- Renderowane JS -->
+      </ul>
+    </div>
+  </div>
+</div>
 
+<script>
+// ─── TWARDE KLUCZE API DLA PROJEKTU LIFEAURA ───
+const SB_URL = 'https://glphioldqqgbmccmufnm.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscGhpb2xkcXFnYm1jY211Zm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODMxNjcsImV4cCI6MjA4ODY1OTE2N30.I2n7q7s7cCiSKaPXJunfGefCADuvxur3XhGY1qAXGbk';
+
+let SB_CLIENT = null;
 let slownikRyzyk = [];
 let listaKlientow = [];
-let currentCalcId = null;
+let ubezpieczyciele = [];
+let chorobyTU = {}; 
+let wybraniUbezpieczyciele = [];
+
+// Zdefiniowana poprawna kolejność sekcji na matrycy ofertowej
+const ORDERED_CATEGORIES = ['Zgon', 'Rodzinne', 'Wypadek', 'Zdrowie', 'Szpital', 'Inne'];
+
+const escStr = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
 function switchTab(id, btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -229,50 +222,111 @@ function switchTab(id, btn){
   btn.classList.remove('text-blue-200');
 
   if(id === 'klienci') zaladujKlientow();
-  if(id === 'ryzyka') zaladujRyzyka();
-}
-
-// ─── SUPABASE POŁĄCZENIE ───
-function zapiszConfig() {
-  SB_URL = document.getElementById('cfgUrl').value.trim();
-  SB_KEY = document.getElementById('cfgKey').value.trim();
-  localStorage.setItem('lifeaura_url', SB_URL);
-  localStorage.setItem('lifeaura_key', SB_KEY);
-  initApp();
+  if(id === 'ryzyka') zaladujSłownikiStartowe().then(() => zaladujWidokRyzyk());
 }
 
 async function initApp() {
-  document.getElementById('cfgUrl').value = SB_URL;
-  document.getElementById('cfgKey').value = SB_KEY;
-  
   if (!SB_URL || !SB_KEY) {
-    document.getElementById('connStatus').innerHTML = '❌ Brak kluczy bazy danych';
+    document.getElementById('connStatus').innerHTML = '❌ Brak kluczy bazy danych w kodzie';
     return;
   }
   
   SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
-  
+  await checkDbStatus();
+}
+
+async function checkDbStatus() {
   const { data, error } = await SB_CLIENT.from('ubezpieczyciele').select('id').limit(1);
+  const statusEl = document.getElementById('connStatus');
   if (error) {
-    document.getElementById('connStatus').innerHTML = '❌ Błąd połączenia. Sprawdź URL/KEY i czy odpaliłeś plik lifeaura_db.sql';
-    document.getElementById('connStatus').className = "text-sm font-bold text-red-500";
+    statusEl.innerHTML = '❌ Błąd połączenia. Upewnij się, że tabele z pliku lifeaura_db.sql zostały utworzone.';
+    statusEl.className = "text-sm font-bold text-red-500";
   } else {
-    document.getElementById('connStatus').innerHTML = '✅ Połączono z bazą ubezpieczeń na życie';
-    document.getElementById('connStatus').className = "text-sm font-bold text-emerald-600";
-    zaladujRyzykaSłownik();
-    zaladujKlientow();
+    statusEl.innerHTML = '✅ Połączono z bazą ubezpieczeń na życie';
+    statusEl.className = "text-sm font-bold text-emerald-600";
+    await zaladujSłownikiStartowe();
+    await zaladujKlientow();
+  }
+}
+
+// ─── WERYFIKACJA NIP ───
+function isValidNip(nip) {
+  if (typeof nip !== 'string') return false;
+  nip = nip.replace(/[\ \-]/gi, '');
+  if (nip.length !== 10) return false;
+  
+  let weights = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+  let sum = 0;
+  let controlNumber = parseInt(nip.substring(9, 10));
+  
+  for (let i = 0; i < weights.length; i++) {
+      sum += (parseInt(nip.substring(i, i + 1)) * weights[i]);
+  }
+  return (sum % 11) === controlNumber;
+}
+
+function resetGUSStatus() {
+  document.getElementById('gusStatus').classList.add('hidden');
+}
+
+async function pobierzDaneGUS() {
+  const nipInput = document.getElementById('nkNip').value.trim();
+  const cleanNip = nipInput.replace(/[\ \-]/gi, '');
+  const statusEl = document.getElementById('gusStatus');
+  
+  statusEl.classList.remove('hidden');
+  
+  if (!cleanNip) {
+      statusEl.textContent = "Wpisz numer NIP przed weryfikacją.";
+      statusEl.className = "text-[10px] font-bold mt-2 text-red-500";
+      return;
+  }
+
+  if (!isValidNip(cleanNip)) {
+      statusEl.textContent = "❌ Nieprawidłowy NIP. Błąd sumy kontrolnej.";
+      statusEl.className = "text-[10px] font-bold mt-2 text-red-500";
+      return;
+  }
+
+  statusEl.textContent = "⏳ Pobieranie danych z bazy państwowej...";
+  statusEl.className = "text-[10px] font-bold mt-2 text-blue-500";
+
+  try {
+      const today = new Date().toISOString().split('T')[0];
+      const res = await fetch(`https://wl-api.mf.gov.pl/api/search/nip/${cleanNip}?date=${today}`);
+      
+      if (!res.ok) throw new Error("Błąd API MF");
+      const data = await res.json();
+      
+      if (data && data.result && data.result.subject && data.result.subject.name) {
+          document.getElementById('nkNazwa').value = data.result.subject.name;
+          statusEl.textContent = "✅ NIP poprawny. Dane pobrano z rejestru MF.";
+          statusEl.className = "text-[10px] font-bold mt-2 text-emerald-600";
+      } else {
+          statusEl.textContent = "✅ NIP poprawny, ale firma nie figuruje jako czynny podatnik VAT (Biała Lista). Wpisz nazwę ręcznie.";
+          statusEl.className = "text-[10px] font-bold mt-2 text-amber-500";
+      }
+  } catch (error) {
+      statusEl.textContent = "✅ NIP zweryfikowany matematycznie (Brak połączenia z API). Wpisz nazwę ręcznie.";
+      statusEl.className = "text-[10px] font-bold mt-2 text-emerald-600";
   }
 }
 
 // ─── ZARZĄDZANIE KLIENTAMI ───
 async function zapiszKlienta() {
-  if(!SB_CLIENT) return alert("Podłącz bazę Supabase w zakładce Baza Danych");
+  if(!SB_CLIENT) return alert("Brak połączenia z bazą.");
   const nazwa = document.getElementById('nkNazwa').value.trim();
+  const nipRaw = document.getElementById('nkNip').value.trim();
+  const cleanNip = nipRaw.replace(/[\ \-]/gi, '');
+
   if(!nazwa) return alert("Nazwa firmy jest wymagana");
+  if(cleanNip && !isValidNip(cleanNip)) {
+      return alert("Wprowadzony NIP jest nieprawidłowy! Popraw numer przed zapisaniem klienta.");
+  }
 
   const body = {
     nazwa_firmy: nazwa,
-    nip: document.getElementById('nkNip').value.trim(),
+    nip: cleanNip,
     branza: document.getElementById('nkBranza').value.trim(),
     liczba_pracownikow: parseInt(document.getElementById('nkPracownicy').value) || null,
     osoba_kontaktowa: document.getElementById('nkOsoba').value.trim()
@@ -282,6 +336,12 @@ async function zapiszKlienta() {
   if(error) alert("Błąd zapisu: " + error.message);
   else {
     document.getElementById('modalNowyKlient').classList.add('hidden');
+    document.getElementById('nkNazwa').value = '';
+    document.getElementById('nkNip').value = '';
+    document.getElementById('nkBranza').value = '';
+    document.getElementById('nkPracownicy').value = '';
+    document.getElementById('nkOsoba').value = '';
+    resetGUSStatus();
     zaladujKlientow();
   }
 }
@@ -296,7 +356,7 @@ async function zaladujKlientow() {
   
   if(!data || data.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-bold">Brak klientów w bazie. Dodaj pierwszego.</td></tr>';
-    select.innerHTML = '<option value="">Brak klientów</option>';
+    select.innerHTML = '<option value="">Brak klientów w bazie</option>';
     return;
   }
 
@@ -315,26 +375,63 @@ async function zaladujKlientow() {
   select.innerHTML = '<option value="">Wybierz klienta...</option>' + data.map(k => `<option value="${k.id}">${k.nazwa_firmy}</option>`).join('');
 }
 
-// ─── ZARZĄDZANIE RYZYKAMI ───
-async function zaladujRyzykaSłownik() {
+// ─── SŁOWNIKI (Ryzyka + TU + Choroby) ───
+async function zaladujSłownikiStartowe() {
   if(!SB_CLIENT) return;
-  const { data } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kategoria');
-  slownikRyzyk = data || [];
   
-  // Aktualizacja datalist dla inputa w kreatorze
-  document.getElementById('dl-ryzyka').innerHTML = slownikRyzyk.map(r => `<option value="${r.nazwa}">`).join('');
+  // 1. Słownik ryzyk
+  const { data: rData } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kategoria');
+  slownikRyzyk = rData || [];
+  
+  // 2. Słownik TU (Aktywni)
+  const { data: tuData } = await SB_CLIENT.from('ubezpieczyciele').select('*').eq('aktywny', true).order('nazwa');
+  ubezpieczyciele = tuData || [];
+
+  // 3. Słownik Chorób
+  const { data: chData } = await SB_CLIENT.from('ubezpieczyciele_choroby').select('ubezpieczyciel_id, nazwa');
+  chorobyTU = {};
+  if(chData) {
+      chData.forEach(c => {
+          if(!chorobyTU[c.ubezpieczyciel_id]) chorobyTU[c.ubezpieczyciel_id] = [];
+          chorobyTU[c.ubezpieczyciel_id].push(c.nazwa);
+      });
+  }
+
+  renderTUCheckboxes();
 }
 
-async function zaladujRyzyka() {
-  if(slownikRyzyk.length === 0) await zaladujRyzykaSłownik();
-  
+function renderTUCheckboxes() {
+  const div = document.getElementById('kreatorUbezpieczycieleList');
+  if(!ubezpieczyciele.length) {
+    div.innerHTML = '<span class="text-xs text-red-500">Brak aktywnych ubezpieczycieli w bazie.</span>';
+    return;
+  }
+
+  div.innerHTML = ubezpieczyciele.map(tu => `
+    <label class="tu-check-wrapper cursor-pointer select-none">
+      <input type="checkbox" class="hidden tu-checkbox" value="${tu.id}">
+      <div class="bg-white border-2 border-slate-200 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm transition-colors shadow-sm hover:border-brand-blue/50">
+        ${tu.nazwa}
+      </div>
+    </label>
+  `).join('');
+}
+
+function zaladujWidokRyzyk() {
   const kontenery = {};
   slownikRyzyk.forEach(r => {
-    if(!kontenery[r.kategoria]) kontenery[r.kategoria] = [];
-    kontenery[r.kategoria].push(r.nazwa);
+    // Normalizacja do "Rodzinne"
+    let k = r.kategoria === 'Rodzina' ? 'Rodzinne' : r.kategoria;
+    if(!kontenery[k]) kontenery[k] = [];
+    kontenery[k].push(r.nazwa);
   });
 
   const kontenerEl = document.getElementById('ryzykaTabela');
+  if(Object.keys(kontenery).length === 0) {
+      kontenerEl.innerHTML = '<div class="col-span-full text-slate-400 text-sm">Brak ryzyk w słowniku. Uruchom skrypt SQL aktualizujący ryzyka.</div>';
+      return;
+  }
+
   kontenerEl.innerHTML = Object.entries(kontenery).map(([kat, nazwy]) => `
     <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl shadow-inner break-inside-avoid">
       <h3 class="text-xs font-black text-brand-blue uppercase tracking-widest border-b border-slate-200 pb-2 mb-3">${kat}</h3>
@@ -345,43 +442,173 @@ async function zaladujRyzyka() {
   `).join('');
 }
 
-// ─── KREATOR (Wersja demonstracyjna MVP) ───
+// ─── KREATOR OFERT (MATRYCA KATEGORII) ───
+function getOptionsDlaRyzyka() {
+  const kontenery = {};
+  slownikRyzyk.forEach(r => {
+    let kat = r.kategoria === 'Rodzina' ? 'Rodzinne' : r.kategoria;
+    if(!kontenery[kat]) kontenery[kat] = [];
+    kontenery[kat].push(r.nazwa);
+  });
+
+  let optionsHtml = '<option value="">Wybierz ryzyko ze słownika...</option>';
+  for(const [kat, nazwy] of Object.entries(kontenery)) {
+     optionsHtml += `<optgroup label="--- ${kat.toUpperCase()} ---">`;
+     nazwy.forEach(n => { optionsHtml += `<option value="${escStr(n)}">${n}</option>`; });
+     optionsHtml += `</optgroup>`;
+  }
+  return optionsHtml;
+}
+
 function utworzSzkicKalkulacji() {
   const klId = document.getElementById('kreatorKlient').value;
   const war = document.getElementById('kreatorWariant').value.trim();
   
   if(!klId || !war) return alert("Wybierz klienta i podaj nazwę wariantu");
-  
+
+  const checked = Array.from(document.querySelectorAll('.tu-checkbox:checked'));
+  if (checked.length === 0) return alert("Wybierz minimum jednego ubezpieczyciela z listy do porównania.");
+  if (checked.length > 4) return alert("Zalecamy porównanie maksymalnie 4 ubezpieczycieli na raz, aby raport był czytelny.");
+
+  wybraniUbezpieczyciele = checked.map(cb => ubezpieczyciele.find(u => u.id == cb.value));
+
   const klient = listaKlientow.find(k => k.id === klId);
   document.getElementById('kwTitle').textContent = `Wariant: ${war}`;
   document.getElementById('kwSub').textContent = `Firma: ${klient.nazwa_firmy} | Wersja: 1 | Status: Szkic`;
   
+  const colspan = wybraniUbezpieczyciele.length + 3;
+
+  // DYNAMICZNE BUDOWANIE THEAD
+  let thHtml = `
+    <tr>
+      <th class="p-3 w-1/3">Zdarzenie ubezpieczeniowe (Ryzyko)</th>
+      <th class="p-3 w-48 text-center bg-brand-blue/5">Suma Ubezp. (SU)</th>
+  `;
+  wybraniUbezpieczyciele.forEach(tu => {
+     thHtml += `<th class="p-3 text-center border-l border-slate-200 min-w-[140px]">${tu.nazwa}</th>`;
+  });
+  thHtml += `<th class="p-3 text-center w-12"></th></tr>`;
+
+  // DYNAMICZNE BUDOWANIE KATEGORII W TBODY
+  let htmlBodies = '';
+  ORDERED_CATEGORIES.forEach(k => {
+     htmlBodies += `
+       <tbody id="cat-${k}" class="hidden divide-y divide-slate-100 border-b border-slate-200">
+         <tr class="bg-slate-100"><td colspan="${colspan}" class="p-2 px-4 font-black text-[10px] text-slate-500 uppercase tracking-widest">${k}</td></tr>
+       </tbody>
+     `;
+  });
+
+  // Wiersz do wprowadzania (na samym dole)
+  htmlBodies += `
+    <tbody id="kreatorRyzykaInput">
+      <tr class="bg-slate-50/50">
+        <td class="p-3"><select id="noweRyzykoNazwa" class="inp font-semibold text-slate-700 bg-white">${getOptionsDlaRyzyka()}</select></td>
+        <td class="p-3 bg-brand-blue/5"><input type="number" id="noweRyzykoSU" class="inp text-center font-bold text-brand-blue bg-white" placeholder="np. 50000"></td>
+        <td colspan="${wybraniUbezpieczyciele.length + 1}" class="p-3 text-right">
+           <button onclick="dodajRyzykoDoKalkulacji()" class="bg-slate-200 hover:bg-brand-blue hover:text-white text-slate-700 font-bold px-5 py-2.5 rounded-lg text-xs transition-colors shadow-sm">➕ Dodaj Ryzyko do Wariantu</button>
+        </td>
+      </tr>
+    </tbody>
+  `;
+
+  // DYNAMICZNE BUDOWANIE TFOOT
+  let tfHtml = `
+    <tr>
+      <td class="p-4 text-right uppercase tracking-widest text-xs text-slate-500">Składka miesięczna:</td>
+      <td class="p-4 bg-brand-blue/10"></td>
+  `;
+  wybraniUbezpieczyciele.forEach(tu => {
+     tfHtml += `<td class="p-4 text-center border-l border-slate-200">0.00 zł</td>`;
+  });
+  tfHtml += `<td></td></tr>`;
+
+  document.getElementById('matrycaTabela').innerHTML = `
+    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase" id="kreatorRyzykaThead">${thHtml}</thead>
+    ${htmlBodies}
+    <tfoot class="bg-slate-100 font-black text-brand-blue border-t-2 border-slate-200" id="kreatorRyzykaTfoot">${tfHtml}</tfoot>
+  `;
+
   document.getElementById('kreatorWorkspace').classList.remove('hidden');
   document.getElementById('kreatorWorkspace').scrollIntoView({behavior: 'smooth'});
 }
 
 function dodajRyzykoDoKalkulacji() {
-  const nazwa = document.getElementById('noweRyzykoNazwa').value.trim();
+  const selectEl = document.getElementById('noweRyzykoNazwa');
+  const nazwa = selectEl.value;
   const su = parseFloat(document.getElementById('noweRyzykoSU').value);
   
-  if(!nazwa || isNaN(su)) return alert("Podaj nazwę ryzyka i sumę ubezpieczenia (SU)");
+  if(!nazwa || isNaN(su)) return alert("Wybierz ryzyko z listy i podaj sumę ubezpieczenia (SU)");
 
-  const tbody = document.getElementById('kreatorRyzykaTbody');
+  // Rozpoznawanie kategorii ryzyka
+  const ryzykoObj = slownikRyzyk.find(r => r.nazwa === nazwa);
+  let kat = ryzykoObj ? ryzykoObj.kategoria : 'Inne';
+  if (kat === 'Rodzina') kat = 'Rodzinne';
+  if (!ORDERED_CATEGORIES.includes(kat)) kat = 'Inne';
+
+  // Odkrywamy odpowiednią sekcję kategorii
+  const tbodyCat = document.getElementById('cat-' + kat);
+  if (tbodyCat) tbodyCat.classList.remove('hidden');
+
   const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td class="p-3 font-semibold text-slate-700">${nazwa}</td>
+  tr.className = "hover:bg-slate-50 transition-colors group";
+  
+  let tdHtml = `
+    <td class="p-3 font-semibold text-slate-700 leading-tight pl-6 border-l-2 border-brand-blue/20">${nazwa}</td>
     <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue">${su.toLocaleString('pl-PL')} zł</td>
-    <td class="p-3 border-l border-slate-200 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
-    <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
-    <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
-    <td class="p-3 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500 font-bold hover:bg-red-50 p-1 rounded transition-colors">✕</button></td>
   `;
+
+  const isChoroby = nazwa.toLowerCase().includes('poważne zachorowanie') || nazwa.toLowerCase().includes('powazne zachorowanie');
+
+  wybraniUbezpieczyciele.forEach(tu => {
+     let opcje = '';
+     if (isChoroby) {
+         let count = chorobyTU[tu.id] ? chorobyTU[tu.id].length : 0;
+         if(count > 0) {
+             opcje = `<div onclick="pokazChoroby(${tu.id}, '${escStr(tu.nazwa)}')" class="mt-1.5 text-[10px] text-brand-blue font-bold cursor-pointer hover:underline bg-brand-blue/10 rounded px-2 py-1 mx-auto max-w-fit">🦠 ${count} jednostek (ZOBACZ)</div>`;
+         } else {
+             opcje = `<div class="mt-1.5 text-[10px] text-slate-400 font-bold">Brak słownika</div>`;
+         }
+     }
+
+     tdHtml += `
+       <td class="p-3 border-l border-slate-200 text-center">
+         <input type="number" step="0.01" class="inp p-1.5 text-center text-sm font-bold w-24 mx-auto block" placeholder="0.00">
+         ${opcje}
+       </td>
+     `;
+  });
+
+  tdHtml += `<td class="p-3 text-center"><button onclick="usunRyzykoZMatrycy(this, '${kat}')" class="text-slate-300 font-bold hover:bg-red-50 hover:text-red-600 w-6 h-6 rounded-md transition-colors text-lg flex items-center justify-center mx-auto">&times;</button></td>`;
+  tr.innerHTML = tdHtml;
   
-  // Wstawiamy nowy wiersz przed ostatnim wierszem (który służy do dodawania)
-  tbody.insertBefore(tr, tbody.lastElementChild);
+  // Doczepiamy ryzyko do odpowiedniej grupy
+  if (tbodyCat) tbodyCat.appendChild(tr);
   
-  document.getElementById('noweRyzykoNazwa').value = '';
+  selectEl.selectedIndex = 0;
   document.getElementById('noweRyzykoSU').value = '';
+}
+
+function usunRyzykoZMatrycy(btn, kategoria) {
+  const tbody = btn.closest('tbody');
+  btn.closest('tr').remove();
+  
+  // Jeśli został w tej kategorii tylko wiersz nagłówkowy, to ukrywamy całe tbody
+  if (tbody.querySelectorAll('tr').length <= 1) {
+      tbody.classList.add('hidden');
+  }
+}
+
+// ─── MODAL CHORÓB (WYŚWIETLANIE) ───
+function pokazChoroby(tuId, tuNazwa) {
+  const ch = chorobyTU[tuId];
+  if(!ch || ch.length === 0) return alert("Brak danych o chorobach dla tego ubezpieczyciela");
+
+  document.getElementById('mcTitle').textContent = tuNazwa;
+  document.getElementById('mcLista').innerHTML = ch.sort((a,b)=>a.localeCompare(b,'pl')).map(c => `<li>${c}</li>`).join('');
+  
+  document.getElementById('modalChoroby').classList.remove('hidden');
+  document.getElementById('modalChoroby').classList.add('flex');
 }
 
 // Start
