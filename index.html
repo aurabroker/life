@@ -1,9 +1,10 @@
+<!-- PLIK ZAKTUALIZOWANY: Najnowsza wersja LIFEAURA (V1.4.1) -->
 <!DOCTYPE html>
 <html lang="pl" class="bg-slate-50 antialiased">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LIFEAURA — Porównywarka Życiowa B2B</title>
+  <title>LIFEAURA — Porównywarka Życiowa B2B (AKTUALNA WERSJA)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,7 +26,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.4.0</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.4.1 (NAJNOWSZA)</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -110,7 +111,6 @@
           <p class="text-xs font-bold text-slate-400 mt-1" id="kwSub">Klient: ... | Wersja: 1</p>
         </div>
         <div class="flex gap-2">
-          <!-- Zmiana: Przyciski Akcji z nowym przyciskiem Zapisu Oferty -->
           <button onclick="zapiszOferte()" class="text-xs font-bold bg-emerald-600 text-white px-5 py-2.5 rounded-xl shadow-sm hover:bg-emerald-700 transition-colors flex items-center gap-1"><span>💾</span> Zapisz Ofertę</button>
           <button onclick="generujRaportPDF()" class="text-xs font-bold bg-brand-gold text-white px-5 py-2.5 rounded-xl shadow-sm hover:bg-amber-600 transition-colors">Generuj Raport PDF</button>
         </div>
@@ -433,7 +433,6 @@ async function pokazOfertyKlienta(klId, nazwaFirmy) {
 async function zaladujSłownikiStartowe() {
   if(!SB_CLIENT) return;
   
-  // Zmiana: sortujemy po naszej nowej kolumnie 'kolejnosc', aby Zgon był na samej górze
   const { data: rData } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kolejnosc').order('nazwa');
   slownikRyzyk = rData || [];
   
