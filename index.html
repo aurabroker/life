@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LIFEAURA — Porównywarka Życiowa B2B (SaaS)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Skrypt wyciszający niegroźne ostrzeżenie Tailwind z konsoli -->
+  <script>
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+      originalWarn.apply(console, args);
+    };
+  </script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>tailwind.config={theme:{extend:{colors:{'brand-blue':'#1e3a8a','brand-gold':'#d97706','brand-light':'#f0fdf4'},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
@@ -23,7 +33,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.3</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.4</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap hidden" id="mainNav">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -283,10 +293,9 @@ const escStr = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
 // ─── NAWIGACJA ZAKŁADEK I ROUTING ───
 function switchTab(id, btn){
-  // Jeśli przycisk nie został przekazany jawnie (np. wywołanie z kodu), znajdujemy go po ID
   if(!btn) {
       btn = document.getElementById('btn-'+id);
-      if(!btn) return; // Zabezpieczenie przed błędnym ID
+      if(!btn) return;
   }
 
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -300,23 +309,19 @@ function switchTab(id, btn){
   btn.classList.add('bg-white','text-brand-blue','shadow-sm');
   btn.classList.remove('text-blue-200', 'text-amber-300');
 
-  // Funkcje specyficzne dla zakładek
   if(id === 'klienci') zaladujKlientow();
   if(id === 'ryzyka') zaladujWidokRyzyk();
   if(id === 'account') wczytajProfil();
   if(id === 'admin') loadAdminUsers();
 
-  // Zmiana adresu URL w przeglądarce bez przeładowania strony (Hash Routing)
   if(window.location.hash !== '#' + id) {
       history.pushState(null, null, '#' + id);
   }
 }
 
-// Obsługa przycisków "Wstecz/Dalej" w przeglądarce
 window.addEventListener('hashchange', () => {
     const hash = window.location.hash.replace('#', '');
     if(hash && document.getElementById('tab-' + hash)) {
-        // Zabezpieczenie Panelu Admina przed wymuszeniem z linku
         if(hash === 'admin' && currentRole !== 'admin') return;
         switchTab(hash);
     }
@@ -378,7 +383,7 @@ async function doAuth(akcja) {
 
 async function doLogout() {
     await SB_CLIENT.auth.signOut();
-    history.pushState(null, null, ' '); // Wyczyść hash po wylogowaniu
+    history.pushState(null, null, ' '); 
     location.reload();
 }
 
@@ -388,7 +393,6 @@ async function inicjalizujSesje() {
     document.getElementById('mainNav').classList.remove('hidden');
     document.getElementById('userBar').classList.remove('hidden');
     
-    // Sprawdzamy rolę i profil w tabeli `profiles`
     const { data, error } = await SB_CLIENT.from('profiles').select('*').eq('id', currentUser.id).single();
     
     if(data) {
@@ -397,7 +401,6 @@ async function inicjalizujSesje() {
         document.getElementById('ubRole').textContent = currentRole;
         if(currentRole === 'admin') document.getElementById('btn-admin').classList.remove('hidden');
     } else {
-        // Failsafe (Zabezpieczenie, jeśli trigger nie utworzył profilu z jakiegoś powodu)
         currentRole = 'broker';
         document.getElementById('ubName').textContent = currentUser.email;
         document.getElementById('ubRole').textContent = 'BROKER';
@@ -405,12 +408,10 @@ async function inicjalizujSesje() {
 
     await zaladujSłownikiStartowe();
     
-    // ZAUTOMATYZOWANY ODCZYT ADRESU URL (Hash Routing na starcie)
-    let startTab = 'klienci'; // Domyślna zakładka
+    let startTab = 'klienci';
     const hash = window.location.hash.replace('#', '');
     
     if(hash && document.getElementById('tab-' + hash)) {
-        // Zabezpieczenie przed podglądaniem panelu admina przez nieuprawnionych
         if(hash === 'admin' && currentRole !== 'admin') {
             startTab = 'klienci';
             history.pushState(null, null, '#klienci'); 
@@ -492,8 +493,29 @@ async function zaladujKlientow() {
   }
   tbody.innerHTML = data.map(k => `<tr class="hover:bg-slate-50 group border-b border-slate-100">
       <td class="p-4 font-bold text-brand-blue">${k.nazwa_firmy}</td><td class="p-4 text-slate-500">${k.nip || '-'}</td><td class="p-4">${k.liczba_pracownikow || '-'} os.</td><td class="p-4">${k.osoba_kontaktowa || '-'}</td>
-      <td class="p-4 text-center"><button onclick="switchTab('kreator', document.getElementById('btn-kreator')); document.getElementById('kreatorKlient').value='${k.id}';" class="text-xs bg-slate-100 hover:bg-brand-blue hover:text-white font-bold px-3 py-1.5 rounded-lg transition-colors">Utwórz Ofertę</button></td></tr>`).join('');
+      <td class="p-4 text-center space-x-2"><button onclick="pokazOfertyKlienta('${k.id}', '${escStr(k.nazwa_firmy)}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-colors">📂 Historie</button><button onclick="switchTab('kreator'); document.getElementById('kreatorKlient').value='${k.id}';" class="text-xs bg-brand-blue hover:bg-blue-900 text-white font-bold px-3 py-1.5 rounded-lg transition-colors">Utwórz Ofertę</button></td></tr>`).join('');
   select.innerHTML = '<option value="">Wybierz klienta...</option>' + data.map(k => `<option value="${k.id}">${k.nazwa_firmy}</option>`).join('');
+}
+
+async function pokazOfertyKlienta(klId, nazwaFirmy) {
+  document.getElementById('moTitle').textContent = nazwaFirmy;
+  const listaEl = document.getElementById('moLista');
+  listaEl.innerHTML = '<div class="text-center text-slate-400 text-sm py-8">Ładowanie historii...</div>';
+  document.getElementById('modalOferty').classList.remove('hidden');
+  document.getElementById('modalOferty').classList.add('flex');
+
+  const { data, error } = await SB_CLIENT.from('kalkulacje').select('*').eq('klient_id', klId).order('data_utworzenia', { ascending: false });
+  if (error || !data || data.length === 0) { listaEl.innerHTML = '<div class="text-center text-slate-500 text-sm py-8">Brak zapisanych ofert dla tego klienta.</div>'; return; }
+  
+  listaEl.innerHTML = data.map(k => `
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-3 flex justify-between items-center hover:border-brand-blue/30 transition-colors">
+      <div>
+         <div class="font-bold text-brand-blue text-base">${k.nazwa_wariantu} <span class="bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded text-[10px] ml-2 align-middle">V${k.wersja}</span></div>
+         <div class="text-xs text-slate-500 mt-1">Status: <span class="font-semibold ${k.status === 'Zapisana' ? 'text-emerald-600' : 'text-slate-700'}">${k.status}</span> | Utworzono: ${new Date(k.data_utworzenia).toLocaleDateString('pl-PL')}</div>
+      </div>
+      <button class="bg-white border border-slate-200 text-xs font-bold text-slate-600 px-4 py-2 rounded-lg shadow-sm hover:border-brand-blue transition-colors opacity-50 cursor-not-allowed" title="Funkcja podglądu będzie dostępna wkrótce">Podgląd (Wkrótce)</button>
+    </div>
+  `).join('');
 }
 
 async function zapiszKlienta() {
@@ -508,8 +530,19 @@ async function zapiszKlienta() {
 async function zaladujSłownikiStartowe() {
   const { data: rData } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kolejnosc').order('nazwa');
   slownikRyzyk = rData || [];
+  
   const { data: tuData } = await SB_CLIENT.from('ubezpieczyciele').select('*').eq('aktywny', true).order('nazwa');
   ubezpieczyciele = tuData || [];
+  
+  const { data: chData } = await SB_CLIENT.from('ubezpieczyciele_choroby').select('ubezpieczyciel_id, nazwa');
+  chorobyTU = {};
+  if(chData) {
+      chData.forEach(c => {
+          if(!chorobyTU[c.ubezpieczyciel_id]) chorobyTU[c.ubezpieczyciel_id] = [];
+          chorobyTU[c.ubezpieczyciel_id].push(c.nazwa);
+      });
+  }
+
   const div = document.getElementById('kreatorUbezpieczycieleList');
   div.innerHTML = ubezpieczyciele.map(tu => `<label class="tu-check-wrapper cursor-pointer select-none"><input type="checkbox" class="hidden tu-checkbox" value="${tu.id}"><div class="bg-white border-2 border-slate-200 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm shadow-sm">${tu.nazwa}</div></label>`).join('');
 }
@@ -517,7 +550,7 @@ async function zaladujSłownikiStartowe() {
 function zaladujWidokRyzyk() {
   const kont = {};
   slownikRyzyk.forEach(r => { let k = r.kategoria === 'Rodzina' ? 'Rodzinne' : r.kategoria; if(!kont[k]) kont[k] = []; kont[k].push(r.nazwa); });
-  document.getElementById('ryzykaTabela').innerHTML = Object.entries(kont).map(([kat, nazwy]) => `<div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl shadow-inner"><h3 class="text-xs font-black text-brand-blue uppercase tracking-widest border-b border-slate-200 pb-2 mb-3">${kat}</h3><ul class="text-sm text-slate-600 space-y-1">${nazwy.map(n => `<li>• ${n}</li>`).join('')}</ul></div>`).join('');
+  document.getElementById('ryzykaTabela').innerHTML = Object.entries(kont).map(([kat, nazwy]) => `<div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl shadow-inner break-inside-avoid"><h3 class="text-xs font-black text-brand-blue uppercase tracking-widest border-b border-slate-200 pb-2 mb-3">${kat}</h3><ul class="text-sm text-slate-600 space-y-1">${nazwy.map(n => `<li>• ${n}</li>`).join('')}</ul></div>`).join('');
 }
 
 function utworzSzkicKalkulacji() {
@@ -534,14 +567,202 @@ function utworzSzkicKalkulacji() {
   document.getElementById('kwTitle').textContent = `Wariant: ${war}`;
   document.getElementById('kwSub').textContent = `Firma: ${klient.nazwa_firmy}`;
   
+  const colspan = wybraniUbezpieczyciele.length + 3;
   let thHtml = `<tr><th class="p-3 w-1/3">Zdarzenie ubezpieczeniowe</th><th class="p-3 w-48 text-center bg-brand-blue/5">SU</th>`;
   wybraniUbezpieczyciele.forEach(tu => thHtml += `<th class="p-3 text-center min-w-[140px]">${tu.nazwa}</th>`);
-  thHtml += `<th></th></tr>`;
+  thHtml += `<th class="w-12"></th></tr>`;
   
-  let htmlBodies = ORDERED_CATEGORIES.map(k => `<tbody id="cat-${k}" class="divide-y divide-slate-100 border-b border-slate-200"><tr class="bg-slate-100"><td colspan="10" class="p-2 px-4 font-black text-[10px] text-slate-500 uppercase">${k}</td></tr></tbody>`).join('');
+  let htmlBodies = ORDERED_CATEGORIES.map(k => `<tbody id="cat-${k}" class="hidden divide-y divide-slate-100 border-b border-slate-200"><tr class="bg-slate-100"><td colspan="${colspan}" class="p-2 px-4 font-black text-[10px] text-slate-500 uppercase tracking-widest">${k}</td></tr></tbody>`).join('');
   
-  document.getElementById('matrycaTabela').innerHTML = `<thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">${thHtml}</thead>${htmlBodies}`;
+  htmlBodies += `
+    <tbody id="kreatorRyzykaInput">
+      <tr class="bg-slate-50/50">
+        <td class="p-3"><select id="noweRyzykoNazwa" class="inp font-semibold text-slate-700 bg-white">${getOptionsDlaRyzyka()}</select></td>
+        <td class="p-3 bg-brand-blue/5"><input type="number" id="noweRyzykoSU" class="inp text-center font-bold text-brand-blue bg-white" placeholder="np. 50000"></td>
+        <td colspan="${wybraniUbezpieczyciele.length + 1}" class="p-3 text-right">
+           <button onclick="dodajRyzykoDoKalkulacji()" class="bg-slate-200 hover:bg-brand-blue hover:text-white text-slate-700 font-bold px-5 py-2.5 rounded-lg text-xs transition-colors shadow-sm">➕ Dodaj Ryzyko do Wariantu</button>
+        </td>
+      </tr>
+    </tbody>
+  `;
+
+  let tfHtml = `<tr><td class="p-4 text-right uppercase tracking-widest text-xs text-slate-500">Składka miesięczna:</td><td class="p-4 bg-brand-blue/10"></td>`;
+  wybraniUbezpieczyciele.forEach(tu => {
+     tfHtml += `<td class="p-4 text-center border-l border-slate-200" id="suma-tu-${tu.id}"><span class="text-brand-blue font-black text-lg">0.00 zł</span></td>`;
+  });
+  tfHtml += `<td></td></tr>`;
+  
+  document.getElementById('matrycaTabela').innerHTML = `<thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase" id="kreatorRyzykaThead">${thHtml}</thead>${htmlBodies}<tfoot class="bg-slate-100 font-black text-brand-blue border-t-2 border-slate-200" id="kreatorRyzykaTfoot">${tfHtml}</tfoot>`;
   document.getElementById('kreatorWorkspace').classList.remove('hidden');
+  document.getElementById('kreatorWorkspace').scrollIntoView({behavior: 'smooth'});
+}
+
+function getOptionsDlaRyzyka() {
+  const kont = {};
+  slownikRyzyk.forEach(r => {
+    let kat = r.kategoria === 'Rodzina' ? 'Rodzinne' : r.kategoria;
+    if(!kont[kat]) kont[kat] = [];
+    kont[kat].push(r.nazwa);
+  });
+
+  let html = '<option value="">Wybierz ryzyko ze słownika...</option>';
+  for(const [kat, nazwy] of Object.entries(kont)) {
+     html += `<optgroup label="--- ${kat.toUpperCase()} ---">`;
+     nazwy.forEach(n => { html += `<option value="${escStr(n)}">${n}</option>`; });
+     html += `</optgroup>`;
+  }
+  return html;
+}
+
+function przeliczSumy() {
+    wybraniUbezpieczyciele.forEach(tu => {
+        const inputs = document.querySelectorAll(`.cena-tu-${tu.id}`);
+        let suma = 0;
+        inputs.forEach(inp => { const val = parseFloat(inp.value); if (!isNaN(val)) suma += val; });
+        const sumaEl = document.getElementById(`suma-tu-${tu.id}`);
+        if (sumaEl) sumaEl.innerHTML = `<span class="text-brand-blue font-black text-lg">${suma.toFixed(2)} zł</span>`;
+    });
+}
+
+function dodajRyzykoDoKalkulacji() {
+  const selectEl = document.getElementById('noweRyzykoNazwa');
+  const nazwa = selectEl.value;
+  const su = parseFloat(document.getElementById('noweRyzykoSU').value);
+  
+  if(!nazwa || isNaN(su)) return alert("Wybierz ryzyko z listy i podaj sumę ubezpieczenia (SU)");
+
+  const ryzykoObj = slownikRyzyk.find(r => r.nazwa === nazwa);
+  let kat = ryzykoObj ? ryzykoObj.kategoria : 'Inne';
+  if (kat === 'Rodzina') kat = 'Rodzinne';
+  if (!ORDERED_CATEGORIES.includes(kat)) kat = 'Inne';
+
+  const tbodyCat = document.getElementById('cat-' + kat);
+  if (tbodyCat) tbodyCat.classList.remove('hidden');
+
+  const tr = document.createElement('tr');
+  tr.className = "hover:bg-slate-50 transition-colors group ryzyko-row"; 
+  
+  let tdHtml = `
+    <td class="p-3 font-semibold text-slate-700 leading-tight pl-6 border-l-2 border-brand-blue/20 ryzyko-nazwa">${nazwa}</td>
+    <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue ryzyko-su" data-su="${su}">${su.toLocaleString('pl-PL')} zł</td>
+  `;
+
+  const isChoroby = nazwa.toLowerCase().includes('poważne zachorowanie') || nazwa.toLowerCase().includes('powazne zachorowanie');
+
+  wybraniUbezpieczyciele.forEach(tu => {
+     let opcje = '';
+     if (isChoroby) {
+         let count = chorobyTU[tu.id] ? chorobyTU[tu.id].length : 0;
+         if(count > 0) {
+             opcje = `<div onclick="pokazChoroby(${tu.id}, '${escStr(tu.nazwa)}')" class="mt-1.5 text-[10px] text-brand-blue font-bold cursor-pointer hover:underline bg-brand-blue/10 rounded px-2 py-1 mx-auto max-w-fit">🦠 ${count} jednostek (ZOBACZ)</div>`;
+         } else {
+             opcje = `<div class="mt-1.5 text-[10px] text-slate-400 font-bold">Brak słownika</div>`;
+         }
+     }
+
+     tdHtml += `
+       <td class="p-3 border-l border-slate-200 text-center">
+         <input type="number" step="0.01" class="inp p-1.5 text-center text-sm font-bold w-24 mx-auto block cena-tu-${tu.id}" placeholder="0.00" oninput="przeliczSumy()">
+         ${opcje}
+       </td>
+     `;
+  });
+
+  tdHtml += `<td class="p-3 text-center"><button onclick="usunRyzykoZMatrycy(this, '${kat}')" class="text-slate-300 font-bold hover:bg-red-50 hover:text-red-600 w-6 h-6 rounded-md transition-colors text-lg flex items-center justify-center mx-auto">&times;</button></td>`;
+  tr.innerHTML = tdHtml;
+  
+  if (tbodyCat) tbodyCat.appendChild(tr);
+  
+  selectEl.selectedIndex = 0;
+  document.getElementById('noweRyzykoSU').value = '';
+}
+
+function usunRyzykoZMatrycy(btn, kategoria) {
+  const tbody = btn.closest('tbody');
+  btn.closest('tr').remove();
+  if (tbody.querySelectorAll('tr').length <= 1) tbody.classList.add('hidden');
+  przeliczSumy();
+}
+
+function pokazChoroby(tuId, tuNazwa) {
+  const ch = chorobyTU[tuId];
+  if(!ch || ch.length === 0) return alert("Brak danych o chorobach dla tego ubezpieczyciela");
+  document.getElementById('mcTitle').textContent = tuNazwa;
+  document.getElementById('mcLista').innerHTML = ch.sort((a,b)=>a.localeCompare(b,'pl')).map(c => `<li>${c}</li>`).join('');
+  document.getElementById('modalChoroby').classList.remove('hidden');
+  document.getElementById('modalChoroby').classList.add('flex');
+}
+
+async function zapiszOferte() {
+    if(!SB_CLIENT || !currentKlientId) return alert("Błąd: Brak przypisanego klienta.");
+    const { data: calcData, error: calcErr } = await SB_CLIENT.from('kalkulacje').insert([{ klient_id: currentKlientId, nazwa_wariantu: currentWariantNazwa, status: 'Zapisana' }]).select();
+    if (calcErr) return alert("Błąd zapisu kalkulacji: " + calcErr.message);
+    
+    const nowaKalkulacjaId = calcData[0].id;
+    let ryzykaDoZapisu = [], cenyDoZapisu = [];
+    const wierszeRyzyk = document.querySelectorAll('.ryzyko-row');
+    
+    if (wierszeRyzyk.length === 0) return alert("Nie można zapisać pustej oferty.");
+
+    wierszeRyzyk.forEach(row => {
+        const ryzykoNazwa = row.querySelector('.ryzyko-nazwa').textContent.trim();
+        const suWartosc = parseFloat(row.querySelector('.ryzyko-su').getAttribute('data-su')) || 0;
+        const ryzykoObj = slownikRyzyk.find(r => r.nazwa === ryzykoNazwa);
+        
+        if(ryzykoObj) {
+            ryzykaDoZapisu.push({ kalkulacja_id: nowaKalkulacjaId, ryzyko_id: ryzykoObj.id, suma_ubezpieczenia: suWartosc });
+            wybraniUbezpieczyciele.forEach(tu => {
+                const inputCena = row.querySelector(`.cena-tu-${tu.id}`);
+                if (inputCena && !isNaN(parseFloat(inputCena.value))) {
+                    cenyDoZapisu.push({ kalkulacja_id: nowaKalkulacjaId, ubezpieczyciel_id: tu.id, ryzyko_id: ryzykoObj.id, cena_miesieczna: parseFloat(inputCena.value) });
+                }
+            });
+        }
+    });
+
+    if (ryzykaDoZapisu.length > 0) await SB_CLIENT.from('kalkulacje_ryzyka').insert(ryzykaDoZapisu);
+    if (cenyDoZapisu.length > 0) await SB_CLIENT.from('kalkulacje_ceny').insert(cenyDoZapisu);
+
+    document.getElementById('kwSub').innerHTML = `Firma: Pomyślnie zapisano | Wersja: 1 | <span class="text-emerald-600">Status: Zapisana</span>`;
+    alert("✅ Oferta została poprawnie zapisana w bazie klienta!");
+}
+
+function generujRaportPDF() {
+    if(wybraniUbezpieczyciele.length === 0) return alert("Brak ubezpieczycieli do wygenerowania raportu");
+    
+    const wariant = document.getElementById('kwTitle').textContent;
+    const sub = document.getElementById('kwSub').textContent;
+    
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Zestawienie - LifeAura</title><style>body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10px; color: #1e293b; padding: 25px; }h1 { font-size: 20px; color: #1e3a8a; margin-bottom: 4px; }.sub { font-size: 10px; color: #64748b; margin-bottom: 25px; }table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }th { background: #1e3a8a; color: #fff; padding: 10px; font-size: 11px; text-transform: uppercase; text-align: center; border: 1px solid #cbd5e1; }th:first-child { text-align: left; }td { padding: 8px; border: 1px solid #e2e8f0; text-align: center; }td:first-child { text-align: left; font-weight: bold; }.cat-row td { background: #f1f5f9; font-weight: 900; text-align: left; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; color: #1e3a8a; }.sum-row td { background: #f8fafc; font-weight: bold; font-size: 14px; color: #1e3a8a; border-top: 3px solid #1e3a8a; padding: 15px 8px; }.su-col { background: #f0fdf4; font-weight: bold; color: #166534; }</style></head><body><h1>LIFEAURA - Zestawienie Ofert B2B</h1><div class="sub">${wariant}<br>${sub}<br>Data wygenerowania: ${new Date().toLocaleString('pl-PL')}</div><table><thead><tr><th style="width: 40%;">Zdarzenie ubezpieczeniowe</th><th style="width: 15%;">Suma Ubezp.</th>`;
+    
+    wybraniUbezpieczyciele.forEach(tu => { html += `<th>${tu.nazwa}</th>`; });
+    html += `</tr></thead><tbody>`;
+    
+    ORDERED_CATEGORIES.forEach(k => {
+        const tbody = document.getElementById('cat-' + k);
+        if(tbody && !tbody.classList.contains('hidden')) {
+            const rows = tbody.querySelectorAll('tr.ryzyko-row');
+            if(rows.length > 0) { 
+                html += `<tr class="cat-row"><td colspan="${wybraniUbezpieczyciele.length + 2}">${k}</td></tr>`;
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    html += `<tr><td>${cells[0].textContent.trim()}</td><td class="su-col">${cells[1].textContent.trim()}</td>`;
+                    for(let j = 0; j < wybraniUbezpieczyciele.length; j++) {
+                        const input = cells[j+2].querySelector('input');
+                        html += `<td>${(input && input.value) ? parseFloat(input.value).toFixed(2) + ' zł' : '-'}</td>`;
+                    }
+                    html += `</tr>`;
+                });
+            }
+        }
+    });
+    
+    html += `</tbody><tfoot><tr class="sum-row"><td style="text-align: right; font-size: 11px; color: #64748b; text-transform: uppercase;">Łączna składka miesięczna:</td><td class="su-col"></td>`;
+    wybraniUbezpieczyciele.forEach(tu => { html += `<td>${document.getElementById(`suma-tu-${tu.id}`).textContent.trim()}</td>`; });
+    html += `</tr></tfoot></table><div style="text-align: right; font-size: 9px; color: #94a3b8;">Wygenerowano w systemie LifeAura</div></body></html>`;
+    
+    const w = window.open('','_blank'); w.document.write(html); w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 500);
 }
 
 // ─── POBIERANIE Z GUS ───
