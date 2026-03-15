@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pl" class="bg-slate-50 antialiased">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LIFEAURA — Porównywarka Życiowa B2B</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>tailwind.config={theme:{extend:{colors:{'brand-blue':'#1e3a8a','brand-gold':'#d97706','brand-light':'#f0fdf4'},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <style>
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    .custom-scroll::-webkit-scrollbar{height:5px;width:5px}.custom-scroll::-webkit-scrollbar-track{background:#f8fafc;border-radius:4px}.custom-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+    .inp{width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px 12px;font-size:13px;outline:none;transition: border-color .2s;}
+    .inp:focus{border-color:#1e3a8a}
+    .lbl{display:block;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+<header class="bg-brand-blue text-white shadow-md sticky top-0 z-40">
+  <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.0</span>
+    </div>
+    <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap">
+      <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
+      <button onclick="switchTab('kreator',this)" id="btn-kreator" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg text-blue-200 hover:text-white">⚙️ Kreator Oferty</button>
+      <button onclick="switchTab('ryzyka',this)"  id="btn-ryzyka"  class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg text-blue-200 hover:text-white">📑 Słownik Ryzyk</button>
+      <button onclick="switchTab('admin',this)"   id="btn-admin"   class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg text-blue-200 hover:text-white">🔒 Baza Danych</button>
+    </nav>
+  </div>
+</header>
+
+<main class="flex-grow max-w-[1500px] mx-auto w-full px-6 py-8 relative">
+
+  <!-- ══════════════════════════════ KLIENCI -->
+  <div id="tab-klienci" class="tab-panel active">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h2 class="text-2xl font-black text-brand-blue">Baza Klientów B2B</h2>
+        <p class="text-sm text-slate-500">Zarządzaj swoimi klientami ubezpieczeniowymi i historią ich kalkulacji.</p>
+      </div>
+      <button onclick="document.getElementById('modalNowyKlient').classList.remove('hidden'); document.getElementById('modalNowyKlient').classList.add('flex');" class="bg-brand-gold hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform active:scale-95">➕ Dodaj Klienta</button>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="text-xs text-slate-400 uppercase bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="p-4 font-bold">Nazwa Firmy</th>
+              <th class="p-4 font-bold">NIP</th>
+              <th class="p-4 font-bold">L. Prac.</th>
+              <th class="p-4 font-bold">Kontakt</th>
+              <th class="p-4 font-bold text-center">Akcje</th>
+            </tr>
+          </thead>
+          <tbody id="listaKlientowTbody" class="divide-y divide-slate-100">
+            <tr><td colspan="5" class="p-8 text-center text-slate-400">Ładowanie klientów... (Podłącz klucze Supabase)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════ KREATOR OFERTY (Zarządzanie ryzykami i cenami) -->
+  <div id="tab-kreator" class="tab-panel">
+    <div class="mb-6">
+      <h2 class="text-2xl font-black text-brand-blue">Kreator Ofert Grupowych</h2>
+      <p class="text-sm text-slate-500">Krok 1: Budowa wariantu. Krok 2: Wprowadzenie cen od ubezpieczycieli.</p>
+    </div>
+
+    <!-- Wybór klienta i podstawowe info -->
+    <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label class="lbl">Wybierz Klienta z bazy</label>
+          <select id="kreatorKlient" class="inp bg-slate-100 font-bold text-brand-blue border-brand-blue/20">
+            <option value="">Wybierz...</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Nazwa Wariantu (np. Dyrekcja)</label>
+          <input type="text" id="kreatorWariant" class="inp" placeholder="np. Wariant Podstawowy">
+        </div>
+        <div class="flex items-end">
+          <button onclick="utworzSzkicKalkulacji()" class="w-full bg-brand-blue hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-transform active:scale-95">Utwórz Szkic Porównania</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workspace Wariantu (pokazywany po utworzeniu szkicu) -->
+    <div id="kreatorWorkspace" class="hidden bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+      <div class="flex justify-between border-b border-slate-200 pb-4 mb-6">
+        <div>
+          <h3 class="text-lg font-black text-brand-blue" id="kwTitle">Wariant: ...</h3>
+          <p class="text-xs text-slate-400" id="kwSub">Klient: ... | Wersja: 1</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="text-xs font-bold bg-slate-100 text-slate-600 px-4 py-2 rounded-lg">Pobierz Excel</button>
+          <button class="text-xs font-bold bg-brand-gold text-white px-4 py-2 rounded-lg shadow-sm">Generuj Raport PDF</button>
+        </div>
+      </div>
+
+      <!-- Tabela konstrukcji wariantu -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left border border-slate-200 rounded-xl overflow-hidden">
+          <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase">
+            <tr>
+              <th class="p-3 w-1/3">Zdarzenie ubezpieczeniowe (Ryzyko)</th>
+              <th class="p-3 w-48 text-center bg-brand-blue/5">Suma Ubezp. (SU)</th>
+              <th class="p-3 text-center border-l border-slate-200">PZU Życie (Cena)</th>
+              <th class="p-3 text-center">Warta (Cena)</th>
+              <th class="p-3 text-center">Generali (Cena)</th>
+              <th class="p-3 text-center"></th>
+            </tr>
+          </thead>
+          <tbody id="kreatorRyzykaTbody" class="divide-y divide-slate-100">
+            <!-- Wiersz dodawania nowego ryzyka -->
+            <tr class="bg-slate-50/50">
+              <td class="p-3">
+                <input type="text" id="noweRyzykoNazwa" list="dl-ryzyka" class="inp" placeholder="Wyszukaj z Almanachu...">
+              </td>
+              <td class="p-3 bg-brand-blue/5">
+                <input type="number" id="noweRyzykoSU" class="inp text-center font-bold text-brand-blue" placeholder="np. 50000">
+              </td>
+              <td colspan="4" class="p-3">
+                <button onclick="dodajRyzykoDoKalkulacji()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition-colors">➕ Dodaj Ryzyko do Matrycy</button>
+              </td>
+            </tr>
+            <!-- Przykładowy wyrenderowany wiersz -->
+            <tr>
+              <td class="p-3 font-semibold text-slate-700">Zgon w następstwie nieszczęśliwego wypadku (NW)</td>
+              <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue">100 000 zł</td>
+              <td class="p-3 border-l border-slate-200 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
+              <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
+              <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
+              <td class="p-3 text-center"><button class="text-red-500 font-bold hover:bg-red-50 p-1 rounded">✕</button></td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-slate-100 font-black text-brand-blue border-t-2 border-slate-200">
+            <tr>
+              <td class="p-4 text-right uppercase tracking-widest text-xs text-slate-500">Łączna składka miesięczna za osobę:</td>
+              <td class="p-4 bg-brand-blue/10"></td>
+              <td class="p-4 text-center border-l border-slate-200">0.00 zł</td>
+              <td class="p-4 text-center">0.00 zł</td>
+              <td class="p-4 text-center">0.00 zł</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <datalist id="dl-ryzyka"></datalist>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════ SŁOWNIK RYZYK -->
+  <div id="tab-ryzyka" class="tab-panel">
+    <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-6">
+      <h2 class="text-xl font-bold text-brand-blue mb-2">📑 Słownik Ryzyk (Almanach)</h2>
+      <p class="text-sm text-slate-500 mb-6">Wspólna baza ryzyk, na której bazują wszystkie kalkulacje.</p>
+      
+      <div id="ryzykaTabela" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Renderowane przez JS -->
+        <div class="text-slate-400 text-sm">Podłącz bazę Supabase...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════ BAZA DANYCH (ADMIN) -->
+  <div id="tab-admin" class="tab-panel">
+    <div class="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm mb-6">
+      <h2 class="text-xl font-bold text-brand-blue mb-4">🔌 Konfiguracja Bazy Danych Supabase</h2>
+      <p class="text-sm text-slate-500 mb-6">Aby system zadziałał, wgraj plik <strong>lifeaura_db.sql</strong> do nowego projektu Supabase, a następnie wklej tu klucze dostępowe.</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div><label class="lbl">Supabase URL</label><input type="text" id="cfgUrl" class="inp" placeholder="https://....supabase.co"/></div>
+        <div><label class="lbl">Supabase Anon Key</label><input type="password" id="cfgKey" class="inp" placeholder="eyJhbGciOi..."/></div>
+      </div>
+      <div class="flex gap-4 items-center">
+        <button onclick="zapiszConfig()" class="bg-brand-blue text-white font-bold py-3 px-8 rounded-xl shadow-md transition-transform active:scale-95">💾 Zapisz konfigurację</button>
+        <span id="connStatus" class="text-sm font-bold text-slate-500">Brak połączenia</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL DODAWANIA KLIENTA -->
+<div id="modalNowyKlient" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
+    <button onclick="document.getElementById('modalNowyKlient').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
+    <h2 class="text-xl font-black text-brand-blue mb-6">➕ Dodaj nowego Klienta</h2>
+    
+    <div class="space-y-4 mb-6">
+      <div><label class="lbl">Nazwa Firmy</label><input type="text" id="nkNazwa" class="inp" placeholder="np. ACME Sp. z o.o."></div>
+      <div><label class="lbl">NIP</label><input type="text" id="nkNip" class="inp" placeholder="000-000-00-00"></div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="lbl">Branża</label><input type="text" id="nkBranza" class="inp" placeholder="np. IT"></div>
+        <div><label class="lbl">Liczba prac.</label><input type="number" id="nkPracownicy" class="inp" placeholder="np. 50"></div>
+      </div>
+      <div><label class="lbl">Osoba kontaktowa (Opcjonalnie)</label><input type="text" id="nkOsoba" class="inp"></div>
+    </div>
+    
+    <button onclick="zapiszKlienta()" class="w-full bg-brand-gold hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-md transition-colors">Zapisz Klienta w Bazie</button>
+  </div>
+</div>
+
+<script>
+// ─── OBSŁUGA ZAKŁADEK I STANU APLIKACJI ───
+let SB_URL = localStorage.getItem('lifeaura_url') || '';
+let SB_KEY = localStorage.getItem('lifeaura_key') || '';
+let SB_CLIENT = null;
+
+let slownikRyzyk = [];
+let listaKlientow = [];
+let currentCalcId = null;
+
+function switchTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.remove('bg-white','text-brand-blue','shadow-sm');
+    b.classList.add('text-blue-200');
+  });
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('bg-white','text-brand-blue','shadow-sm');
+  btn.classList.remove('text-blue-200');
+
+  if(id === 'klienci') zaladujKlientow();
+  if(id === 'ryzyka') zaladujRyzyka();
+}
+
+// ─── SUPABASE POŁĄCZENIE ───
+function zapiszConfig() {
+  SB_URL = document.getElementById('cfgUrl').value.trim();
+  SB_KEY = document.getElementById('cfgKey').value.trim();
+  localStorage.setItem('lifeaura_url', SB_URL);
+  localStorage.setItem('lifeaura_key', SB_KEY);
+  initApp();
+}
+
+async function initApp() {
+  document.getElementById('cfgUrl').value = SB_URL;
+  document.getElementById('cfgKey').value = SB_KEY;
+  
+  if (!SB_URL || !SB_KEY) {
+    document.getElementById('connStatus').innerHTML = '❌ Brak kluczy bazy danych';
+    return;
+  }
+  
+  SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
+  
+  const { data, error } = await SB_CLIENT.from('ubezpieczyciele').select('id').limit(1);
+  if (error) {
+    document.getElementById('connStatus').innerHTML = '❌ Błąd połączenia. Sprawdź URL/KEY i czy odpaliłeś plik lifeaura_db.sql';
+    document.getElementById('connStatus').className = "text-sm font-bold text-red-500";
+  } else {
+    document.getElementById('connStatus').innerHTML = '✅ Połączono z bazą ubezpieczeń na życie';
+    document.getElementById('connStatus').className = "text-sm font-bold text-emerald-600";
+    zaladujRyzykaSłownik();
+    zaladujKlientow();
+  }
+}
+
+// ─── ZARZĄDZANIE KLIENTAMI ───
+async function zapiszKlienta() {
+  if(!SB_CLIENT) return alert("Podłącz bazę Supabase w zakładce Baza Danych");
+  const nazwa = document.getElementById('nkNazwa').value.trim();
+  if(!nazwa) return alert("Nazwa firmy jest wymagana");
+
+  const body = {
+    nazwa_firmy: nazwa,
+    nip: document.getElementById('nkNip').value.trim(),
+    branza: document.getElementById('nkBranza').value.trim(),
+    liczba_pracownikow: parseInt(document.getElementById('nkPracownicy').value) || null,
+    osoba_kontaktowa: document.getElementById('nkOsoba').value.trim()
+  };
+
+  const { error } = await SB_CLIENT.from('klienci').insert([body]);
+  if(error) alert("Błąd zapisu: " + error.message);
+  else {
+    document.getElementById('modalNowyKlient').classList.add('hidden');
+    zaladujKlientow();
+  }
+}
+
+async function zaladujKlientow() {
+  if(!SB_CLIENT) return;
+  const { data } = await SB_CLIENT.from('klienci').select('*').order('utworzono', {ascending: false});
+  listaKlientow = data || [];
+  
+  const tbody = document.getElementById('listaKlientowTbody');
+  const select = document.getElementById('kreatorKlient');
+  
+  if(!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 font-bold">Brak klientów w bazie. Dodaj pierwszego.</td></tr>';
+    select.innerHTML = '<option value="">Brak klientów</option>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(k => `
+    <tr class="hover:bg-slate-50 transition-colors group cursor-pointer">
+      <td class="p-4 font-bold text-brand-blue group-hover:underline">${k.nazwa_firmy}</td>
+      <td class="p-4 text-slate-500">${k.nip || '-'}</td>
+      <td class="p-4 font-semibold text-slate-600">${k.liczba_pracownikow || '-'} os.</td>
+      <td class="p-4 text-slate-500">${k.osoba_kontaktowa || '-'}</td>
+      <td class="p-4 text-center">
+         <button onclick="switchTab('kreator', document.getElementById('btn-kreator')); document.getElementById('kreatorKlient').value='${k.id}';" class="text-xs bg-slate-100 hover:bg-brand-blue hover:text-white font-bold px-3 py-1.5 rounded-lg transition-colors">Utwórz Ofertę</button>
+      </td>
+    </tr>
+  `).join('');
+
+  select.innerHTML = '<option value="">Wybierz klienta...</option>' + data.map(k => `<option value="${k.id}">${k.nazwa_firmy}</option>`).join('');
+}
+
+// ─── ZARZĄDZANIE RYZYKAMI ───
+async function zaladujRyzykaSłownik() {
+  if(!SB_CLIENT) return;
+  const { data } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kategoria');
+  slownikRyzyk = data || [];
+  
+  // Aktualizacja datalist dla inputa w kreatorze
+  document.getElementById('dl-ryzyka').innerHTML = slownikRyzyk.map(r => `<option value="${r.nazwa}">`).join('');
+}
+
+async function zaladujRyzyka() {
+  if(slownikRyzyk.length === 0) await zaladujRyzykaSłownik();
+  
+  const kontenery = {};
+  slownikRyzyk.forEach(r => {
+    if(!kontenery[r.kategoria]) kontenery[r.kategoria] = [];
+    kontenery[r.kategoria].push(r.nazwa);
+  });
+
+  const kontenerEl = document.getElementById('ryzykaTabela');
+  kontenerEl.innerHTML = Object.entries(kontenery).map(([kat, nazwy]) => `
+    <div class="bg-slate-50 border border-slate-100 p-5 rounded-2xl shadow-inner break-inside-avoid">
+      <h3 class="text-xs font-black text-brand-blue uppercase tracking-widest border-b border-slate-200 pb-2 mb-3">${kat}</h3>
+      <ul class="text-sm text-slate-600 space-y-2">
+        ${nazwy.map(n => `<li>• ${n}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+// ─── KREATOR (Wersja demonstracyjna MVP) ───
+function utworzSzkicKalkulacji() {
+  const klId = document.getElementById('kreatorKlient').value;
+  const war = document.getElementById('kreatorWariant').value.trim();
+  
+  if(!klId || !war) return alert("Wybierz klienta i podaj nazwę wariantu");
+  
+  const klient = listaKlientow.find(k => k.id === klId);
+  document.getElementById('kwTitle').textContent = `Wariant: ${war}`;
+  document.getElementById('kwSub').textContent = `Firma: ${klient.nazwa_firmy} | Wersja: 1 | Status: Szkic`;
+  
+  document.getElementById('kreatorWorkspace').classList.remove('hidden');
+  document.getElementById('kreatorWorkspace').scrollIntoView({behavior: 'smooth'});
+}
+
+function dodajRyzykoDoKalkulacji() {
+  const nazwa = document.getElementById('noweRyzykoNazwa').value.trim();
+  const su = parseFloat(document.getElementById('noweRyzykoSU').value);
+  
+  if(!nazwa || isNaN(su)) return alert("Podaj nazwę ryzyka i sumę ubezpieczenia (SU)");
+
+  const tbody = document.getElementById('kreatorRyzykaTbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="p-3 font-semibold text-slate-700">${nazwa}</td>
+    <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue">${su.toLocaleString('pl-PL')} zł</td>
+    <td class="p-3 border-l border-slate-200 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
+    <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
+    <td class="p-3 text-center"><input type="number" class="inp p-1.5 text-center text-xs" placeholder="0.00"></td>
+    <td class="p-3 text-center"><button onclick="this.closest('tr').remove()" class="text-red-500 font-bold hover:bg-red-50 p-1 rounded transition-colors">✕</button></td>
+  `;
+  
+  // Wstawiamy nowy wiersz przed ostatnim wierszem (który służy do dodawania)
+  tbody.insertBefore(tr, tbody.lastElementChild);
+  
+  document.getElementById('noweRyzykoNazwa').value = '';
+  document.getElementById('noweRyzykoSU').value = '';
+}
+
+// Start
+window.onload = () => {
+  initApp();
+};
+</script>
+
+</body>
+</html>
