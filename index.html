@@ -23,7 +23,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.2</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.3</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap hidden" id="mainNav">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -281,23 +281,47 @@ let currentWariantNazwa = '';
 const ORDERED_CATEGORIES = ['Zgon', 'Rodzinne', 'Wypadek', 'Zdrowie', 'Szpital', 'Inne'];
 const escStr = (s) => s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
-// ─── NAWIGACJA ZAKŁADEK ───
+// ─── NAWIGACJA ZAKŁADEK I ROUTING ───
 function switchTab(id, btn){
+  // Jeśli przycisk nie został przekazany jawnie (np. wywołanie z kodu), znajdujemy go po ID
+  if(!btn) {
+      btn = document.getElementById('btn-'+id);
+      if(!btn) return; // Zabezpieczenie przed błędnym ID
+  }
+
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>{
     b.classList.remove('bg-white','text-brand-blue','shadow-sm');
     b.classList.add('text-blue-200');
     if(b.id === 'btn-admin') b.classList.add('text-amber-300'); 
   });
+  
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('bg-white','text-brand-blue','shadow-sm');
   btn.classList.remove('text-blue-200', 'text-amber-300');
 
+  // Funkcje specyficzne dla zakładek
   if(id === 'klienci') zaladujKlientow();
   if(id === 'ryzyka') zaladujWidokRyzyk();
   if(id === 'account') wczytajProfil();
   if(id === 'admin') loadAdminUsers();
+
+  // Zmiana adresu URL w przeglądarce bez przeładowania strony (Hash Routing)
+  if(window.location.hash !== '#' + id) {
+      history.pushState(null, null, '#' + id);
+  }
 }
+
+// Obsługa przycisków "Wstecz/Dalej" w przeglądarce
+window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if(hash && document.getElementById('tab-' + hash)) {
+        // Zabezpieczenie Panelu Admina przed wymuszeniem z linku
+        if(hash === 'admin' && currentRole !== 'admin') return;
+        switchTab(hash);
+    }
+});
+
 
 // ─── START I AUTORYZACJA ───
 window.onload = async () => {
@@ -327,7 +351,6 @@ async function doAuth(akcja) {
   if(akcja === 'login') {
       const { data, error } = await SB_CLIENT.auth.signInWithPassword({ email, password: pass });
       if(error) {
-          // Lepsza diagnostyka błędów
           let msg = error.message;
           if(msg.includes('Email not confirmed')) {
              msg = `Konto nie zostało aktywowane. <br><br><b>Wskazówka:</b> Wyłącz opcję <i>"Confirm email"</i> w panelu Supabase (Authentication -> Providers -> Email), aby logować się bez potwierdzania adresu z linku.`;
@@ -355,6 +378,7 @@ async function doAuth(akcja) {
 
 async function doLogout() {
     await SB_CLIENT.auth.signOut();
+    history.pushState(null, null, ' '); // Wyczyść hash po wylogowaniu
     location.reload();
 }
 
@@ -380,7 +404,22 @@ async function inicjalizujSesje() {
     }
 
     await zaladujSłownikiStartowe();
-    await zaladujKlientow();
+    
+    // ZAUTOMATYZOWANY ODCZYT ADRESU URL (Hash Routing na starcie)
+    let startTab = 'klienci'; // Domyślna zakładka
+    const hash = window.location.hash.replace('#', '');
+    
+    if(hash && document.getElementById('tab-' + hash)) {
+        // Zabezpieczenie przed podglądaniem panelu admina przez nieuprawnionych
+        if(hash === 'admin' && currentRole !== 'admin') {
+            startTab = 'klienci';
+            history.pushState(null, null, '#klienci'); 
+        } else {
+            startTab = hash;
+        }
+    }
+    
+    switchTab(startTab);
 }
 
 // ─── RESZTA GŁÓWNEGO KODU ───
