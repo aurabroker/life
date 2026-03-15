@@ -433,7 +433,8 @@ async function pokazOfertyKlienta(klId, nazwaFirmy) {
 async function zaladujSłownikiStartowe() {
   if(!SB_CLIENT) return;
   
-  const { data: rData } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kategoria');
+  // Zmiana: sortujemy po naszej nowej kolumnie 'kolejnosc', aby Zgon był na samej górze
+  const { data: rData } = await SB_CLIENT.from('ryzyka_slownik').select('*').order('kolejnosc').order('nazwa');
   slownikRyzyk = rData || [];
   
   const { data: tuData } = await SB_CLIENT.from('ubezpieczyciele').select('*').eq('aktywny', true).order('nazwa');
