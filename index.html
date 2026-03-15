@@ -25,7 +25,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.3.1</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">B2B V1.4.0</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -110,7 +110,8 @@
           <p class="text-xs font-bold text-slate-400 mt-1" id="kwSub">Klient: ... | Wersja: 1</p>
         </div>
         <div class="flex gap-2">
-          <!-- Zmiana: podpięcie pod przycisk funkcji generujRaportPDF() -->
+          <!-- Zmiana: Przyciski Akcji z nowym przyciskiem Zapisu Oferty -->
+          <button onclick="zapiszOferte()" class="text-xs font-bold bg-emerald-600 text-white px-5 py-2.5 rounded-xl shadow-sm hover:bg-emerald-700 transition-colors flex items-center gap-1"><span>💾</span> Zapisz Ofertę</button>
           <button onclick="generujRaportPDF()" class="text-xs font-bold bg-brand-gold text-white px-5 py-2.5 rounded-xl shadow-sm hover:bg-amber-600 transition-colors">Generuj Raport PDF</button>
         </div>
       </div>
@@ -194,6 +195,21 @@
   </div>
 </div>
 
+<!-- MODAL HISTORII OFERT KLIENTA -->
+<div id="modalOferty" class="fixed inset-0 bg-slate-900/60 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative max-h-[80vh] flex flex-col">
+    <button onclick="document.getElementById('modalOferty').classList.add('hidden')" class="absolute top-5 right-5 text-3xl text-slate-400 hover:text-slate-700 leading-none">&times;</button>
+    <div class="mb-4 border-b border-slate-100 pb-4">
+      <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Historia zapisanych ofert</div>
+      <h2 id="moTitle" class="text-2xl font-black text-brand-blue"></h2>
+    </div>
+    
+    <div class="overflow-y-auto custom-scroll flex-grow pr-2" id="moLista">
+      <!-- Renderowane JS -->
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── TWARDE KLUCZE API DLA PROJEKTU LIFEAURA ───
 const SB_URL = 'https://glphioldqqgbmccmufnm.supabase.co';
@@ -205,6 +221,10 @@ let listaKlientow = [];
 let ubezpieczyciele = [];
 let chorobyTU = {}; 
 let wybraniUbezpieczyciele = [];
+
+// Zmienne stanu bieżącego wariantu
+let currentKlientId = null;
+let currentWariantNazwa = '';
 
 // Zdefiniowana poprawna kolejność sekcji na matrycy ofertowej
 const ORDERED_CATEGORIES = ['Zgon', 'Rodzinne', 'Wypadek', 'Zdrowie', 'Szpital', 'Inne'];
@@ -366,14 +386,48 @@ async function zaladujKlientow() {
       <td class="p-4 text-slate-500">${k.nip || '-'}</td>
       <td class="p-4 font-semibold text-slate-600">${k.liczba_pracownikow || '-'} os.</td>
       <td class="p-4 text-slate-500">${k.osoba_kontaktowa || '-'}</td>
-      <td class="p-4 text-center">
-         <button onclick="switchTab('kreator', document.getElementById('btn-kreator')); document.getElementById('kreatorKlient').value='${k.id}';" class="text-xs bg-slate-100 hover:bg-brand-blue hover:text-white font-bold px-3 py-1.5 rounded-lg transition-colors">Utwórz Ofertę</button>
+      <td class="p-4 text-center space-x-2 whitespace-nowrap">
+         <button onclick="pokazOfertyKlienta('${k.id}', '${escStr(k.nazwa_firmy)}')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-colors">📂 Historie Ofert</button>
+         <button onclick="switchTab('kreator', document.getElementById('btn-kreator')); document.getElementById('kreatorKlient').value='${k.id}';" class="text-xs bg-brand-blue hover:bg-blue-900 text-white font-bold px-3 py-1.5 rounded-lg transition-colors">Utwórz Ofertę</button>
       </td>
     </tr>
   `).join('');
 
   select.innerHTML = '<option value="">Wybierz klienta...</option>' + data.map(k => `<option value="${k.id}">${k.nazwa_firmy}</option>`).join('');
 }
+
+// ─── POKAZANIE HISTORII OFERT ───
+async function pokazOfertyKlienta(klId, nazwaFirmy) {
+  document.getElementById('moTitle').textContent = nazwaFirmy;
+  const listaEl = document.getElementById('moLista');
+  listaEl.innerHTML = '<div class="text-center text-slate-400 text-sm py-8">Ładowanie historii...</div>';
+  
+  document.getElementById('modalOferty').classList.remove('hidden');
+  document.getElementById('modalOferty').classList.add('flex');
+
+  if (!SB_CLIENT) return;
+
+  const { data, error } = await SB_CLIENT.from('kalkulacje')
+    .select('*')
+    .eq('klient_id', klId)
+    .order('data_utworzenia', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    listaEl.innerHTML = '<div class="text-center text-slate-500 text-sm py-8">Brak zapisanych ofert dla tego klienta.</div>';
+    return;
+  }
+
+  listaEl.innerHTML = data.map(k => `
+    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-3 flex justify-between items-center hover:border-brand-blue/30 transition-colors">
+      <div>
+         <div class="font-bold text-brand-blue text-base">${k.nazwa_wariantu} <span class="bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded text-[10px] ml-2 align-middle">V${k.wersja}</span></div>
+         <div class="text-xs text-slate-500 mt-1">Status: <span class="font-semibold ${k.status === 'Zapisana' ? 'text-emerald-600' : 'text-slate-700'}">${k.status}</span> | Utworzono: ${new Date(k.data_utworzenia).toLocaleDateString('pl-PL')}</div>
+      </div>
+      <button class="bg-white border border-slate-200 text-xs font-bold text-slate-600 px-4 py-2 rounded-lg shadow-sm hover:border-brand-blue transition-colors opacity-50 cursor-not-allowed" title="Funkcja podglądu będzie dostępna wkrótce">Podgląd (Wkrótce)</button>
+    </div>
+  `).join('');
+}
+
 
 // ─── SŁOWNIKI (Ryzyka + TU + Choroby) ───
 async function zaladujSłownikiStartowe() {
@@ -468,6 +522,10 @@ function utworzSzkicKalkulacji() {
 
   wybraniUbezpieczyciele = checked.map(cb => ubezpieczyciele.find(u => u.id == cb.value));
 
+  // Zapisanie bieżącego kontekstu klienta do zapisu oferty
+  currentKlientId = klId;
+  currentWariantNazwa = war;
+
   const klient = listaKlientow.find(k => k.id === klId);
   document.getElementById('kwTitle').textContent = `Wariant: ${war}`;
   document.getElementById('kwSub').textContent = `Firma: ${klient.nazwa_firmy} | Wersja: 1 | Status: Szkic`;
@@ -511,7 +569,6 @@ function utworzSzkicKalkulacji() {
       <td class="p-4 bg-brand-blue/10"></td>
   `;
   wybraniUbezpieczyciele.forEach(tu => {
-     // Zmiana: nadajemy ID ubezpieczyciela aby sprawnie sumować jego pole
      tfHtml += `<td class="p-4 text-center border-l border-slate-200" id="suma-tu-${tu.id}"><span class="text-brand-blue font-black text-lg">0.00 zł</span></td>`;
   });
   tfHtml += `<td></td></tr>`;
@@ -528,7 +585,6 @@ function utworzSzkicKalkulacji() {
 
 function przeliczSumy() {
     wybraniUbezpieczyciele.forEach(tu => {
-        // Zbieramy wszystkie aktywne inputy cenowe tego ubezpieczyciela
         const inputs = document.querySelectorAll(`.cena-tu-${tu.id}`);
         let suma = 0;
         inputs.forEach(inp => {
@@ -558,11 +614,11 @@ function dodajRyzykoDoKalkulacji() {
   if (tbodyCat) tbodyCat.classList.remove('hidden');
 
   const tr = document.createElement('tr');
-  tr.className = "hover:bg-slate-50 transition-colors group";
+  tr.className = "hover:bg-slate-50 transition-colors group ryzyko-row"; // Dodana klasa ryzyko-row do zapisu
   
   let tdHtml = `
-    <td class="p-3 font-semibold text-slate-700 leading-tight pl-6 border-l-2 border-brand-blue/20">${nazwa}</td>
-    <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue">${su.toLocaleString('pl-PL')} zł</td>
+    <td class="p-3 font-semibold text-slate-700 leading-tight pl-6 border-l-2 border-brand-blue/20 ryzyko-nazwa">${nazwa}</td>
+    <td class="p-3 bg-brand-blue/5 text-center font-black text-brand-blue ryzyko-su" data-su="${su}">${su.toLocaleString('pl-PL')} zł</td>
   `;
 
   const isChoroby = nazwa.toLowerCase().includes('poważne zachorowanie') || nazwa.toLowerCase().includes('powazne zachorowanie');
@@ -578,7 +634,6 @@ function dodajRyzykoDoKalkulacji() {
          }
      }
 
-     // Zmiana: podpięcie klas i zdarzeń "oninput" w celu przeliczania sum na dole matrycy
      tdHtml += `
        <td class="p-3 border-l border-slate-200 text-center">
          <input type="number" step="0.01" class="inp p-1.5 text-center text-sm font-bold w-24 mx-auto block cena-tu-${tu.id}" placeholder="0.00" oninput="przeliczSumy()">
@@ -604,7 +659,6 @@ function usunRyzykoZMatrycy(btn, kategoria) {
       tbody.classList.add('hidden');
   }
   
-  // Przeliczenie sum na nowo po usunięciu składnika
   przeliczSumy();
 }
 
@@ -618,6 +672,84 @@ function pokazChoroby(tuId, tuNazwa) {
   document.getElementById('modalChoroby').classList.remove('hidden');
   document.getElementById('modalChoroby').classList.add('flex');
 }
+
+// ─── NOWOŚĆ: ZAPISYWANIE OFERTY DO BAZY (SUPABASE) ───
+async function zapiszOferte() {
+    if(!SB_CLIENT || !currentKlientId) return alert("Błąd: Brak przypisanego klienta.");
+
+    // 1. Rejestracja głównego rekordu Kalkulacji w bazie
+    const { data: calcData, error: calcErr } = await SB_CLIENT.from('kalkulacje')
+        .insert([{ 
+            klient_id: currentKlientId, 
+            nazwa_wariantu: currentWariantNazwa, 
+            status: 'Zapisana' 
+        }])
+        .select();
+
+    if (calcErr) return alert("Błąd zapisu kalkulacji: " + calcErr.message);
+    const nowaKalkulacjaId = calcData[0].id;
+
+    // 2. Analiza wyklikanej matrycy i przygotowanie danych do wstawienia
+    let ryzykaDoZapisu = [];
+    let cenyDoZapisu = [];
+
+    // Pobieramy wszystkie wiersze zawierające ryzyka (omijając nagłówki i sekcje inputu)
+    const wierszeRyzyk = document.querySelectorAll('.ryzyko-row');
+    
+    if (wierszeRyzyk.length === 0) {
+        return alert("Nie można zapisać pustej oferty. Dodaj co najmniej jedno ryzyko.");
+    }
+
+    wierszeRyzyk.forEach(row => {
+        const nazwaElement = row.querySelector('.ryzyko-nazwa');
+        const suElement = row.querySelector('.ryzyko-su');
+        
+        const ryzykoNazwa = nazwaElement.textContent.trim();
+        const suWartosc = parseFloat(suElement.getAttribute('data-su')) || 0;
+
+        // Szukamy odpowiedniego ID w naszym słowniku (zaciągniętym przy starcie aplikacji)
+        const ryzykoObj = slownikRyzyk.find(r => r.nazwa === ryzykoNazwa);
+        
+        if(ryzykoObj) {
+            ryzykaDoZapisu.push({
+                kalkulacja_id: nowaKalkulacjaId,
+                ryzyko_id: ryzykoObj.id,
+                suma_ubezpieczenia: suWartosc
+            });
+
+            // Odczytujemy wpisane ceny dla poszczególnych TU (z kolumn inputów)
+            wybraniUbezpieczyciele.forEach(tu => {
+                const inputCena = row.querySelector(`.cena-tu-${tu.id}`);
+                if (inputCena) {
+                    const cenaVal = parseFloat(inputCena.value);
+                    if (!isNaN(cenaVal)) {
+                        cenyDoZapisu.push({
+                            kalkulacja_id: nowaKalkulacjaId,
+                            ubezpieczyciel_id: tu.id,
+                            ryzyko_id: ryzykoObj.id,
+                            cena_miesieczna: cenaVal
+                        });
+                    }
+                }
+            });
+        }
+    });
+
+    // 3. Masowy zapis wierszy w bazie danych (Bulk Insert)
+    if (ryzykaDoZapisu.length > 0) {
+        const { error: rErr } = await SB_CLIENT.from('kalkulacje_ryzyka').insert(ryzykaDoZapisu);
+        if (rErr) console.error("Błąd zapisu ryzyk:", rErr);
+    }
+    
+    if (cenyDoZapisu.length > 0) {
+        const { error: cErr } = await SB_CLIENT.from('kalkulacje_ceny').insert(cenyDoZapisu);
+        if (cErr) console.error("Błąd zapisu cen:", cErr);
+    }
+
+    document.getElementById('kwSub').innerHTML = `Firma: Pomyślnie zapisano | Wersja: 1 | <span class="text-emerald-600">Status: Zapisana</span>`;
+    alert("✅ Oferta (wariant) została poprawnie zapisana w bazie klienta!");
+}
+
 
 function generujRaportPDF() {
     if(wybraniUbezpieczyciele.length === 0) return alert("Brak ubezpieczycieli do wygenerowania raportu");
@@ -652,15 +784,14 @@ function generujRaportPDF() {
     wybraniUbezpieczyciele.forEach(tu => { html += `<th>${tu.nazwa}</th>`; });
     html += `</tr></thead><tbody>`;
     
-    // Przebieg po strukturze stworzonej matrycy i wyciąganie wartości
     ORDERED_CATEGORIES.forEach(k => {
         const tbody = document.getElementById('cat-' + k);
         if(tbody && !tbody.classList.contains('hidden')) {
-            const rows = tbody.querySelectorAll('tr');
-            if(rows.length > 1) { 
+            const rows = tbody.querySelectorAll('tr.ryzyko-row'); // Szukamy po nowej klasie omijając nagłówki
+            if(rows.length > 0) { 
                 html += `<tr class="cat-row"><td colspan="${wybraniUbezpieczyciele.length + 2}">${k}</td></tr>`;
-                for(let i = 1; i < rows.length; i++) { 
-                    const cells = rows[i].querySelectorAll('td');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
                     const nazwa = cells[0].textContent.trim();
                     const su = cells[1].textContent.trim();
                     html += `<tr><td>${nazwa}</td><td class="su-col">${su}</td>`;
@@ -671,7 +802,7 @@ function generujRaportPDF() {
                         html += `<td>${val}</td>`;
                     }
                     html += `</tr>`;
-                }
+                });
             }
         }
     });
@@ -693,7 +824,6 @@ function generujRaportPDF() {
     w.document.write(html);
     w.document.close();
     
-    // Dajemy chwilę na wyrenderowanie struktury PDF w tle
     setTimeout(() => { w.focus(); w.print(); }, 500);
 }
 
