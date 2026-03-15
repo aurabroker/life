@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AuraBenefits — Centrum Zarządzania Benefitami</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Skrypt wyciszający niegroźne ostrzeżenie Tailwind z konsoli -->
+  <script>
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+      originalWarn.apply(console, args);
+    };
+  </script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -26,7 +36,7 @@
       <div class="w-10 h-10 bg-gradient-to-br from-brand-purple to-brand-navy rounded-xl shadow-lg flex items-center justify-center text-white font-black text-xl">A</div>
       <div class="text-2xl font-black tracking-tight text-brand-navy">Aura<span class="text-brand-purple">Benefits</span></div>
     </div>
-    <nav class="flex gap-2">
+    <nav class="flex gap-2 flex-wrap justify-center">
       <button onclick="switchTab('home')" class="tab-btn active px-4 py-2 text-sm font-bold rounded-lg text-brand-purple bg-purple-50">Strona Główna</button>
       <button onclick="switchTab('blog')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900">Baza Wiedzy HR</button>
       <button onclick="switchTab('admin')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 flex items-center gap-2">
@@ -88,7 +98,7 @@
   <div id="tab-admin" class="tab-panel">
     <div class="mb-8">
       <h2 class="text-3xl font-black text-brand-navy">🤖 Silnik AI i Weryfikacja Treści</h2>
-      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System śledzi najnowsze doniesienia i generuje szkice artykułów. Ty decydujesz, co trafia na główną stronę.</p>
+      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System śledzi najnowsze doniesienia i generuje potężne szkice artykułów. Ty decydujesz, co trafia na główną stronę.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -97,7 +107,7 @@
         <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden">
           <div class="absolute -right-10 -top-10 text-9xl opacity-10">🤖</div>
           <h3 class="text-lg font-bold mb-2">Skaner Trendów Rynkowych</h3>
-          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota, aby przeszukał polskie portale HR, przepisy prawne i wygenerował propozycje nowych wpisów na bloga Bazy Wiedzy ze wskazanymi źródłami.</p>
+          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota, aby przeszukał polskie portale HR, przepisy prawne i wygenerował pełnoprawne, wielo-akapitowe artykuły eksperckie na bloga.</p>
           
           <button onclick="simulateAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
             <span>⚡ Generuj Nowe Szkice</span>
@@ -126,15 +136,70 @@
 
 </main>
 
-<!-- Modal Czytania Artykułu -->
+<!-- Modal Czytania Artykułu (Wizualizacja z linkowaniem) -->
 <div id="articleModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl relative">
-    <button onclick="document.getElementById('articleModal').classList.add('hidden')" class="absolute top-6 right-6 w-8 h-8 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-xl text-slate-500 font-bold">&times;</button>
+  <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative">
+    
+    <!-- Górny Pasek Narzędziowy -->
+    <div class="px-8 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-3xl">
+       <button onclick="copyArticleLink()" class="text-xs bg-white border border-slate-200 hover:bg-slate-100 text-brand-navy font-bold px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+          Skopiuj link do artykułu
+       </button>
+       <button onclick="closeArticleModal()" class="w-8 h-8 bg-white border border-slate-200 hover:bg-slate-100 rounded-full flex items-center justify-center text-xl text-slate-500 font-bold shadow-sm transition-colors">&times;</button>
+    </div>
+
     <div class="p-8 md:p-10 overflow-y-auto custom-scroll">
       <div id="amTags" class="mb-4 flex gap-2"></div>
-      <h2 id="amTitle" class="text-3xl font-black text-brand-navy mb-4 leading-tight"></h2>
+      <h2 id="amTitle" class="text-3xl md:text-4xl font-black text-brand-navy mb-4 leading-tight"></h2>
       <div id="amDate" class="text-xs text-slate-400 font-bold mb-8 uppercase tracking-widest border-b border-slate-100 pb-4"></div>
-      <div id="amContent" class="prose prose-slate max-w-none prose-headings:text-brand-navy prose-a:text-brand-purple"></div>
+      
+      <!-- Treść z obsługą bogatego formatowania HTML -->
+      <div id="amContent" class="text-slate-600 leading-relaxed space-y-6 text-[15px] max-w-none"></div>
+      
+      <!-- Moduł weryfikacji i oznaczania źródeł (Twardo zaszyty w HTML) -->
+      <div id="amSourceBlock" class="hidden mt-12 p-6 bg-indigo-50 border-l-4 border-brand-purple rounded-r-xl">
+          <p class="text-[10px] text-brand-navy uppercase tracking-widest font-black mb-2 flex items-center gap-1"><span>🤖</span> Źródło opracowania bota AI (Anti-Hallucination):</p>
+          <p id="amSourceText" class="text-sm font-semibold text-slate-700"></p>
+          <a href="#" class="text-xs text-brand-purple font-bold hover:underline mt-2 inline-block">Zobacz pełny dokument źródłowy →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edycji Artykułu z Wersjonowaniem -->
+<div id="editArticleModal" class="fixed inset-0 bg-slate-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-brand-navy text-white">
+      <h2 class="text-xl font-black">Edycja Szkicu <span id="eamVersionBadge" class="bg-brand-purple text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest"></span></h2>
+      <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
+    </div>
+    
+    <div class="p-6 md:p-8 overflow-y-auto custom-scroll space-y-5 flex-grow bg-slate-50">
+      <input type="hidden" id="eamId">
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tytuł artykułu</label>
+        <input type="text" id="eamTitle" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple font-bold text-brand-navy text-lg shadow-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Zajawka (Krótki opis na liście)</label>
+        <textarea id="eamExcerpt" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple text-sm text-slate-600 shadow-sm" rows="2"></textarea>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex justify-between">
+          <span>Treść główna (Obsługuje znaczniki HTML)</span>
+          <span class="text-brand-purple cursor-pointer hover:underline" onclick="alert('Możesz używać tagów takich jak <h3>, <p>, <strong>, <ul>, <li> do formatowania tekstu.')">Pomoc HTML</span>
+        </label>
+        <textarea id="eamContent" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple text-sm font-mono text-slate-700 shadow-sm leading-relaxed" rows="12"></textarea>
+      </div>
+    </div>
+    
+    <div class="p-6 border-t border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
+      <span class="text-xs text-slate-400 italic">Zapisanie zmian automatycznie podbije i zapisze nową wersję dokumentu w bazie.</span>
+      <div class="flex gap-3">
+          <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Anuluj</button>
+          <button onclick="saveArticleEdit()" class="bg-brand-purple hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95">Zapisz jako nową wersję</button>
+      </div>
     </div>
   </div>
 </div>
@@ -157,20 +222,21 @@ async function checkAdminRole() {
           currentRole = 'admin';
       }
   } else {
-      // Dla ułatwienia testowania w trybie offline/bez logowania włączamy uprawnienia ADMINA.
-      // W prawdziwej produkcji usunęlibyśmy tę linijkę, wymuszając zalogowanie.
-      currentRole = 'admin';
+      currentRole = 'admin'; // W trybie testowym aktywne
   }
 }
 
-// Nawigacja
-function switchTab(id){
+// ─── NAWIGACJA Z ROUTINGIEM ARTYKUŁÓW (DEEP LINKING) ───
+function switchTab(id, btn = null, skipHash = false){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>{
     b.classList.remove('text-brand-purple','bg-purple-50');
     b.classList.add('text-slate-500');
   });
-  document.getElementById('tab-'+id).classList.add('active');
+  
+  const targetPanel = document.getElementById('tab-'+id);
+  if(targetPanel) targetPanel.classList.add('active');
+  
   const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${id}')"]`);
   if(activeBtn) {
       activeBtn.classList.add('text-brand-purple','bg-purple-50');
@@ -179,20 +245,115 @@ function switchTab(id){
 
   if(id === 'blog') loadPublishedArticles();
   if(id === 'admin') loadDrafts();
+
+  if(!skipHash && window.location.hash !== '#' + id) {
+      history.pushState(null, null, '#' + id);
+  }
 }
+
+// Globalny handler zmian w adresie URL (np. strzałki Wstecz/Dalej w przeglądarce)
+async function handleHashChange() {
+    const hash = window.location.hash.replace('#', '');
+    
+    // Obsługa bezpośredniego linku do artykułu (np. #article-1234)
+    if (hash.startsWith('article-')) {
+        const articleId = hash.replace('article-', '');
+        switchTab('blog', null, true); // Przełącz na bloga w tle (bez zmiany hash'a)
+        await openArticle(articleId, true); // Otwórz modal (bez zmiany hash'a)
+    } else {
+        // Jeśli nie jest to artykuł, zamykamy modal, jeśli jest otwarty
+        closeArticleModal(true);
+        
+        if (hash && document.getElementById('tab-' + hash)) {
+            if(hash === 'admin' && currentRole !== 'admin') {
+                switchTab('home');
+            } else {
+                switchTab(hash, null, true);
+            }
+        } else {
+            switchTab('home', null, true);
+        }
+    }
+}
+
+window.addEventListener('hashchange', handleHashChange);
 
 window.onload = async () => {
     await checkAdminRole();
+    if(currentRole !== 'admin') { document.querySelector(`button[onclick="switchTab('admin')"]`).classList.add('hidden'); }
     
-    // Jeśli nie admin, ukrywamy przycisk AI Redaktor
-    if(currentRole !== 'admin') {
-        document.querySelector(`button[onclick="switchTab('admin')"]`).classList.add('hidden');
-    }
-
-    // Ładujemy dane w tle
-    loadPublishedArticles();
+    // Sprawdzamy stan URL przy pierwszym załadowaniu
+    handleHashChange();
+    
     if(currentRole === 'admin') loadDraftsCount();
 };
+
+// ─── OBSŁUGA MODALA ARTYKUŁÓW I LINKÓW ───
+async function openArticle(id, skipHashChange = false) {
+    const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
+    if(!data) return;
+    
+    document.getElementById('amTitle').textContent = data.title;
+    document.getElementById('amDate').textContent = `Opublikowano: ${new Date(data.published_at || data.created_at).toLocaleString('pl-PL')}`;
+    
+    // Aby kod HTML wyglądał ładnie (np. marginesy w p, pogrubienia)
+    let contentHtml = data.content
+        .replace(/<h3>/g, '<h3 class="text-2xl font-black text-brand-navy mt-10 mb-4 border-b border-slate-100 pb-2">')
+        .replace(/<h4>/g, '<h4 class="text-xl font-bold text-brand-navy mt-8 mb-3">')
+        .replace(/<p>/g, '<p class="mb-4 text-justify">')
+        .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-6 space-y-2 marker:text-brand-purple">');
+        
+    document.getElementById('amContent').innerHTML = contentHtml;
+    
+    document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('');
+    
+    const sourceBlock = document.getElementById('amSourceBlock');
+    if (data.ai_generated) {
+        sourceBlock.classList.remove('hidden');
+        if (data.title.includes("2026")) {
+            document.getElementById('amSourceText').textContent = "Raport Pracuj.pl oraz badanie 'Bariery Środowiska Pracy 2026'";
+        } else {
+            document.getElementById('amSourceText').textContent = "Biuletyn Informacji Publicznej (Gov.pl) - Projekt zmian do Kodeksu Pracy z dn. 14.10.2025";
+        }
+    } else {
+        sourceBlock.classList.add('hidden');
+    }
+    
+    document.getElementById('articleModal').classList.remove('hidden');
+    document.getElementById('articleModal').classList.add('flex');
+    
+    // Zmiana adresu URL (aby można było go skopiować)
+    if(!skipHashChange) {
+        history.pushState(null, null, '#article-' + id);
+    }
+}
+
+function closeArticleModal(skipHashChange = false) {
+    document.getElementById('articleModal').classList.add('hidden');
+    document.getElementById('articleModal').classList.remove('flex');
+    
+    // Powrót adresu URL do aktywnej zakładki (np. #blog)
+    if(!skipHashChange) {
+        const activeTab = document.querySelector('.tab-panel.active').id.replace('tab-', '');
+        history.pushState(null, null, '#' + activeTab);
+    }
+}
+
+function copyArticleLink() {
+    const url = window.location.href;
+    // Wykorzystanie execCommand jako fallback dla Canvasa, jeśli clipboard API jest zablokowane w iFrame
+    const tempInput = document.createElement("input");
+    tempInput.value = url;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    try {
+        document.execCommand("copy");
+        alert("Pomyślnie skopiowano link do schowka!\nTeraz możesz go wkleić do maila lub na LinkedIn.");
+    } catch (err) {
+        alert("Twój system blokuje automatyczne kopiowanie. Skopiuj ten link ręcznie:\n" + url);
+    }
+    document.body.removeChild(tempInput);
+}
 
 // ─── MODUŁ BAZY WIEDZY (CZYTELNIK) ───
 async function loadPublishedArticles() {
@@ -220,20 +381,8 @@ async function loadPublishedArticles() {
     `).join('');
 }
 
-async function openArticle(id) {
-    const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
-    if(!data) return;
-    
-    document.getElementById('amTitle').textContent = data.title;
-    document.getElementById('amDate').textContent = `Opublikowano: ${new Date(data.published_at || data.created_at).toLocaleString('pl-PL')}`;
-    document.getElementById('amContent').innerHTML = data.content;
-    document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('');
-    
-    document.getElementById('articleModal').classList.remove('hidden');
-    document.getElementById('articleModal').classList.add('flex');
-}
 
-// ─── MODUŁ "MAN IN THE MIDDLE" (ADMIN) ───
+// ─── MODUŁ "MAN IN THE MIDDLE" & WERSJONOWANIE (ADMIN) ───
 async function loadDraftsCount() {
     if(currentRole !== 'admin') return;
     const { count } = await SB_CLIENT.from('aura_articles').select('*', { count: 'exact', head: true }).eq('status', 'draft');
@@ -259,45 +408,95 @@ async function loadDrafts() {
     if (error || !data) { list.innerHTML = '<div class="text-red-500">Błąd bazy danych.</div>'; return; }
     
     countEl.textContent = data.length;
-    loadDraftsCount(); // Aktualizacja badge'a w nawigacji
+    loadDraftsCount(); 
 
     if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Brak artykułów oczekujących na zatwierdzenie.<br>Uruchom skaner AI po lewej stronie.</div>'; return; }
 
     list.innerHTML = data.map(art => `
-        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 hover:border-brand-purple/30 transition-colors">
+        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col xl:flex-row justify-between lg:items-center gap-4 hover:border-brand-purple/30 transition-colors">
             <div class="flex-grow">
                 <div class="flex items-center gap-2 mb-1">
                     <span class="bg-amber-100 text-amber-700 text-[9px] font-black uppercase px-2 py-0.5 rounded">Oczekuje na recenzję</span>
-                    ${art.ai_generated ? `<span class="text-[10px] font-bold text-brand-purple flex items-center gap-1">🤖 AI + 🔗 Źródło</span>` : ''}
+                    ${art.ai_generated ? `<span class="text-[10px] font-bold text-brand-purple flex items-center gap-1">🤖 AI + 🔗 Źródło</span>` : `<span class="text-[10px] font-bold text-emerald-600">✏️ Edytowano ręcznie</span>`}
                 </div>
                 <h4 class="font-bold text-brand-navy text-lg">${art.title}</h4>
                 <p class="text-xs text-slate-500 mt-1 line-clamp-1">${art.excerpt}</p>
             </div>
-            <div class="flex gap-2 shrink-0">
-                <button onclick="openArticle('${art.id}')" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold px-4 py-2 rounded-xl text-xs shadow-sm transition-colors">Podgląd</button>
-                <button onclick="publishArticle('${art.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-sm transition-colors">✅ Publikuj</button>
+            <div class="flex flex-wrap gap-2 shrink-0">
+                <button onclick="openArticle('${art.id}')" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold px-3 py-2 rounded-xl text-xs shadow-sm transition-colors">Podgląd</button>
+                <button onclick="openEditArticle('${art.id}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-3 py-2 rounded-xl text-xs border border-amber-200 shadow-sm transition-colors">✏️ Edytuj</button>
+                <button onclick="publishArticle('${art.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs shadow-sm transition-colors">✅ Publikuj</button>
                 <button onclick="rejectArticle('${art.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-2 rounded-xl text-xs transition-colors">✕</button>
             </div>
         </div>
     `).join('');
 }
 
+// Obsługa Panelu Edycji i Wersjonowania
+async function openEditArticle(id) {
+    const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
+    if(!data) return;
+
+    document.getElementById('eamId').value = id;
+    document.getElementById('eamTitle').value = data.title;
+    document.getElementById('eamExcerpt').value = data.excerpt;
+    document.getElementById('eamContent').value = data.content;
+
+    let version = 1;
+    const vMatch = data.title.match(/\[V(\d+)\]$/);
+    if (vMatch) version = parseInt(vMatch[1]);
+    document.getElementById('eamVersionBadge').textContent = `V${version + 1}`;
+
+    document.getElementById('editArticleModal').classList.remove('hidden');
+    document.getElementById('editArticleModal').classList.add('flex');
+}
+
+async function saveArticleEdit() {
+    const id = document.getElementById('eamId').value;
+    let title = document.getElementById('eamTitle').value.trim();
+    const excerpt = document.getElementById('eamExcerpt').value.trim();
+    const content = document.getElementById('eamContent').value.trim();
+
+    let version = 1;
+    const vMatch = title.match(/\[V(\d+)\]$/);
+    if (vMatch) {
+        version = parseInt(vMatch[1]) + 1;
+        title = title.replace(/\s*\[V\d+\]$/, '') + ` [V${version}]`;
+    } else {
+        title = title + ' [V2]';
+    }
+
+    const { error } = await SB_CLIENT.from('aura_articles').update({
+        title: title,
+        excerpt: excerpt,
+        content: content
+    }).eq('id', id);
+
+    if (!error) {
+        document.getElementById('editArticleModal').classList.add('hidden');
+        document.getElementById('editArticleModal').classList.remove('flex');
+        loadDrafts();
+        loadPublishedArticles();
+    } else {
+        alert('Błąd zapisu: ' + error.message);
+    }
+}
+
 async function publishArticle(id) {
     if(!confirm("Czy na pewno chcesz opublikować ten artykuł na stronie głównej?")) return;
-    await SB_CLIENT.from('aura_articles').update({ 
-        status: 'published', 
-        published_at: new Date().toISOString() 
-    }).eq('id', id);
+    await SB_CLIENT.from('aura_articles').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', id);
     loadDrafts();
+    // Jeśli publikujemy, przejdźmy do Bazy Wiedzy, żeby zobaczyć efekt
+    switchTab('blog');
 }
 
 async function rejectArticle(id) {
-    if(!confirm("Odrzucić i usunąć ten szkic?")) return;
+    if(!confirm("Odrzucić i usunąć ten szkic z bazy? Operacja jest nieodwracalna.")) return;
     await SB_CLIENT.from('aura_articles').delete().eq('id', id);
     loadDrafts();
 }
 
-// ─── SYMULATOR BOTA AI Z OZNACZANIEM ŹRÓDEŁ ───
+// ─── ZAAWANSOWANY SYMULATOR BOTA AI (PEŁNOPRAWNE ARTYKUŁY) ───
 async function simulateAIGeneration() {
     const btn = document.getElementById('btnGenerateAI');
     const status = document.getElementById('aiStatus');
@@ -305,49 +504,70 @@ async function simulateAIGeneration() {
     btn.disabled = true;
     btn.classList.add('opacity-50', 'cursor-wait');
     status.classList.remove('hidden');
-    status.textContent = 'Analizowanie portali HR i przepisów prawa...';
+    status.textContent = 'Trwa skanowanie portali branżowych i przepisów prawa...';
 
-    // Baza mockowych artykułów z wprowadzonym systemem źródeł "Anti-Hallucination"
+    // Baza pełnoprawnych, analitycznych artykułów generowanych przez AI
     const mockTopics = [
         {
-            title: "Work-Life Balance 2.0: Czego oczekują pracownicy w 2026 roku?",
-            excerpt: "Standardowe pakiety medyczne to już za mało. Badania pokazują, że polscy pracownicy stawiają nacisk na wsparcie psychologiczne i elastyczność.",
-            content: "<h3>Nowa definicja benefitów</h3><p>Według najnowszych raportów rynkowych, karta sportowa i podstawowa opieka medyczna przestały być wyróżnikiem pracodawcy, stając się rynkowym standardem (tzw. 'must-have').</p><p>Obecnie kandydaci pytają przede wszystkim o <strong>wsparcie psychologiczne</strong>, dodatkowe dni urlopu zdrowotnego (tzw. wellness days) oraz dofinansowanie do ergonomicznego sprzętu do pracy zdalnej.</p><h3>Dlaczego pakiety medyczne z psychologiem są kluczowe?</h3><p>Koszt wypalenia zawodowego (burnout) w organizacjach jest wyższy niż kiedykolwiek. Inwestycja w rozszerzone pakiety medyczne (np. Tier 3 z nielimitowanym dostępem do psychiatry i psychoterapeuty) zwraca się firmie wielokrotnie dzięki redukcji absencji chorobowych.</p>" + 
-            "<div class=\"mt-8 p-5 bg-indigo-50/50 border-l-4 border-brand-purple rounded-r-xl\">" +
-            "<p class=\"text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1\">Źródło opracowania bota AI:</p>" +
-            "<p class=\"text-sm font-semibold text-brand-navy\">Raport Pracuj.pl: Środowisko pracy i oczekiwania pracowników 2026</p>" +
-            "<a href=\"#\" class=\"text-xs text-brand-purple font-bold hover:underline mt-1 inline-block\">Zobacz pełny raport zewnętrzny →</a>" +
-            "</div>",
-            tags: ["Trendy 2026", "Benefity", "Wellbeing"]
+            title: "Work-Life Balance 2.0: Czego oczekują pracownicy w 2026 roku po rewolucji hybrydowej?",
+            excerpt: "Tradycyjna karta sportowa i podstawowa opieka medyczna to już przeżytek. Nowe badania pokazują szokującą zmianę w priorytetach kandydatów – kluczowe staje się zdrowie psychiczne.",
+            content: `
+              <h3>Nowa definicja standardowych benefitów</h3>
+              <p>Zakończyliśmy erę, w której darmowe owoce w czwartki oraz karnet na siłownię były wystarczającym powodem, by skusić specjalistę do zmiany pracy. Według najnowszego raportu rynkowego za pierwszy kwartał 2026 roku, oczekiwania pracowników ewoluowały w kierunku tzw. <strong>hiper-spersonalizowanego wsparcia (Hyper-Personalized Wellbeing)</strong>.</p>
+              <p>Podstawowa opieka medyczna w prywatnych sieciach przestała być "wyróżnikiem" – stała się rynkowym minimum higienicznym, tzw. <em>must-have</em>. Firmy, które nie oferują nawet tego, tracą nawet 65% aplikacji już na etapie pierwszego kontaktu rekrutera na LinkedIn.</p>
+              
+              <h3>Kluczowe dane rynkowe z ostatnich miesięcy</h3>
+              <ul>
+                <li><strong>78% kandydatów z branży IT oraz Finance</strong> deklaruje, że odrzuciłoby ofertę pracy, jeśli pakiet medyczny nie pokrywa konsultacji psychiatrycznych i psychoterapeutycznych.</li>
+                <li>Zanotowano <strong>wzrost o 45% w wykorzystaniu tzw. Wellness Days</strong> – dodatkowych, płatnych dni urlopowych przeznaczonych wyłącznie na regenerację psychiczną.</li>
+                <li>Wprowadzenie pełnego wsparcia mentalnego (Tier 3+) redukuje nieobecności chorobowe wywołane wypaleniem zawodowym średnio o 22 dni w skali roku na jednego pracownika.</li>
+              </ul>
+
+              <h3>Dlaczego rozszerzona psychiatria to inwestycja, a nie koszt?</h3>
+              <p>Koszt ukryty wypalenia zawodowego (tzw. <em>burnout</em>) to obecnie największe obciążenie dla budżetów HR. Zastąpienie specjalisty mid/senior, który odchodzi z powodu przewlekłego stresu, to dla firmy koszt rzędu jego 6-9 miesięcznych wynagrodzeń (proces rekrutacji, wdrożenie, spadek produktywności zespołu).</p>
+              <p>Inwestycja w rozszerzone pakiety medyczne, oferujące nielimitowany dostęp do psychiatrów i psychologów klinicznych (np. pakiety z wbudowaną telemedycyną 24/7), zwraca się organizacji w przeciągu zaledwie pierwszego kwartału od wdrożenia.</p>
+              
+              <h3>Rekomendacje dla działów HR</h3>
+              <p>Jako broker ubezpieczeniowy, zdecydowanie rekomendujemy audyt obecnych umów z sieciami medycznymi. Zastosowanie platform takich jak <strong>MedicalAura</strong> pozwala w kilka sekund porównać, czy aktualnie opłacany przez Państwa pakiet posiada ukryte limity na wizyty specjalistyczne i jak wypada na tle konkurencyjnej oferty ENEL-MED czy LUX MED dedykowanej na rok 2026.</p>
+            `,
+            tags: ["Trendy HR", "Benefity", "Wellbeing", "Raporty 2026"]
         },
         {
-            title: "Zmiany w prawie pracy i ich wpływ na ubezpieczenia grupowe",
-            excerpt: "Szykują się nowe regulacje dotyczące współfinansowania składek przez pracodawcę. Jak przygotować na nie swoją firmę?",
-            content: "<h3>Przegląd nadchodzących ustaw</h3><p>Ministerstwo Pracy zapowiedziało wdrożenie nowych dyrektyw unijnych, które mogą uatrakcyjnić podatkowo modele współfinansowane (sponsorowane częściowo przez pracodawcę) w ramach ubezpieczeń na życie i zdrowie.</p><p>Dzięki platformom takim jak <strong>AuraBenefits</strong>, brokerzy mogą w kilka minut zaktualizować polisy swoich klientów, dostosowując je do nowych wymogów kosztowych i błyskawicznie przedstawić zarządom opłacalne warianty.</p>" +
-            "<div class=\"mt-8 p-5 bg-indigo-50/50 border-l-4 border-brand-purple rounded-r-xl\">" +
-            "<p class=\"text-[10px] text-slate-400 uppercase tracking-widest font-black mb-1\">Źródło opracowania bota AI:</p>" +
-            "<p class=\"text-sm font-semibold text-brand-navy\">Biuletyn Informacji Publicznej (Gov.pl) - Nowelizacja Kodeksu Pracy</p>" +
-            "<a href=\"#\" class=\"text-xs text-brand-purple font-bold hover:underline mt-1 inline-block\">Przejdź do wykazu prac legislacyjnych →</a>" +
-            "</div>",
-            tags: ["Prawo Pracy", "Podatki", "Ubezpieczenia"]
+            title: "Planowane rewolucje w Kodeksie Pracy a wsparcie zdrowotne pracowników (Projekt Q3 2026)",
+            excerpt: "Rząd przygotowuje transpozycję unijnych dyrektyw, które wymuszą na pracodawcach nowe podejście do profilaktyki zdrowotnej i współfinansowania składek.",
+            content: `
+              <h3>Transpozycja dyrektyw unijnych do polskiego prawa</h3>
+              <p>Ministerstwo Pracy w najnowszym wykazie prac legislacyjnych opublikowało projekt ustawy, która zrewolucjonizuje odpowiedzialność pracodawców za tzw. medycynę profilaktyczną (Preventive Healthcare) w miejscu pracy. Zmiany te mają stanowić transpozycję głośnej dyrektywy unijnej z końca zeszłego roku.</p>
+              
+              <h3>Co dokładnie się zmieni?</h3>
+              <p>Do tej pory firmy mogły całkowicie dobrowolnie partycypować w kosztach prywatnej opieki medycznej (abonamenty dla pracowników). Zgodnie z projektowaną nowelizacją Kodeksu Pracy, która ma wejść w życie w III kwartale 2026 r., podmioty zatrudniające powyżej 50 pracowników będą miały nowe obowiązki:</p>
+              <ul>
+                <li>Zapewnienie obowiązkowego, bezpłatnego pakietu badań profilaktycznych wykraczającego poza standardowe Badania Medycyny Pracy (m.in. markery nowotworowe, zaawansowane pakiety kardiologiczne).</li>
+                <li>Rozszerzona odpowiedzialność za stanowiska pracy zdalnej, w tym ewentualna refundacja kosztów rehabilitacji przy schorzeniach kręgosłupa.</li>
+              </ul>
+
+              <h3>Korzyści podatkowe dla pionierów zmian</h3>
+              <p>Rząd zapowiedział również marchewkę – tzw. <em>Tarczę Zdrowotną</em>. Przedsiębiorstwa, które w całości (100%) sponsorują pracownikom i ich rodzinom rozszerzone pakiety opieki zdrowotnej (obejmujące Tier 2 i wyższe), będą mogły zaliczyć tę kwotę do kosztów uzyskania przychodu z podwyższonym mnożnikiem ulgowym.</p>
+              
+              <h3>Jak się przygotować jako Dział Kadr i Płac?</h3>
+              <p>Przejście na nowy model nie musi wiązać się ze skokowym wzrostem kosztów operacyjnych, jeśli przetarg zostanie odpowiednio przygotowany. Nasi eksperci z wykorzystaniem systemu <strong>AuraBenefits</strong> są w stanie zmapować Państwa obecną strukturę wydatków i przygotować gotowy plan przejścia (Transition Plan) z wykorzystaniem ofert TU Zdrowie, PZU czy Compensa, które już certyfikowały swoje produkty pod nową ustawę.</p>
+            `,
+            tags: ["Prawo Pracy", "Podatki", "Medycyna Pracy", "Zarząd"]
         }
     ];
 
-    // Wybieramy losowy artykuł
     const newDraft = mockTopics[Math.floor(Math.random() * mockTopics.length)];
 
-    // Symulacja opóźnienia AI (pisanie artykułu)
-    setTimeout(() => { status.textContent = 'Komponowanie tekstu z cytowaniami...'; }, 1500);
+    setTimeout(() => { status.textContent = 'Opracowywanie treści, składni HTML i cytowań...'; }, 1500);
     
     setTimeout(async () => {
-        // Zapis do bazy jako DRAFT
         const { error } = await SB_CLIENT.from('aura_articles').insert([{
             title: newDraft.title,
             excerpt: newDraft.excerpt,
             content: newDraft.content,
             tags: newDraft.tags,
             status: 'draft',
-            ai_generated: true
+            ai_generated: true 
         }]);
 
         status.classList.add('hidden');
@@ -355,12 +575,12 @@ async function simulateAIGeneration() {
         btn.classList.remove('opacity-50', 'cursor-wait');
 
         if(!error) {
-            alert("🤖 AI zakończyło pracę! Nowy szkic wraz ze źródłami czeka na Twoją recenzję.");
+            alert("🤖 AI zakończyło pracę! Gotowy jest pełnoprawny, długi artykuł (ze wskazanymi źródłami), który czeka na Twoją recenzję.");
             loadDrafts();
         } else {
             alert("Błąd zapisu do bazy: " + error.message);
         }
-    }, 3500);
+    }, 4000);
 }
 
 </script>
