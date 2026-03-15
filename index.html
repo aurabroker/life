@@ -33,7 +33,7 @@
   <div class="max-w-[1500px] mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-3">
       <div class="text-2xl font-black tracking-tight">LIFE<span class="text-brand-gold">AURA</span></div>
-      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">SaaS V1.5.4</span>
+      <span class="bg-brand-gold text-white text-[10px] px-2 py-1 rounded-md tracking-widest font-bold shadow-sm">V1.5.6 (Bez logowania)</span>
     </div>
     <nav class="flex gap-1 bg-blue-900/50 p-1 rounded-xl overflow-x-auto custom-scroll whitespace-nowrap hidden" id="mainNav">
       <button onclick="switchTab('klienci',this)" id="btn-klienci" class="tab-btn active px-4 py-2 text-sm font-semibold rounded-lg bg-white text-brand-blue shadow-sm">🏢 Baza Klientów</button>
@@ -41,7 +41,6 @@
       <button onclick="switchTab('ryzyka',this)"  id="btn-ryzyka"  class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg text-blue-200 hover:text-white">📑 Słownik</button>
       <button onclick="switchTab('account',this)" id="btn-account" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg text-blue-200 hover:text-white">👤 Moje Konto</button>
       <button onclick="switchTab('admin',this)"   id="btn-admin"   class="tab-btn hidden px-4 py-2 text-sm font-semibold rounded-lg text-amber-300 hover:text-white">🔒 Admin Panel</button>
-      <button onclick="doLogout()" class="px-4 py-2 text-sm font-bold rounded-lg text-red-400 hover:text-red-300 ml-2">Wyloguj</button>
     </nav>
   </div>
 </header>
@@ -94,8 +93,8 @@
           </select>
         </div>
         <div>
-          <label class="lbl">Nazwa Wariantu (np. Zarząd)</label>
-          <input type="text" id="kreatorWariant" class="inp font-bold" placeholder="np. Wariant Podstawowy">
+          <label class="lbl">Nazwa Wariantu (Opcjonalnie)</label>
+          <input type="text" id="kreatorWariant" class="inp font-bold" placeholder="Zostaw puste, by system wygenerował sygnaturę">
         </div>
       </div>
       <div class="border-t border-slate-200 pt-6">
@@ -186,40 +185,11 @@
 
 </main>
 
-<!-- MODAL: LOGOWANIE / REJESTRACJA -->
-<div id="loginModal" class="fixed inset-0 bg-slate-900/80 z-50 hidden flex-col items-center justify-center p-4 backdrop-blur-md">
-  <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative">
-    <div class="text-center mb-8">
-      <div class="text-3xl font-black tracking-tight text-brand-blue mb-1">LIFE<span class="text-brand-gold">AURA</span></div>
-      <p class="text-sm text-slate-500">Panel Logowania dla Brokerów</p>
-    </div>
-    
-    <div class="space-y-4 mb-6">
-      <div>
-        <label class="lbl">E-mail służbowy</label>
-        <input type="email" id="loginEmail" class="inp" placeholder="jan.kowalski@firma.pl" onkeydown="if(event.key==='Enter') doAuth('login')">
-      </div>
-      <div>
-        <label class="lbl">Hasło</label>
-        <input type="password" id="loginPass" class="inp" placeholder="••••••••" onkeydown="if(event.key==='Enter') doAuth('login')">
-      </div>
-    </div>
-    
-    <button id="btnLogin" onclick="doAuth('login')" class="w-full bg-brand-blue hover:bg-blue-900 text-white font-bold py-3 rounded-xl shadow-md transition-colors mb-3">Zaloguj się</button>
-    <button id="btnRegister" onclick="doAuth('register')" class="w-full bg-slate-100 hover:bg-slate-200 text-brand-blue font-bold py-3 rounded-xl transition-colors text-sm">Zarejestruj nowe konto (Trial)</button>
-    
-    <!-- Tutaj będą pojawiać się dokładne błędy z Supabase -->
-    <div id="authError" class="bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl p-3 mt-4 hidden"></div>
-    <div id="authSuccess" class="bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs rounded-xl p-3 mt-4 hidden"></div>
-  </div>
-  <div class="mt-8 text-slate-400 text-xs font-bold uppercase tracking-widest">Powered by Supabase Auth</div>
-</div>
-
 <!-- FLOATING USER BAR -->
 <div id="userBar" class="hidden fixed bottom-4 right-4 z-40 bg-brand-blue text-white text-xs font-bold px-5 py-3 rounded-full shadow-2xl flex items-center gap-3">
   <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-  <span id="ubName">Jan Kowalski</span>
-  <span id="ubRole" class="bg-white/20 text-blue-100 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-widest">BROKER</span>
+  <span id="ubName">Konto Tymczasowe</span>
+  <span id="ubRole" class="bg-white/20 text-blue-100 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-widest">ADMIN</span>
 </div>
 
 <!-- UKRYTE MODALE (KLIENCI, OFERTY, CHOROBY) -->
@@ -278,7 +248,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let SB_CLIENT = null;
 let currentUser = null;
-let currentRole = 'broker';
+let currentRole = 'admin'; // Wymuszone uprawnienia admina na sztywno
 
 let slownikRyzyk = [];
 let listaKlientow = [];
@@ -322,136 +292,56 @@ function switchTab(id, btn){
 window.addEventListener('hashchange', () => {
     const hash = window.location.hash.replace('#', '');
     if(hash && document.getElementById('tab-' + hash)) {
-        if(hash === 'admin' && currentRole !== 'admin') return;
         switchTab(hash);
     }
 });
 
 
-// ─── START I AUTORYZACJA ───
+// ─── START BEZ LOGOWANIA (AUTOBYPASS) ───
 window.onload = async () => {
   SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
   
-  const { data: { session } } = await SB_CLIENT.auth.getSession();
-  if (!session) {
-      document.getElementById('loginModal').classList.remove('hidden');
-      document.getElementById('loginModal').classList.add('flex');
-  } else {
-      currentUser = session.user;
-      await inicjalizujSesje();
-  }
-};
-
-async function doAuth(akcja) {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  const err = document.getElementById('authError');
-  const succ = document.getElementById('authSuccess');
+  // WYMUSZAMY MOCKOWEGO UŻYTKOWNIKA I OD RAZU ŁADUJEMY APLIKACJĘ
+  currentUser = { id: '00000000-0000-0000-0000-000000000000', email: 'tryboffline@lifeaura.local' };
+  currentRole = 'admin';
   
-  err.classList.add('hidden'); succ.classList.add('hidden');
-  if(!email || !pass) { err.innerHTML = "<strong>Błąd:</strong> Podaj e-mail i hasło!"; err.classList.remove('hidden'); return; }
+  // Odkrywamy główne UI i pasek
+  document.getElementById('mainNav').classList.remove('hidden');
+  document.getElementById('userBar').classList.remove('hidden');
+  document.getElementById('btn-admin').classList.remove('hidden');
 
-  document.getElementById('btnLogin').textContent = "Ładowanie...";
-
-  if(akcja === 'login') {
-      const { data, error } = await SB_CLIENT.auth.signInWithPassword({ email, password: pass });
-      if(error) {
-          let msg = error.message;
-          if(msg.includes('Email not confirmed')) {
-             msg = `Konto nie zostało aktywowane. <br><br><b>Wskazówka:</b> Wyłącz opcję <i>"Confirm email"</i> w panelu Supabase (Authentication -> Providers -> Email), aby logować się bez potwierdzania adresu z linku.`;
-          } else if(msg.includes('Invalid login credentials')) {
-             msg = `Nieprawidłowy e-mail lub hasło.`;
-          }
-          err.innerHTML = `<strong>Błąd logowania:</strong><br/>${msg}`; 
-          err.classList.remove('hidden');
-      } else {
-          currentUser = data.user;
-          await inicjalizujSesje();
-      }
-  } else if (akcja === 'register') {
-      const { data, error } = await SB_CLIENT.auth.signUp({ email, password: pass });
-      if(error) {
-          err.innerHTML = `<strong>Błąd rejestracji:</strong><br/>${error.message}`; 
-          err.classList.remove('hidden');
-      } else {
-          succ.innerHTML = "<strong>Konto utworzone!</strong><br>Jeśli wyłączyłeś Confirm Email w Supabase, możesz się teraz zalogować."; 
-          succ.classList.remove('hidden');
-      }
+  await zaladujSłownikiStartowe();
+  
+  let startTab = 'klienci';
+  const hash = window.location.hash.replace('#', '');
+  
+  if(hash && document.getElementById('tab-' + hash)) {
+      startTab = hash;
   }
-  document.getElementById('btnLogin').textContent = "Zaloguj się";
-}
-
-async function doLogout() {
-    await SB_CLIENT.auth.signOut();
-    history.pushState(null, null, ' '); 
-    location.reload();
-}
-
-async function inicjalizujSesje() {
-    document.getElementById('loginModal').classList.add('hidden');
-    document.getElementById('loginModal').classList.remove('flex');
-    document.getElementById('mainNav').classList.remove('hidden');
-    document.getElementById('userBar').classList.remove('hidden');
-    
-    const { data, error } = await SB_CLIENT.from('profiles').select('*').eq('id', currentUser.id).single();
-    
-    if(data) {
-        currentRole = data.rola || 'broker';
-        document.getElementById('ubName').textContent = data.full_name || data.email || currentUser.email;
-        document.getElementById('ubRole').textContent = currentRole;
-        if(currentRole === 'admin') document.getElementById('btn-admin').classList.remove('hidden');
-    } else {
-        currentRole = 'broker';
-        document.getElementById('ubName').textContent = currentUser.email;
-        document.getElementById('ubRole').textContent = 'BROKER';
-    }
-
-    await zaladujSłownikiStartowe();
-    
-    let startTab = 'klienci';
-    const hash = window.location.hash.replace('#', '');
-    
-    if(hash && document.getElementById('tab-' + hash)) {
-        if(hash === 'admin' && currentRole !== 'admin') {
-            startTab = 'klienci';
-            history.pushState(null, null, '#klienci'); 
-        } else {
-            startTab = hash;
-        }
-    }
-    
-    switchTab(startTab);
-}
+  
+  switchTab(startTab);
+};
 
 // ─── RESZTA GŁÓWNEGO KODU ───
 async function wczytajProfil() {
-    if(!SB_CLIENT || !currentUser) return;
-    const { data } = await SB_CLIENT.from('profiles').select('*').eq('id', currentUser.id).single();
-    if(data) {
-        document.getElementById('accName').value = data.full_name || '';
-        document.getElementById('accFirma').value = data.firma || '';
-        document.getElementById('accNip').value = data.nip || '';
-        document.getElementById('accTel').value = data.telefon || '';
-        document.getElementById('planBadge').textContent = (data.plan || 'trial').toUpperCase();
-        document.getElementById('planDo').textContent = data.plan_do ? new Date(data.plan_do).toLocaleDateString('pl-PL') : 'Brak limitu';
-    }
+    // Funkcja wyłączona w trybie offline/bypass, aby uniknąć błędów
+    document.getElementById('accName').value = 'Konto Tymczasowe';
+    document.getElementById('accFirma').value = 'Testowe Środowisko Offline';
+    document.getElementById('planBadge').textContent = 'NIESKOŃCZONY';
+    document.getElementById('planDo').textContent = 'Dożywotnio';
 }
 
 async function saveProfile() {
     const statusEl = document.getElementById('accStatus');
-    statusEl.textContent = "Zapisywanie..."; statusEl.className = "mt-3 text-sm font-semibold text-slate-500";
-    const body = { full_name: document.getElementById('accName').value, firma: document.getElementById('accFirma').value, nip: document.getElementById('accNip').value, telefon: document.getElementById('accTel').value };
-    const { error } = await SB_CLIENT.from('profiles').update(body).eq('id', currentUser.id);
-    if(error) { statusEl.textContent = "Błąd zapisu: " + error.message; statusEl.classList.add('text-red-500'); } 
-    else { statusEl.textContent = "✅ Profil zapisany pomyślnie!"; statusEl.classList.add('text-emerald-600'); document.getElementById('ubName').textContent = body.full_name || currentUser.email; }
+    statusEl.textContent = "W trybie offline (Bypass) edycja profilu jest zablokowana."; 
+    statusEl.className = "mt-3 text-sm font-semibold text-amber-500";
 }
 
 async function loadAdminUsers() {
-    if(currentRole !== 'admin') return;
     const cont = document.getElementById('adminTableContainer');
     cont.innerHTML = '<div class="text-center py-8 text-slate-400">Ładowanie użytkowników...</div>';
     const { data, error } = await SB_CLIENT.from('v_admin_users').select('*').order('created_at', {ascending: false});
-    if(error || !data) { cont.innerHTML = '<div class="text-red-500 text-center py-8">Błąd pobierania bazy (Upewnij się, że wgrałeś kod SQL z widokiem i jesteś Adminem).</div>'; return; }
+    if(error || !data) { cont.innerHTML = '<div class="text-red-500 text-center py-8">Błąd pobierania bazy.</div>'; return; }
     
     let html = `<table class="w-full text-sm text-left"><thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500"><tr><th class="p-4">Email</th><th class="p-4">Imię / Firma</th><th class="p-4 text-center">Rola</th><th class="p-4 text-center">Plan</th><th class="p-4 text-center">Ważny Do</th><th class="p-4 text-center">Faktury</th><th class="p-4 text-right">Akcje</th></tr></thead><tbody class="divide-y divide-slate-100">`;
     data.forEach(u => {
@@ -555,12 +445,24 @@ function zaladujWidokRyzyk() {
 
 function utworzSzkicKalkulacji() {
   const klId = document.getElementById('kreatorKlient').value;
-  const war = document.getElementById('kreatorWariant').value.trim();
-  if(!klId || !war) return alert("Wybierz klienta i podaj nazwę wariantu");
+  let war = document.getElementById('kreatorWariant').value.trim();
+  
+  if(!klId) return alert("Wybierz klienta z bazy do stworzenia matrycy.");
+  
   const checked = Array.from(document.querySelectorAll('.tu-checkbox:checked'));
   if(checked.length === 0) return alert("Wybierz minimum jednego ubezpieczyciela.");
   
   wybraniUbezpieczyciele = checked.map(cb => ubezpieczyciele.find(u => u.id == cb.value));
+  
+  // AUTOMATYCZNE GENEROWANIE SYGNATURY
+  if (!war) {
+      const initials = wybraniUbezpieczyciele.map(tu => tu.nazwa.charAt(0).toUpperCase()).join('');
+      const today = new Date();
+      const dateStr = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth()+1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+      war = `${initials} - ${dateStr}`;
+      document.getElementById('kreatorWariant').value = war; // Wyświetla wygenerowaną nazwę w inpucie
+  }
+  
   currentKlientId = klId; currentWariantNazwa = war;
   
   const klient = listaKlientow.find(k => k.id === klId);
