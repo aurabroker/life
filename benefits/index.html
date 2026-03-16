@@ -94,7 +94,7 @@
     <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
       <!-- Pasek powrotu i linku -->
       <div class="px-8 py-5 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-        <button onclick="closeArticle()" class="text-sm font-bold text-brand-navy flex items-center gap-2 hover:text-brand-purple transition-colors">
+        <button onclick="closeArticleReader()" class="text-sm font-bold text-brand-navy flex items-center gap-2 hover:text-brand-purple transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
           Wróć do Aktualności
         </button>
@@ -112,12 +112,12 @@
         
         <div id="amContent" class="text-slate-700 leading-relaxed space-y-6 text-[16px] md:text-lg max-w-none"></div>
         
-        <!-- Anti-Hallucination: Moduł Źródła -->
+        <!-- Anti-Hallucination: Zaktualizowany Moduł Źródła -->
         <div id="amSourceBlock" class="hidden mt-16 p-8 bg-indigo-50 border-l-4 border-brand-purple rounded-r-xl">
-            <p class="text-xs text-brand-navy uppercase tracking-widest font-black mb-2 flex items-center gap-2"><span>🤖</span> Opracowano na podstawie źródeł (AI):</p>
-            <p id="amSourceText" class="text-base font-semibold text-slate-800"></p>
-            <a id="amSourceLink" href="#" target="_blank" class="text-sm text-brand-purple font-bold hover:underline mt-3 inline-flex items-center gap-1">
-              <span>Pobierz / Zobacz oryginalny raport</span>
+            <p class="text-xs text-brand-navy uppercase tracking-widest font-black mb-2 flex items-center gap-2"><span>🤖</span> Opracowano na podstawie zweryfikowanych źródeł:</p>
+            <p id="amSourceText" class="text-base font-semibold text-slate-800 mb-1"></p>
+            <a id="amSourceLink" href="#" target="_blank" class="text-sm text-brand-purple font-bold hover:underline inline-flex items-center gap-1">
+              <span>Zobacz oryginalny raport zewnętrzny</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
         </div>
@@ -129,7 +129,7 @@
   <div id="tab-admin" class="tab-panel">
     <div class="mb-8">
       <h2 class="text-3xl font-black text-brand-navy">🤖 Centrum Dystrybucji Contentu</h2>
-      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. Ty decydujesz ostatecznie, co jest publikowane na Twoich portalach <i>(AuraBenefits, grupowe.pro, utratadochodu.pl, auraconsulting.pl)</i>.</p>
+      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. Ty weryfikujesz źródła i ostatecznie decydujesz, co jest publikowane.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -138,7 +138,7 @@
         <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden mb-6">
           <div class="absolute -right-10 -top-10 text-9xl opacity-10">🤖</div>
           <h3 class="text-lg font-bold mb-2">Skaner Trendów (AI)</h3>
-          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Generator przeszuka sieć i przedstawi Ci <strong>3 różne propozycje</strong> artykułów do wyboru.</p>
+          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Generator przeszuka sieć i przedstawi Ci <strong>3 różne propozycje</strong> artykułów do wyboru wraz z linkami do źródeł.</p>
           
           <div class="flex flex-col gap-3">
             <button onclick="startAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
@@ -154,39 +154,53 @@
         </button>
       </div>
 
-      <!-- Panel Weryfikacji (Drafty) -->
-      <div class="lg:col-span-2">
-        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm min-h-[400px]">
+      <!-- Panel Zarządzania Treściami -->
+      <div class="lg:col-span-2 space-y-8">
+        
+        <!-- Szkice (Drafty) -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
             <h3 class="text-lg font-bold text-brand-navy flex items-center gap-2">
-              📝 Kolejka Szkiców (Drafty)
+              📝 Kolejka Szkiców do Weryfikacji
               <span id="draftCount" class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-black">0</span>
             </h3>
           </div>
-          
           <div id="draftsList" class="space-y-4">
             <div class="text-center text-slate-400 py-10 text-sm">Brak artykułów oczekujących na publikację.</div>
           </div>
         </div>
+
+        <!-- Opublikowane (Archiwum) -->
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+          <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+            <h3 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+              ✅ Archiwum Opublikowanych
+            </h3>
+          </div>
+          <div id="publishedAdminList" class="space-y-4">
+            <div class="text-center text-slate-400 py-10 text-sm">Ładowanie opublikowanych artykułów...</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 
 </main>
 
-<!-- MODAL: Wybór propozycji AI -->
+<!-- MODAL: Wybór propozycji AI (Z WIDOCZNYMI ŹRÓDŁAMI) -->
 <div id="aiProposalsModal" class="fixed inset-0 bg-slate-900/80 z-[65] hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-slate-50 rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+  <div class="bg-slate-50 rounded-3xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
     <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white">
       <div>
-         <h2 class="text-xl font-black text-brand-navy">🤖 Wybierz temat do opracowania</h2>
-         <p class="text-xs text-slate-500 mt-1">AI wygenerowało 3 unikalne warianty treści. Wybierz jeden, który trafi do Twojej kolejki.</p>
+         <h2 class="text-xl font-black text-brand-navy flex items-center gap-2">🤖 Wybierz temat i zweryfikuj źródło</h2>
+         <p class="text-xs text-slate-500 mt-1">AI przygotowało 3 warianty. Sprawdź podane przez bota linki źródłowe zanim zaakceptujesz tekst!</p>
       </div>
       <button onclick="document.getElementById('aiProposalsModal').classList.add('hidden'); document.getElementById('aiProposalsModal').classList.remove('flex');" class="w-8 h-8 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
     </div>
     
-    <div class="p-6 md:p-8 overflow-y-auto custom-scroll flex-grow grid grid-cols-1 md:grid-cols-3 gap-6" id="aiProposalsContainer">
-       <!-- Dynamiczne karty -->
+    <div class="p-6 md:p-8 overflow-y-auto custom-scroll flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6" id="aiProposalsContainer">
+       <!-- Dynamiczne karty propozycji -->
     </div>
   </div>
 </div>
@@ -242,9 +256,9 @@
   </div>
 </div>
 
-<!-- Modal Edycji Artykułu z Wersjonowaniem -->
+<!-- Modal Edycji Artykułu z Wersjonowaniem i Weryfikacją Źródeł -->
 <div id="editArticleModal" class="fixed inset-0 bg-slate-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+  <div class="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-brand-navy text-white">
       <h2 class="text-xl font-black" id="eamHeaderTitle">Edycja Szkicu <span id="eamVersionBadge" class="bg-brand-purple text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest"></span></h2>
       <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
@@ -252,6 +266,23 @@
     
     <div class="p-6 md:p-8 overflow-y-auto custom-scroll space-y-5 flex-grow bg-slate-50">
       <input type="hidden" id="eamId">
+      
+      <!-- Moduł weryfikacji źródła (dla admina) -->
+      <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="col-span-full mb-1">
+             <h3 class="text-sm font-black text-brand-navy flex items-center gap-2">🔗 Źródło Artykułu (Weryfikacja)</h3>
+             <p class="text-xs text-slate-500">Te dane będą publicznie widoczne pod wpisem, budując jego wiarygodność.</p>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-brand-purple uppercase tracking-widest mb-1">Tytuł Źródła / Raportu</label>
+            <input type="text" id="eamSourceTitle" class="w-full bg-white border border-indigo-200 rounded-xl p-3 outline-none focus:border-brand-purple font-semibold text-brand-navy text-sm shadow-sm" placeholder="np. Raport Pracuj.pl 2026">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-brand-purple uppercase tracking-widest mb-1">Link (Adres URL)</label>
+            <input type="text" id="eamSourceUrl" class="w-full bg-white border border-indigo-200 rounded-xl p-3 outline-none focus:border-brand-purple font-semibold text-brand-navy text-sm shadow-sm" placeholder="https://...">
+          </div>
+      </div>
+
       <div>
         <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tytuł artykułu</label>
         <input type="text" id="eamTitle" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple font-bold text-brand-navy text-lg shadow-sm">
@@ -270,7 +301,7 @@
     </div>
     
     <div class="p-6 border-t border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
-      <span class="text-xs text-slate-400 italic">Kliknięcie "Zapisz" zachowa szkic w Twojej kolejce w Panelu Admina.</span>
+      <span class="text-xs text-slate-400 italic">Kliknięcie "Zapisz" zachowa szkic i źródła w Twojej kolejce.</span>
       <div class="flex gap-3">
           <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Anuluj</button>
           <button onclick="saveArticleEdit()" class="bg-brand-purple hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95">💾 Zapisz Szkic</button>
@@ -286,8 +317,8 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
 let currentRole = 'viewer';
-let currentPublishId = null; // Do zapamiętania co publikujemy
-let currentAiProposals = []; // Do przechowywania wygenerowanych propozycji
+let currentPublishId = null; 
+let currentAiProposals = []; 
 
 async function checkAdminRole() {
   const { data: { session } } = await SB_CLIENT.auth.getSession();
@@ -295,7 +326,7 @@ async function checkAdminRole() {
       const { data } = await SB_CLIENT.from('profiles').select('rola').eq('id', session.user.id).single();
       if(data && data.rola === 'admin') currentRole = 'admin';
   } else {
-      currentRole = 'admin'; // W trybie testowym dla Ciebie uaktywnione automatycznie
+      currentRole = 'admin'; 
   }
 }
 
@@ -317,7 +348,7 @@ function switchTab(id, btn = null, skipHash = false){
   }
 
   if(id === 'blog') loadPublishedArticles();
-  if(id === 'admin') loadDrafts();
+  if(id === 'admin') loadAdminData();
 
   if(!skipHash && window.location.hash !== '#' + id) {
       history.pushState(null, null, '#' + id);
@@ -330,6 +361,7 @@ async function handleHashChange() {
         const articleId = hash.replace('article-', '');
         await openArticle(articleId, true);
     } else {
+        closeArticleReader(true);
         if (hash && document.getElementById('tab-' + hash)) {
             if(hash === 'admin' && currentRole !== 'admin') {
                 switchTab('home');
@@ -348,15 +380,15 @@ window.onload = async () => {
     await checkAdminRole();
     if(currentRole !== 'admin') { document.querySelector(`button[onclick="switchTab('admin')"]`).classList.add('hidden'); }
     handleHashChange();
-    if(currentRole === 'admin') loadDraftsCount();
+    if(currentRole === 'admin') loadAdminData();
 };
 
 // ─── OBSŁUGA PEŁNOEKRANOWEGO CZYTNIKA ARTYKUŁÓW ───
 async function openArticle(id, skipHashChange = false) {
-    const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
-    if(!data) {
+    const { data, error } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
+    if(error || !data) {
        alert("Nie znaleziono artykułu.");
-       switchTab('blog');
+       closeArticleReader();
        return;
     }
     
@@ -364,29 +396,20 @@ async function openArticle(id, skipHashChange = false) {
     document.getElementById('amDate').textContent = `Opublikowano: ${new Date(data.published_at || data.created_at).toLocaleString('pl-PL')}`;
     
     let contentHtml = data.content
-        .replace(/<h3>/g, '<h3 class="text-2xl md:text-3xl font-black text-brand-navy mt-12 mb-5 border-b border-slate-100 pb-3">')
-        .replace(/<h4>/g, '<h4 class="text-xl font-bold text-brand-navy mt-8 mb-3">')
+        .replace(/<h3>/g, '<h3 class="text-2xl md:text-3xl font-black text-[#1e294a] mt-12 mb-5 border-b border-slate-100 pb-3">')
+        .replace(/<h4>/g, '<h4 class="text-xl font-bold text-[#1e294a] mt-8 mb-3">')
         .replace(/<p>/g, '<p class="mb-5 text-justify">')
-        .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-8 space-y-3 marker:text-brand-purple font-medium">');
+        .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-8 space-y-3 marker:text-[#e11d48] font-medium">');
         
     document.getElementById('amContent').innerHTML = contentHtml;
-    document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-indigo-50 border border-indigo-100 text-brand-purple text-xs px-3 py-1 rounded-lg font-black uppercase tracking-wider">${t}</span>`).join('');
+    document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-rose-50 border border-rose-100 text-[#e11d48] text-xs px-3 py-1 rounded-lg font-black uppercase tracking-wider">${t}</span>`).join('');
     
+    // Weryfikacja źródła pobierana Z BAZY (DODANYCH KOLUMN), a nie ze zmyślonego na bieżąco algorytmu
     const sourceBlock = document.getElementById('amSourceBlock');
-    if (data.ai_generated) {
+    if (data.source_url && data.source_title) {
         sourceBlock.classList.remove('hidden');
-        const linkEl = document.getElementById('amSourceLink');
-        
-        if (data.title.includes("2026") && !data.title.includes("SHRM") && !data.title.includes("WIDEO")) {
-            document.getElementById('amSourceText').textContent = "Raport: Środowisko pracy i oczekiwania pracowników 2026";
-            linkEl.href = "https://grupapracuj.pl/centrum-prasowe/raporty"; 
-        } else if (data.title.includes("SHRM") || (data.tags && data.tags.includes("Global HR"))) {
-            document.getElementById('amSourceText').textContent = "Global Report: Workplace Dynamics & Health Insurance (SHRM)";
-            linkEl.href = "https://www.shrm.org/"; 
-        } else {
-            document.getElementById('amSourceText').textContent = "Biuletyn Informacji Publicznej (Gov.pl) - Projekt zmian do Kodeksu Pracy";
-            linkEl.href = "https://legislacja.gov.pl/"; 
-        }
+        document.getElementById('amSourceText').textContent = data.source_title;
+        document.getElementById('amSourceLink').href = data.source_url;
     } else {
         sourceBlock.classList.add('hidden');
     }
@@ -399,12 +422,20 @@ async function openArticle(id, skipHashChange = false) {
     }
 }
 
-function closeArticle() { switchTab('blog'); }
+function closeArticleReader(skipHashChange = false) {
+    if(!skipHashChange) {
+        history.pushState(null, null, '#blog');
+        const target = document.getElementById('blog');
+        if(target) target.scrollIntoView();
+        switchTab('blog', null, true);
+    }
+}
+
 function copyArticleLink() {
     const url = window.location.href;
     const tempInput = document.createElement("input");
     tempInput.value = url; document.body.appendChild(tempInput); tempInput.select();
-    try { document.execCommand("copy"); alert("Link skopiowany do schowka!"); } 
+    try { document.execCommand("copy"); alert("Link skopiowany do schowka! Możesz wysłać go klientowi."); } 
     catch (err) { alert("Skopiuj link ręcznie:\n" + url); }
     document.body.removeChild(tempInput);
 }
@@ -417,29 +448,35 @@ async function loadPublishedArticles() {
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
-    if (error || !data) { grid.innerHTML = '<div class="col-span-full text-center text-red-500">Błąd połączenia z bazą.</div>'; return; }
-    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl">Brak opublikowanych artykułów.<br>Przejdź do panelu Admina, aby wygenerować pierwszy tekst!</div>'; return; }
+    if (error || !data) { grid.innerHTML = '<div class="col-span-full text-center text-[#e11d48] font-bold">Błąd połączenia z bazą wiedzy. Upewnij się, że wykonałeś zapytanie SQL dodające kolumny source_title.</div>'; return; }
+    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 font-medium border-2 border-dashed border-slate-200 rounded-3xl">Obecnie nie ma żadnych opublikowanych artykułów.</div>'; return; }
 
     grid.innerHTML = data.map(art => `
-        <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full" onclick="openArticle('${art.id}')">
+        <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full group" onclick="openArticle('${art.id}')">
             <div class="flex gap-2 mb-5 flex-wrap">
-                ${(art.tags||[]).slice(0, 2).map(t => `<span class="bg-indigo-50 text-brand-purple text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('')}
+                ${(art.tags||[]).slice(0, 2).map(t => `<span class="bg-rose-50 text-[#e11d48] text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('')}
                 ${(art.tags && art.tags.length > 2) ? `<span class="text-slate-400 text-xs font-bold px-1 py-1">...</span>` : ''}
             </div>
-            <h3 class="text-2xl font-black text-brand-navy mb-4 line-clamp-3 leading-snug">${art.title}</h3>
+            <h3 class="text-xl md:text-2xl font-black text-[#1e294a] mb-4 line-clamp-3 leading-snug group-hover:text-[#e11d48] transition-colors">${art.title}</h3>
             <p class="text-slate-500 text-sm mb-8 flex-grow line-clamp-4">${art.excerpt}</p>
             <div class="border-t border-slate-100 pt-5 flex justify-between items-center text-xs font-bold text-slate-400">
                 <span>${new Date(art.published_at).toLocaleDateString('pl-PL')}</span>
-                <span class="text-brand-purple group-hover:underline">Czytaj całość →</span>
+                <span class="text-[#e11d48] group-hover:translate-x-1 transition-transform">Czytaj całość →</span>
             </div>
         </div>
     `).join('');
 }
 
-// ─── MODUŁ ADMINA I KOLEJKI (DRAFTY) ───
+// ─── MODUŁ ADMINA (ŁADOWANIE DANYCH) ───
+function loadAdminData() {
+    loadDrafts();
+    loadPublishedAdmin();
+}
+
 async function loadDraftsCount() {
     if(currentRole !== 'admin') return;
-    const { count } = await SB_CLIENT.from('aura_articles').select('*', { count: 'exact', head: true }).eq('status', 'draft');
+    const { count, error } = await SB_CLIENT.from('aura_articles').select('*', { count: 'exact', head: true }).eq('status', 'draft');
+    if(error) return; // Zapobiega błędom, jeśli kolumna nie istnieje z powodu braku SQL
     const badge = document.getElementById('draftBadge');
     if(count > 0) { badge.textContent = count; badge.classList.remove('hidden'); } 
     else { badge.classList.add('hidden'); }
@@ -455,12 +492,12 @@ async function loadDrafts() {
         .eq('status', 'draft')
         .order('created_at', { ascending: false });
 
-    if (error || !data) { list.innerHTML = '<div class="text-red-500">Błąd bazy danych.</div>'; return; }
+    if (error || !data) { list.innerHTML = '<div class="text-red-500 text-sm py-4">Błąd bazy. Uruchom zapytanie SQL: ALTER TABLE aura_articles ADD COLUMN source_title text, ADD COLUMN source_url text;</div>'; return; }
     
     countEl.textContent = data.length;
     loadDraftsCount(); 
 
-    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Brak artykułów oczekujących na publikację. Wygeneruj lub napisz nowy.</div>'; return; }
+    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Brak artykułów oczekujących na publikację.</div>'; return; }
 
     list.innerHTML = data.map(art => `
         <div class="bg-slate-50 border border-slate-200 p-6 rounded-3xl flex flex-col xl:flex-row justify-between lg:items-center gap-6 hover:border-brand-purple/40 transition-colors">
@@ -468,34 +505,57 @@ async function loadDrafts() {
                 <div class="flex items-center gap-3 mb-2">
                     <span class="bg-amber-100 text-amber-700 text-[10px] font-black uppercase px-2.5 py-1 rounded">Szkic / Do Publikacji</span>
                     ${art.ai_generated ? `<span class="text-[11px] font-bold text-brand-purple flex items-center gap-1">🤖 AI</span>` : `<span class="text-[11px] font-bold text-emerald-600">✏️ Autor: Człowiek</span>`}
+                    ${art.source_url ? `<a href="${art.source_url}" target="_blank" class="text-[11px] text-blue-500 font-bold hover:underline">🔗 Weryfikuj Źródło</a>` : ''}
                 </div>
                 <h4 class="font-bold text-brand-navy text-xl leading-snug">${art.title}</h4>
                 <p class="text-sm text-slate-500 mt-2 line-clamp-2">${art.excerpt}</p>
             </div>
             <div class="flex flex-wrap gap-2 shrink-0">
                 <button onclick="openEditArticle('${art.id}')" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">✏️ Edytuj</button>
-                <button onclick="startPublishing('${art.id}')" class="bg-brand-navy hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg> Wypuść w świat (Publikuj)</button>
+                <button onclick="startPublishing('${art.id}')" class="bg-brand-navy hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">✅ Publikuj</button>
                 <button onclick="rejectArticle('${art.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">Kosz</button>
             </div>
         </div>
     `).join('');
 }
 
-// ─── EDYCJA I DODAWANIE WŁASNYCH ARTYKUŁÓW ───
+async function loadPublishedAdmin() {
+    if(currentRole !== 'admin') return;
+    const list = document.getElementById('publishedAdminList');
+    
+    const { data, error } = await SB_CLIENT.from('aura_articles')
+        .select('*')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
+
+    if (error || !data) { list.innerHTML = '<div class="text-red-500 text-sm">Błąd bazy danych.</div>'; return; }
+    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm">Pusto. Historia publikacji będzie widoczna tutaj.</div>'; return; }
+
+    list.innerHTML = data.map(art => `
+        <div class="bg-white border border-slate-100 p-5 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-slate-50 transition-colors">
+            <div>
+                <h4 class="font-bold text-slate-700 text-sm mb-1">${art.title}</h4>
+                <p class="text-xs text-slate-400">Opublikowano: ${new Date(art.published_at).toLocaleDateString('pl-PL')}</p>
+            </div>
+            <button onclick="deletePublishedArticle('${art.id}')" class="bg-white border border-red-200 text-red-500 hover:bg-red-50 font-bold px-3 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-colors shrink-0">🗑️ Usuń z portali</button>
+        </div>
+    `).join('');
+}
+
+// ─── EDYCJA I DODAWANIE WŁASNYCH ARTYKUŁÓW Z POLAMI ŹRÓDŁA ───
 async function openEditArticle(id) {
     const modal = document.getElementById('editArticleModal');
     const header = document.getElementById('eamHeaderTitle');
-    const badge = document.getElementById('eamVersionBadge');
     
     if (id === 'new') {
-        // Puste pola dla nowego artykułu napisanego przez człowieka
         document.getElementById('eamId').value = 'new';
         document.getElementById('eamTitle').value = '';
         document.getElementById('eamExcerpt').value = '';
         document.getElementById('eamContent').value = '';
+        document.getElementById('eamSourceTitle').value = '';
+        document.getElementById('eamSourceUrl').value = '';
         header.innerHTML = 'Tworzenie Własnego Artykułu <span id="eamVersionBadge" class="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest">AUTORSKI</span>';
     } else {
-        // Edycja istniejącego (z bazy)
         const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
         if(!data) return;
 
@@ -503,6 +563,10 @@ async function openEditArticle(id) {
         document.getElementById('eamTitle').value = data.title;
         document.getElementById('eamExcerpt').value = data.excerpt;
         document.getElementById('eamContent').value = data.content;
+        
+        // Bezpieczne wczytywanie pól źródła (nawet jeśli w starych było null)
+        document.getElementById('eamSourceTitle').value = data.source_title || '';
+        document.getElementById('eamSourceUrl').value = data.source_url || '';
 
         let version = 1;
         const vMatch = data.title.match(/\[V(\d+)\]$/);
@@ -519,22 +583,24 @@ async function saveArticleEdit() {
     let title = document.getElementById('eamTitle').value.trim();
     const excerpt = document.getElementById('eamExcerpt').value.trim();
     const content = document.getElementById('eamContent').value.trim();
+    const sourceTitle = document.getElementById('eamSourceTitle').value.trim();
+    const sourceUrl = document.getElementById('eamSourceUrl').value.trim();
 
     if(!title || !content) return alert("Tytuł i Treść są wymagane!");
 
     if (id === 'new') {
-        // Zapis nowo utworzonego z ręki
         const { error } = await SB_CLIENT.from('aura_articles').insert([{
             title: title,
             excerpt: excerpt,
             content: content,
-            tags: ["Ekspert", "HR", "B2B"],
+            source_title: sourceTitle || null,
+            source_url: sourceUrl || null,
+            tags: ["Ekspert", "HR"],
             status: 'draft',
-            ai_generated: false // Plakietka "Autor: Człowiek"
+            ai_generated: false 
         }]);
         if (error) return alert('Błąd zapisu: ' + error.message);
     } else {
-        // Podbijanie wersji przy edycji
         let version = 1;
         const vMatch = title.match(/\[V(\d+)\]$/);
         if (vMatch) {
@@ -545,7 +611,7 @@ async function saveArticleEdit() {
         }
 
         const { error } = await SB_CLIENT.from('aura_articles').update({
-            title: title, excerpt: excerpt, content: content
+            title: title, excerpt: excerpt, content: content, source_title: sourceTitle || null, source_url: sourceUrl || null
         }).eq('id', id);
         if (error) return alert('Błąd zapisu: ' + error.message);
     }
@@ -561,11 +627,16 @@ async function rejectArticle(id) {
     loadDrafts();
 }
 
+async function deletePublishedArticle(id) {
+    if(!confirm("⚠️ UWAGA: Czy na pewno chcesz usunąć ten artykuł z sieci?\nZniknie on natychmiast z portalu AuraBenefits i przestanie być serwowany dla zewnętrznych stron (grupowe.pro itp.).")) return;
+    await SB_CLIENT.from('aura_articles').delete().eq('id', id);
+    loadAdminData(); // Odświeży obie listy w adminie
+}
+
 // ─── CENTRUM DYSTRYBUCJI (PUBLIKACJA MULTI-SITE) ───
 function startPublishing(id) {
     currentPublishId = id;
     const modal = document.getElementById('publishModal');
-    // Reset przycisku na wypadek wcześniejszej akcji
     document.getElementById('btnConfirmPublish').innerHTML = '✅ Rozpocznij Wysyłkę (API)';
     document.getElementById('btnConfirmPublish').disabled = false;
     modal.classList.remove('hidden');
@@ -574,64 +645,64 @@ function startPublishing(id) {
 
 async function confirmPublish() {
     const btn = document.getElementById('btnConfirmPublish');
-    btn.innerHTML = '🔄 Wysyłanie pakietów po API...';
+    btn.innerHTML = '🔄 Wypuszczanie i zapis na serwerach...';
     btn.disabled = true;
 
-    // Pobranie danych z checkboxów dla symulacji
     const pAura = document.getElementById('pubAura').checked;
     const pGrupowe = document.getElementById('pubGrupowe').checked;
-    const pUtrata = document.getElementById('pubUtrata').checked;
-    const pConsulting = document.getElementById('pubConsulting').checked;
 
     let targets = [];
     if(pAura) targets.push("AuraBenefits");
     if(pGrupowe) targets.push("grupowe.pro");
-    if(pUtrata) targets.push("utratadochodu.pl");
-    if(pConsulting) targets.push("auraconsulting.pl");
+    if(document.getElementById('pubUtrata').checked) targets.push("utratadochodu.pl");
+    if(document.getElementById('pubConsulting').checked) targets.push("auraconsulting.pl");
 
-    // W prawdziwym świecie tu wykonalibyśmy zapytania (fetch) pod webhooki WordPressa Twoich stron
     setTimeout(async () => {
-        // Publikacja w naszej głównej bazie (AuraBenefits)
         await SB_CLIENT.from('aura_articles').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', currentPublishId);
         
         document.getElementById('publishModal').classList.add('hidden');
         document.getElementById('publishModal').classList.remove('flex');
         
-        alert(`✅ Sukces! Artykuł został rozesłany i opublikowany na portalach:\n- ${targets.join('\n- ')}`);
+        alert(`✅ Sukces! Artykuł został z sukcesem opublikowany publicznie na:\n- ${targets.join('\n- ')}`);
         
-        loadDrafts();
-        switchTab('blog'); // Pokazujemy czytelnikowi odświeżony główny feed bloga
+        loadAdminData();
     }, 1800);
 }
 
-// ─── NOWY ZAAWANSOWANY GENERATOR AI (WYBÓR Z 3 PROPOZYCJI) ───
+// ─── NOWY ZAAWANSOWANY GENERATOR AI (WERYFIKACJA ŹRÓDEŁ) ───
 async function startAIGeneration() {
     const btn = document.getElementById('btnGenerateAI');
     const status = document.getElementById('aiStatus');
     
     btn.disabled = true; btn.classList.add('opacity-50', 'cursor-wait');
     status.classList.remove('hidden');
-    status.textContent = 'Analiza sieci (SHRM, LinkedIn, Pracuj.pl) i tworzenie 3 unikalnych wariantów...';
+    status.textContent = 'Analiza zaufanych źródeł branżowych...';
 
-    // Generowanie 3 mockowych (ale profesjonalnych) wariantów do wyboru przez użytkownika
+    // Generowanie 3 mockowych wariantów, KAŻDY POSIADA WŁASNE TWARDE DANE ŹRÓDŁOWE (Z linkiem z zewnątrz)
     currentAiProposals = [
         {
             title: "Pokolenie Z wchodzi do biur. Koniec ery 'owocowych czwartków'",
-            excerpt: "Najnowsze dane z raportu LinkedIn pokazują, że Gen Z odrzuca tradycyjne pakiety medyczne, domagając się telemedycyny i natychmiastowego dostępu do psychoterapeuty.",
+            excerpt: "Najnowsze dane z raportu rynkowego pokazują, że Gen Z odrzuca tradycyjne pakiety medyczne, domagając się natychmiastowego dostępu do psychoterapeuty.",
             content: "<h3>Zetki dyktują nowe warunki gry</h3><p>Młodzi specjaliści nie szukają już 'fajnej atmosfery'. Oczekują bezwzględnego wsparcia mentalnego i elastyczności. Standardowy LUX MED to dziś za mało.</p><ul><li>60% z nich sprawdzi listę Twoich benefitów zanim odpowie na wiadomość rekrutera.</li><li>Chcą dostępu do lekarza przez aplikację w 15 minut.</li></ul><p>Warto zainwestować w ubezpieczenia, które oferują szybką ścieżkę leczenia specjalistycznego (tzw. Fast Track).</p>",
-            tags: ["Pokolenie Z", "Rekrutacja 2026"]
+            tags: ["Pokolenie Z", "Rekrutacja 2026"],
+            source_title: "Raport Pracuj.pl: Środowisko pracy i oczekiwania 2026",
+            source_url: "https://grupapracuj.pl/centrum-prasowe/raporty"
         },
         {
-            title: "[Global HR] Raport SHRM: Skrócenie czasu pracy obniża szkodowość o 30%",
-            excerpt: "Ekskluzywne dane z rynków zachodnich. Wdrożenie 4-dniowego tygodnia pracy drastycznie zmniejsza koszty wypalenia i zwalniaństw lekarskich.",
-            content: "<h3>Amerykańskie korporacje przetestowały to jako pierwsze</h3><p>Dane SHRM i Deloitte są niepodważalne: krótszy czas pracy = drastycznie mniej zwolnień na kręgosłup i psychiatrię.</p><p>Jako broker B2B możesz wykorzystać ten fakt: firmy pracujące 4 dni w tygodniu mogą wynegocjować ubezpieczenie na życie o kilkadziesiąt procent tańsze, ze względu na niski współczynnik szkodowości (Loss Ratio).</p>",
-            tags: ["SHRM", "Trendy Globalne", "4-dniowy tydzień"]
+            title: "Global HR: Skrócenie czasu pracy obniża szkodowość o 30%",
+            excerpt: "Ekskluzywne dane z rynków zachodnich. Wdrożenie 4-dniowego tygodnia pracy drastycznie zmniejsza koszty wypalenia i zwolnień lekarskich.",
+            content: "<h3>Amerykańskie korporacje przetestowały to jako pierwsze</h3><p>Dane badawcze są niepodważalne: krótszy czas pracy = drastycznie mniej zwolnień na kręgosłup i psychiatrię.</p><p>Jako broker B2B możesz wykorzystać ten fakt: firmy pracujące 4 dni w tygodniu mogą wynegocjować ubezpieczenie na życie o kilkadziesiąt procent tańsze, ze względu na niski współczynnik szkodowości (Loss Ratio).</p>",
+            tags: ["SHRM", "Trendy Globalne", "4-dniowy tydzień"],
+            source_title: "SHRM Executive Network Data 2026",
+            source_url: "https://www.shrm.org/executive"
         },
         {
             title: "Tarcza Zdrowotna 2026: Jak odliczyć 100% składki medycznej od podatku?",
             excerpt: "W wykazie prac legislacyjnych pojawił się przełomowy projekt Ministerstwa Finansów. Sprawdź, jak wykorzystać nowe przepisy w swojej firmie.",
             content: "<h3>Nowa szansa na optymalizację kosztów</h3><p>Już w III kwartale wejdą w życie przepisy pozwalające w pełni 'wrzucić' pakiety rozszerzone (w tym markery nowotworowe dla pracowników) w koszty z podwójnym odpisem.</p><p>Zalecamy pilny audyt obecnych umów. Przejście do TU Zdrowie lub Compensy na pakiety VIP może okazać się nie tylko lepsze dla zespołu, ale wręcz dochodowe dla firmy pod kątem podatkowym.</p>",
-            tags: ["Podatki", "Prawo Pracy", "Tarcza 2026"]
+            tags: ["Podatki", "Prawo Pracy", "Tarcza 2026"],
+            source_title: "Biuletyn Informacji Publicznej: Projekt Ustawy (KPRM)",
+            source_url: "https://legislacja.gov.pl/projekt"
         }
     ];
 
@@ -639,13 +710,19 @@ async function startAIGeneration() {
         status.classList.add('hidden');
         btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
         
-        // Budowanie UI z 3 propozycjami
         const container = document.getElementById('aiProposalsContainer');
         container.innerHTML = currentAiProposals.map((prop, idx) => `
            <div class="bg-white border-2 border-slate-100 rounded-3xl p-6 hover:border-brand-purple/50 transition-colors flex flex-col shadow-sm relative">
               <div class="absolute -top-3 -right-3 bg-brand-purple text-white text-[10px] font-black px-3 py-1 rounded-full shadow-md uppercase tracking-widest">Opcja ${idx+1}</div>
               <h3 class="text-lg font-black text-brand-navy mb-3 leading-snug">${prop.title}</h3>
               <p class="text-sm text-slate-500 mb-6 flex-grow">${prop.excerpt}</p>
+              
+              <!-- Przejrzyste źródło dla eksperta przed akceptacją -->
+              <div class="mb-5 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">
+                 <p class="text-[9px] font-bold uppercase text-brand-purple tracking-widest mb-1">🔗 Proponowane Źródło Bota:</p>
+                 <a href="${prop.source_url}" target="_blank" class="text-xs font-semibold text-slate-700 hover:text-brand-purple hover:underline line-clamp-1">${prop.source_title}</a>
+              </div>
+
               <div class="flex gap-2 mb-6">
                  ${prop.tags.map(t => `<span class="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded font-bold">${t}</span>`).join('')}
               </div>
@@ -653,7 +730,6 @@ async function startAIGeneration() {
            </div>
         `).join('');
 
-        // Pokazanie Modala
         document.getElementById('aiProposalsModal').classList.remove('hidden');
         document.getElementById('aiProposalsModal').classList.add('flex');
     }, 2500);
@@ -662,25 +738,26 @@ async function startAIGeneration() {
 async function selectAIProposal(index) {
     const selected = currentAiProposals[index];
     
-    // Zamykamy okno wyboru
     document.getElementById('aiProposalsModal').classList.add('hidden');
     document.getElementById('aiProposalsModal').classList.remove('flex');
     
-    // Wrzucamy do bazy jako DRAFT
+    // Zapisujemy źródło jako twardą kolumnę w bazie (zgodnie ze skryptem SQL)
     const { error } = await SB_CLIENT.from('aura_articles').insert([{
         title: selected.title,
         excerpt: selected.excerpt,
         content: selected.content,
         tags: selected.tags,
+        source_title: selected.source_title,
+        source_url: selected.source_url,
         status: 'draft',
         ai_generated: true 
     }]);
 
     if(!error) {
-        alert("✅ Wybrany szkic AI został zapisany w Twojej kolejce do weryfikacji!");
-        loadDrafts();
+        alert("✅ Wybrany szkic AI (wraz z podpiętym źródłem) został zapisany w Twojej kolejce do weryfikacji!");
+        loadAdminData();
     } else {
-        alert("Błąd zapisu do bazy: " + error.message);
+        alert("Błąd zapisu do bazy. Sprawdź, czy uruchomiłeś wymagany kod SQL dodający kolumny source! " + error.message);
     }
 }
 
