@@ -148,6 +148,9 @@
             <button onclick="startAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 mt-2">
               <span>⚡ Skanuj Internet (Gemini API)</span>
             </button>
+            <div class="text-center">
+               <button onclick="resetApiKey()" class="text-[10px] text-slate-400 hover:text-white underline transition-colors">🔑 Zmień lub zresetuj klucz API</button>
+            </div>
           </div>
           <div id="aiStatus" class="mt-4 text-[10px] font-bold text-indigo-300 uppercase tracking-widest text-center hidden">Uruchamiam skanowanie...</div>
         </div>
@@ -676,7 +679,13 @@ async function confirmPublish() {
     }, 1800);
 }
 
-// ─── PRAWDZIWE POŁĄCZENIE Z AI (GEMINI + GOOGLE SEARCH) ───
+// ─── PRAWDZIWE POŁĄCZENIE Z AI (GEMINI + GOOGLE SEARCH) Z ULEPSZONYM WYKRYWANIEM BŁĘDÓW ───
+
+function resetApiKey() {
+    localStorage.removeItem('gemini_api_key');
+    alert("Klucz API został usunięty z pamięci przeglądarki. Przy następnym uruchomieniu generatora system poprosi o jego ponowne wpisanie.");
+}
+
 async function startAIGeneration() {
     const btn = document.getElementById('btnGenerateAI');
     const status = document.getElementById('aiStatus');
@@ -687,7 +696,19 @@ async function startAIGeneration() {
     status.innerHTML = 'Łączenie z modelem językowym AI...<br>Skanuję żywy internet w poszukiwaniu wiarygodnych źródeł...';
 
     try {
-        const apiKey = ""; // Podpinane z zabezpieczonego środowiska wykonawczego
+        // BEZPIECZEŃSTWO: Pobieramy klucz z pamięci lokalnej, a nie z kodu źródłowego
+        let apiKey = localStorage.getItem('gemini_api_key');
+        
+        if (!apiKey) {
+            apiKey = prompt("Ze względów bezpieczeństwa klucz API nie jest zapisany w kodzie.\n\nPodaj swój klucz API Gemini (zostanie on bezpiecznie zapisany w pamięci Twojej przeglądarki):");
+            if (!apiKey) {
+                status.classList.add('hidden');
+                btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
+                return; // Anulowano
+            }
+            localStorage.setItem('gemini_api_key', apiKey.trim());
+        }
+        
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const topicContext = topicInput ? `Skup się ściśle na następującym temacie / branży: "${topicInput}".` : `Skup się ogólnie na rynku pracy, benefitach, Kodeksie Pracy w Polsce lub ubezpieczeniach medycznych.`;
@@ -729,7 +750,9 @@ async function startAIGeneration() {
 
         let response;
         let delay = 1000;
-        // Exponential backoff w przypadku problemu z API
+        let errorDetails = "";
+        
+        // Mechanizm prób (exponential backoff) z dokładnym czytaniem komunikatu błędu
         for (let i = 0; i < 5; i++) {
             try {
                 response = await fetch(url, {
@@ -737,15 +760,33 @@ async function startAIGeneration() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
                 if (response.ok) break;
+                
+                // Jeśli błąd, próbujemy wyciągnąć jego powód od Google
+                const errData = await response.json();
+                errorDetails = errData.error?.message || response.statusText;
+                
+                // Przerywamy pętlę wcześniej, jeśli to jawny błąd uwierzytelnienia (zły klucz)
+                if (response.status === 400 || response.status === 403) {
+                    localStorage.removeItem('gemini_api_key'); // Automatyczny reset błędnego klucza
+                    break;
+                }
+                
             } catch (e) {
+                errorDetails = e.message;
                 if (i === 4) throw e;
             }
             await new Promise(r => setTimeout(r, delay));
             delay *= 2;
         }
 
-        if (!response || !response.ok) throw new Error("Odmowa dostępu ze strony serwera AI.");
+        if (!response || !response.ok) {
+            if (response && (response.status === 400 || response.status === 403)) {
+                throw new Error("Wprowadzony klucz API jest nieprawidłowy lub wygasł.\nKlucz został automatycznie zresetowany. Kliknij przycisk generowania ponownie, aby wprowadzić nowy klucz.");
+            }
+            throw new Error(`Błąd serwera Google AI (Status ${response?.status || 'Brak'}): ${errorDetails}`);
+        }
         
         const data = await response.json();
         const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -783,9 +824,10 @@ async function startAIGeneration() {
         document.getElementById('aiProposalsModal').classList.add('flex');
 
     } catch (err) {
-        status.textContent = 'Wystąpił problem z połączeniem z żywym silnikiem AI Google.';
+        status.textContent = 'Błąd uruchamiania skanera sieci.';
         btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
-        alert("Błąd integracji AI: " + err.message + "\n\nSpróbuj ponownie.");
+        
+        alert("Wystąpił problem z połączeniem z silnikiem sztucznej inteligencji.\n\nSZCZEGÓŁY BŁĘDU:\n" + err.message + "\n\n⚠️ WSKAZÓWKA:\nBłąd odmowy dostępu (400 / 403) pojawia się, gdy używasz tego pliku na swoim dysku lub hostingu i nie wpisałeś klucza API.\nWygeneruj darmowy klucz na stronie https://aistudio.google.com/ i wklej go w linii 635 kodu (zmienna apiKey)!");
     }
 }
 
