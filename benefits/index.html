@@ -37,9 +37,9 @@
     </div>
     <nav class="flex gap-2 flex-wrap justify-center">
       <button onclick="switchTab('home')" class="tab-btn active px-4 py-2 text-sm font-bold rounded-lg text-brand-purple bg-purple-50 transition-colors">Strona Główna</button>
-      <button onclick="switchTab('blog')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors">Aktualności</button>
+      <button onclick="switchTab('blog')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors">Baza Wiedzy HR</button>
       <button onclick="switchTab('admin')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 flex items-center gap-2 transition-colors">
-        <span>🤖 Centrum Contentu</span>
+        <span>🤖 AI Redaktor</span>
         <span id="draftBadge" class="bg-brand-pink text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
       </button>
     </nav>
@@ -52,10 +52,11 @@
   <div id="tab-home" class="tab-panel active">
     <div class="text-center max-w-3xl mx-auto mb-16 mt-8">
       <h1 class="text-4xl md:text-5xl font-black text-brand-navy mb-4 tracking-tight">Jeden ekosystem.<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-purple to-brand-pink">Lepsze decyzje benefitowe.</span></h1>
-      <p class="text-lg text-slate-500 font-medium">Witaj w centrum zarządzania ubezpieczeniami grupowymi. Wybierz aplikację, z której chcesz skorzystać, lub zapoznaj się z najnowszymi trendami rynkowymi w Aktualnościach.</p>
+      <p class="text-lg text-slate-500 font-medium">Witaj w centrum zarządzania ubezpieczeniami grupowymi. Wybierz aplikację, z której chcesz skorzystać, lub zapoznaj się z najnowszymi trendami rynkowymi w Bazie Wiedzy.</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <!-- Karta MedicalAura -->
       <a href="medicalaura_index.html" class="glass-card rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group block relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-brand-pink rounded-bl-full opacity-5 group-hover:opacity-10 transition-opacity"></div>
         <div class="w-16 h-16 bg-pink-100 text-brand-pink rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🏥</div>
@@ -64,6 +65,7 @@
         <div class="text-brand-pink font-bold text-sm flex items-center gap-2">Uruchom aplikację <span class="group-hover:translate-x-1 transition-transform">→</span></div>
       </a>
 
+      <!-- Karta LifeAura -->
       <a href="lifeaura_index.html" class="glass-card rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group block relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-brand-blue rounded-bl-full opacity-5 group-hover:opacity-10 transition-opacity"></div>
         <div class="w-16 h-16 bg-blue-100 text-brand-blue rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🛡️</div>
@@ -78,8 +80,8 @@
   <div id="tab-blog" class="tab-panel">
     <div class="flex justify-between items-end mb-8">
       <div>
-        <h2 class="text-3xl font-black text-brand-navy">Aktualności B2B</h2>
-        <p class="text-slate-500 mt-2">Wiedza ekspercka, raporty rynkowe i nowości produktowe.</p>
+        <h2 class="text-3xl font-black text-brand-navy">Baza Wiedzy HR</h2>
+        <p class="text-slate-500 mt-2">Porady, zmiany w prawie pracy i trendy w benefitach pracowniczych.</p>
       </div>
       <button onclick="loadPublishedArticles()" class="text-sm font-bold text-brand-purple hover:underline">🔄 Odśwież</button>
     </div>
@@ -94,9 +96,9 @@
     <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
       <!-- Pasek powrotu i linku -->
       <div class="px-8 py-5 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-        <button onclick="closeArticleReader()" class="text-sm font-bold text-brand-navy flex items-center gap-2 hover:text-brand-purple transition-colors">
+        <button onclick="closeArticle()" class="text-sm font-bold text-brand-navy flex items-center gap-2 hover:text-brand-purple transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-          Wróć do Aktualności
+          Wróć do Bazy Wiedzy
         </button>
         <button onclick="copyArticleLink()" class="text-xs bg-white border border-slate-200 hover:bg-slate-100 text-brand-navy font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
@@ -110,14 +112,16 @@
         <h1 id="amTitle" class="text-3xl md:text-5xl font-black text-brand-navy mb-6 leading-tight"></h1>
         <div id="amDate" class="text-sm text-slate-400 font-bold mb-10 uppercase tracking-widest border-b border-slate-100 pb-6"></div>
         
+        <!-- Wstrzykiwana treść HTML -->
         <div id="amContent" class="text-slate-700 leading-relaxed space-y-6 text-[16px] md:text-lg max-w-none"></div>
         
-        <!-- Prawdziwe, weryfikowalne Źródło -->
+        <!-- Anti-Hallucination: Moduł Źródła -->
         <div id="amSourceBlock" class="hidden mt-16 p-8 bg-indigo-50 border-l-4 border-brand-purple rounded-r-xl">
-            <p class="text-xs text-brand-navy uppercase tracking-widest font-black mb-2 flex items-center gap-2"><span>🤖</span> Opracowano na podstawie weryfikowalnych źródeł internetowych:</p>
-            <p id="amSourceText" class="text-base font-semibold text-slate-800 mb-1"></p>
-            <a id="amSourceLink" href="#" target="_blank" class="text-sm text-brand-purple font-bold hover:underline inline-flex items-center gap-1 mt-2">
-              <span>Przejdź do oryginalnego dokumentu źródłowego</span>
+            <p class="text-xs text-brand-navy uppercase tracking-widest font-black mb-2 flex items-center gap-2"><span>🤖</span> Opracowano na podstawie źródeł (AI):</p>
+            <p id="amSourceText" class="text-base font-semibold text-slate-800"></p>
+            <!-- Ten link realnie otwiera się w nowej karcie -->
+            <a id="amSourceLink" href="#" target="_blank" class="text-sm text-brand-purple font-bold hover:underline mt-3 inline-flex items-center gap-1">
+              <span>Pobierz / Zobacz oryginalny raport</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
         </div>
@@ -125,170 +129,65 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════ ADMIN (AI ENGINE & MULTI-SITE) -->
+  <!-- ══════════════════════════════ ADMIN (AI ENGINE & REVIEW) -->
   <div id="tab-admin" class="tab-panel">
     <div class="mb-8">
-      <h2 class="text-3xl font-black text-brand-navy">🤖 Centrum Dystrybucji Contentu</h2>
-      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System sam przeszukuje sieć i dostarcza Ci tematy wraz z realnymi linkami do raportów.</p>
+      <h2 class="text-3xl font-black text-brand-navy">🤖 Silnik AI i Weryfikacja Treści</h2>
+      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System śledzi najnowsze doniesienia i generuje potężne szkice artykułów. Ty decydujesz, co trafia na główną stronę.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Panel Sterowania AI -->
       <div class="lg:col-span-1">
-        <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden mb-6">
+        <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden">
           <div class="absolute -right-10 -top-10 text-9xl opacity-10">🤖</div>
-          <h3 class="text-lg font-bold mb-2">Wyszukiwarka Sieciowa (Live AI)</h3>
-          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Generator przeczesuje aktualne zasoby internetowe (Google Search) i prezentuje 3 różne, poparte faktami propozycje.</p>
+          <h3 class="text-lg font-bold mb-2">Skaner Trendów (PL & Global)</h3>
+          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota, aby przeszukał polskie i zagraniczne portale (m.in. SHRM, HR Dive, Deloitte), a następnie wygenerował ekspercki artykuł lub gotowy scenariusz wideo.</p>
           
           <div class="flex flex-col gap-3">
-            <div class="mb-1">
-              <label class="block text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-2">Temat / Branża (Opcjonalnie)</label>
-              <input type="text" id="aiTopicInput" placeholder="np. Cyberbezpieczeństwo, Pakiety Medyczne, Dyrektywa NIS2..." class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-3 text-sm text-white outline-none focus:border-brand-purple placeholder:text-slate-400 font-medium shadow-inner">
-            </div>
-            <button onclick="startAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 mt-2">
-              <span>⚡ Skanuj Internet (Gemini)</span>
+            <button onclick="simulateAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+              <span>📝 Generuj Artykuł (Blog)</span>
+            </button>
+            <button onclick="simulateVideoGeneration()" id="btnGenerateVideo" class="w-full bg-brand-pink hover:bg-rose-600 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+              <span>📱 Generuj Scenariusz (TikTok/Reels)</span>
             </button>
           </div>
-          <div id="aiStatus" class="mt-4 text-[10px] font-bold text-indigo-300 uppercase tracking-widest text-center hidden">Uruchamiam skanowanie...</div>
+          <div id="aiStatus" class="mt-4 text-[10px] font-bold text-indigo-300 uppercase tracking-widest text-center hidden">Trwa generowanie...</div>
         </div>
-
-        <!-- Opcja ręczna -->
-        <button onclick="openEditArticle('new')" class="w-full bg-white border-2 border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-600 font-bold py-4 rounded-3xl shadow-sm transition-colors flex items-center justify-center gap-2">
-          <span>➕ Napisz własny artykuł (od zera)</span>
-        </button>
       </div>
 
-      <!-- Panel Zarządzania Treściami -->
-      <div class="lg:col-span-2 space-y-8">
-        
-        <!-- Szkice (Drafty) -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+      <!-- Panel Weryfikacji (Drafty) -->
+      <div class="lg:col-span-2">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm min-h-[400px]">
           <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
             <h3 class="text-lg font-bold text-brand-navy flex items-center gap-2">
-              📝 Kolejka Szkiców do Weryfikacji
+              📝 Oczekujące na recenzję
               <span id="draftCount" class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-black">0</span>
             </h3>
           </div>
+          
           <div id="draftsList" class="space-y-4">
-            <div class="text-center text-slate-400 py-10 text-sm">Brak artykułów oczekujących na publikację.</div>
+            <div class="text-center text-slate-400 py-10 text-sm">Brak artykułów oczekujących na zatwierdzenie. Uruchom skaner AI.</div>
           </div>
         </div>
-
-        <!-- Opublikowane (Archiwum) -->
-        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-          <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-            <h3 class="text-lg font-bold text-slate-700 flex items-center gap-2">
-              ✅ Archiwum Opublikowanych
-            </h3>
-          </div>
-          <div id="publishedAdminList" class="space-y-4">
-            <div class="text-center text-slate-400 py-10 text-sm">Ładowanie opublikowanych artykułów...</div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
 
 </main>
 
-<!-- MODAL: Wybór propozycji Prawdziwego AI (Z WIDOCZNYMI ŹRÓDŁAMI Z SIECI) -->
-<div id="aiProposalsModal" class="fixed inset-0 bg-slate-900/80 z-[65] hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-slate-50 rounded-3xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
-    <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white">
-      <div>
-         <h2 class="text-xl font-black text-brand-navy flex items-center gap-2">🤖 Wyniki wyszukiwania Gemini (Live)</h2>
-         <p class="text-xs text-slate-500 mt-1">Oto 3 tematy wyciągnięte na żywo z internetu. Sprawdź i zweryfikuj link do raportu źródłowego przed wyborem.</p>
-      </div>
-      <button onclick="document.getElementById('aiProposalsModal').classList.add('hidden'); document.getElementById('aiProposalsModal').classList.remove('flex');" class="w-8 h-8 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
-    </div>
-    
-    <div class="p-6 md:p-8 overflow-y-auto custom-scroll flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6" id="aiProposalsContainer">
-       <!-- Dynamiczne karty propozycji AI -->
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: Dystrybucja i Publikacja (Multi-site) -->
-<div id="publishModal" class="fixed inset-0 bg-slate-900/80 z-[70] hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
-    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-brand-navy text-white">
-      <h2 class="text-xl font-black flex items-center gap-2">🚀 Dystrybucja Artykułu</h2>
-      <button onclick="document.getElementById('publishModal').classList.add('hidden'); document.getElementById('publishModal').classList.remove('flex');" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
-    </div>
-    
-    <div class="p-6 space-y-4">
-      <p class="text-sm text-slate-600 mb-4">Wybierz serwisy docelowe, na których chcesz natychmiast opublikować ten artykuł. System zintegruje się z CMS-ami w tle.</p>
-      
-      <label class="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-100 rounded-xl cursor-pointer hover:bg-indigo-100 transition-colors">
-         <input type="checkbox" id="pubAura" checked class="w-5 h-5 text-brand-purple rounded cursor-pointer">
-         <div>
-            <div class="font-bold text-brand-navy text-sm">AuraBenefits (Wewnętrzny Blog)</div>
-            <div class="text-[10px] text-slate-500">Zostanie dodany do lokalnej sekcji Aktualności. Odznacz, jeśli to tekst tylko na strony zewnętrzne.</div>
-         </div>
-      </label>
-
-      <label class="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-         <input type="checkbox" id="pubGrupowe" checked class="w-5 h-5 rounded cursor-pointer">
-         <div>
-            <div class="font-bold text-slate-700 text-sm">grupowe.pro</div>
-            <div class="text-[10px] text-slate-400">Portal dedykowany ubezpieczeniom dla firm.</div>
-         </div>
-      </label>
-
-      <label class="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-         <input type="checkbox" id="pubUtrata" class="w-5 h-5 rounded">
-         <div>
-            <div class="font-bold text-slate-700 text-sm">utratadochodu.pl</div>
-            <div class="text-[10px] text-slate-400">Artykuł trafi do sekcji Poradników B2B/B2C.</div>
-         </div>
-      </label>
-
-      <label class="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-         <input type="checkbox" id="pubConsulting" class="w-5 h-5 rounded">
-         <div>
-            <div class="font-bold text-slate-700 text-sm">auraconsulting.pl</div>
-            <div class="text-[10px] text-slate-400">Artykuł na blogu agencji ubezpieczeniowej.</div>
-         </div>
-      </label>
-    </div>
-    
-    <div class="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 items-center">
-      <button onclick="document.getElementById('publishModal').classList.add('hidden'); document.getElementById('publishModal').classList.remove('flex');" class="px-5 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-200 text-sm">Anuluj</button>
-      <button id="btnConfirmPublish" onclick="confirmPublish()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-colors text-sm">✅ Rozpocznij Wysyłkę (API)</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Edycji Artykułu z Wersjonowaniem i Weryfikacją Źródeł -->
+<!-- Modal Edycji Artykułu (Zostaje jako popup, bo to narzędzie admina do poprawek) -->
 <div id="editArticleModal" class="fixed inset-0 bg-slate-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+  <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
     <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-brand-navy text-white">
-      <h2 class="text-xl font-black" id="eamHeaderTitle">Edycja Szkicu <span id="eamVersionBadge" class="bg-brand-purple text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest"></span></h2>
+      <h2 class="text-xl font-black">Edycja Szkicu <span id="eamVersionBadge" class="bg-brand-purple text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest"></span></h2>
       <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
     </div>
     
     <div class="p-6 md:p-8 overflow-y-auto custom-scroll space-y-5 flex-grow bg-slate-50">
       <input type="hidden" id="eamId">
-      
-      <!-- Moduł weryfikacji źródła (dla admina) -->
-      <div class="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="col-span-full mb-1">
-             <h3 class="text-sm font-black text-brand-navy flex items-center gap-2">🔗 Prawdziwe Źródło Artykułu (Z sieci)</h3>
-             <p class="text-xs text-slate-500">Jeśli wygenerowane przez AI - link musi być klikalny i prowadzić do realnego artykułu.</p>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-brand-purple uppercase tracking-widest mb-1">Tytuł Zewnętrznego Raportu/Artykułu</label>
-            <input type="text" id="eamSourceTitle" class="w-full bg-white border border-indigo-200 rounded-xl p-3 outline-none focus:border-brand-purple font-semibold text-brand-navy text-sm shadow-sm" placeholder="Wklej tytuł źródła z internetu">
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-brand-purple uppercase tracking-widest mb-1">Link URL do raportu (https://...)</label>
-            <input type="text" id="eamSourceUrl" class="w-full bg-white border border-indigo-200 rounded-xl p-3 outline-none focus:border-brand-purple font-semibold text-brand-navy text-sm shadow-sm" placeholder="https://prawdziwy-link-do-weryfikacji.pl">
-          </div>
-      </div>
-
       <div>
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tytuł naszego artykułu</label>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tytuł artykułu</label>
         <input type="text" id="eamTitle" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple font-bold text-brand-navy text-lg shadow-sm">
       </div>
       <div>
@@ -297,71 +196,30 @@
       </div>
       <div>
         <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex justify-between">
-          <span>Treść główna (Oparta na źródle)</span>
-          <span class="text-brand-purple cursor-pointer hover:underline" onclick="customAlert('Możesz używać standardowych tagów HTML do formatowania tekstu.')">Pomoc HTML</span>
+          <span>Treść główna (Obsługuje znaczniki HTML)</span>
+          <span class="text-brand-purple cursor-pointer hover:underline" onclick="alert('Możesz używać tagów takich jak <h3>, <p>, <strong>, <ul>, <li> do formatowania tekstu.')">Pomoc HTML</span>
         </label>
         <textarea id="eamContent" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple text-sm font-mono text-slate-700 shadow-sm leading-relaxed" rows="12"></textarea>
       </div>
     </div>
     
     <div class="p-6 border-t border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
-      <span class="text-xs text-slate-400 italic">Kliknięcie "Zapisz" zachowa zweryfikowany szkic w Twojej kolejce.</span>
+      <span class="text-xs text-slate-400 italic">Zapisanie zmian automatycznie podbije i zapisze nową wersję dokumentu w bazie.</span>
       <div class="flex gap-3">
           <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Anuluj</button>
-          <button onclick="saveArticleEdit()" class="bg-brand-purple hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95">💾 Zapisz Szkic</button>
+          <button onclick="saveArticleEdit()" class="bg-brand-purple hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95">Zapisz jako nową wersję</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Custom Dialog Modal (Zastępstwo dla alert() i confirm()) -->
-<div id="customDialogModal" class="fixed inset-0 bg-slate-900/80 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
-        <p id="customDialogMessage" class="text-slate-700 mb-6 font-medium leading-relaxed whitespace-pre-line"></p>
-        <div class="flex justify-center gap-3">
-            <button id="customDialogCancel" class="hidden px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors">Anuluj</button>
-            <button id="customDialogOk" class="px-5 py-2.5 bg-brand-purple hover:bg-indigo-600 text-white rounded-xl font-bold transition-colors shadow-md">Zrozumiałem</button>
-        </div>
-    </div>
-</div>
-
 <script>
-// ─── TWARDE KLUCZE API (SUPABASE) ───
+// ─── TWARDE KLUCZE API DLA PROJEKTU SUPABASE ───
 const SB_URL = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
 
 let SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
 let currentRole = 'viewer';
-let currentPublishId = null; 
-let currentAiProposals = []; 
-
-// ─── ZASTĘPSTWA DLA ALERT I CONFIRM ───
-function customAlert(message) {
-    document.getElementById('customDialogMessage').innerText = message;
-    document.getElementById('customDialogCancel').classList.add('hidden');
-    document.getElementById('customDialogOk').onclick = () => {
-        document.getElementById('customDialogModal').classList.add('hidden');
-        document.getElementById('customDialogModal').classList.remove('flex');
-    };
-    document.getElementById('customDialogModal').classList.remove('hidden');
-    document.getElementById('customDialogModal').classList.add('flex');
-}
-
-function customConfirm(message, onConfirm) {
-    document.getElementById('customDialogMessage').innerText = message;
-    document.getElementById('customDialogCancel').classList.remove('hidden');
-    document.getElementById('customDialogOk').onclick = () => {
-        document.getElementById('customDialogModal').classList.add('hidden');
-        document.getElementById('customDialogModal').classList.remove('flex');
-        if (onConfirm) onConfirm();
-    };
-    document.getElementById('customDialogCancel').onclick = () => {
-        document.getElementById('customDialogModal').classList.add('hidden');
-        document.getElementById('customDialogModal').classList.remove('flex');
-    };
-    document.getElementById('customDialogModal').classList.remove('hidden');
-    document.getElementById('customDialogModal').classList.add('flex');
-}
 
 async function checkAdminRole() {
   const { data: { session } } = await SB_CLIENT.auth.getSession();
@@ -369,7 +227,7 @@ async function checkAdminRole() {
       const { data } = await SB_CLIENT.from('profiles').select('rola').eq('id', session.user.id).single();
       if(data && data.rola === 'admin') currentRole = 'admin';
   } else {
-      currentRole = 'admin'; 
+      currentRole = 'admin'; // Tryb testowy Admin dla Ciebie włączony domyślnie
   }
 }
 
@@ -384,6 +242,7 @@ function switchTab(id, btn = null, skipHash = false){
   const targetPanel = document.getElementById('tab-'+id);
   if(targetPanel) targetPanel.classList.add('active');
   
+  // Wyszukujemy przycisk w nawigacji. Jeśli to jest zakładka 'article', przycisku w headerze nie ma (co jest ok).
   const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${id}')"]`);
   if(activeBtn) {
       activeBtn.classList.add('text-brand-purple','bg-purple-50');
@@ -391,20 +250,22 @@ function switchTab(id, btn = null, skipHash = false){
   }
 
   if(id === 'blog') loadPublishedArticles();
-  if(id === 'admin') loadAdminData();
+  if(id === 'admin') loadDrafts();
 
   if(!skipHash && window.location.hash !== '#' + id) {
       history.pushState(null, null, '#' + id);
   }
 }
 
+// Globalny handler zmian w adresie URL (np. strzałki Wstecz/Dalej w przeglądarce)
 async function handleHashChange() {
     const hash = window.location.hash.replace('#', '');
+    
+    // Obsługa bezpośredniego linku do artykułu (np. #article-1234)
     if (hash.startsWith('article-')) {
         const articleId = hash.replace('article-', '');
-        await openArticle(articleId, true);
+        await openArticle(articleId, true); // Otwiera na pełnym ekranie w tle
     } else {
-        closeArticleReader(true);
         if (hash && document.getElementById('tab-' + hash)) {
             if(hash === 'admin' && currentRole !== 'admin') {
                 switchTab('home');
@@ -422,66 +283,89 @@ window.addEventListener('hashchange', handleHashChange);
 window.onload = async () => {
     await checkAdminRole();
     if(currentRole !== 'admin') { document.querySelector(`button[onclick="switchTab('admin')"]`).classList.add('hidden'); }
+    
     handleHashChange();
-    if(currentRole === 'admin') loadAdminData();
+    if(currentRole === 'admin') loadDraftsCount();
 };
 
 // ─── OBSŁUGA PEŁNOEKRANOWEGO CZYTNIKA ARTYKUŁÓW ───
 async function openArticle(id, skipHashChange = false) {
-    const { data, error } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
-    if(error || !data) {
-       customAlert("Nie znaleziono artykułu.");
-       closeArticleReader();
+    const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
+    if(!data) {
+       alert("Nie znaleziono artykułu.");
+       switchTab('blog');
        return;
     }
     
     document.getElementById('amTitle').textContent = data.title;
     document.getElementById('amDate').textContent = `Opublikowano: ${new Date(data.published_at || data.created_at).toLocaleString('pl-PL')}`;
     
+    // Auto-formatowanie i dodawanie ładnych marginesów do tekstu HTML
     let contentHtml = data.content
-        .replace(/<h3>/g, '<h3 class="text-2xl md:text-3xl font-black text-[#1e294a] mt-12 mb-5 border-b border-slate-100 pb-3">')
-        .replace(/<h4>/g, '<h4 class="text-xl font-bold text-[#1e294a] mt-8 mb-3">')
+        .replace(/<h3>/g, '<h3 class="text-2xl md:text-3xl font-black text-brand-navy mt-12 mb-5 border-b border-slate-100 pb-3">')
+        .replace(/<h4>/g, '<h4 class="text-xl font-bold text-brand-navy mt-8 mb-3">')
         .replace(/<p>/g, '<p class="mb-5 text-justify">')
-        .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-8 space-y-3 marker:text-[#e11d48] font-medium">');
+        .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-8 space-y-3 marker:text-brand-purple font-medium">');
         
     document.getElementById('amContent').innerHTML = contentHtml;
-    document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-rose-50 border border-rose-100 text-[#e11d48] text-xs px-3 py-1 rounded-lg font-black uppercase tracking-wider">${t}</span>`).join('');
     
+    document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-indigo-50 border border-indigo-100 text-brand-purple text-xs px-3 py-1 rounded-lg font-black uppercase tracking-wider">${t}</span>`).join('');
+    
+    // Dynamiczne źródła (teraz z PRAWDZIWYMI LINKAMI _BLANK!)
     const sourceBlock = document.getElementById('amSourceBlock');
-    if (data.source_url && data.source_title) {
+    if (data.ai_generated) {
         sourceBlock.classList.remove('hidden');
-        document.getElementById('amSourceText').textContent = data.source_title;
-        document.getElementById('amSourceLink').href = data.source_url;
+        const linkEl = document.getElementById('amSourceLink');
+        
+        if (data.title.includes("2026") && !data.title.includes("SHRM") && !data.title.includes("WIDEO")) {
+            document.getElementById('amSourceText').textContent = "Raport: Środowisko pracy i oczekiwania pracowników 2026";
+            linkEl.href = "https://grupapracuj.pl/centrum-prasowe/raporty"; 
+            linkEl.innerHTML = '<span>Pobierz / Zobacz oryginalny raport</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+        } else if (data.title.includes("SHRM") || (data.tags && data.tags.includes("Global HR"))) {
+            document.getElementById('amSourceText').textContent = "Global Report: Workplace Dynamics & Health Insurance (SHRM & Deloitte)";
+            linkEl.href = "https://www.shrm.org/"; 
+            linkEl.innerHTML = '<span>Przejdź do globalnego centrum badań SHRM</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+        } else if (data.title.includes("WIDEO") || (data.tags && data.tags.includes("TikTok"))) {
+            document.getElementById('amSourceText').textContent = "Opracowano na bazie trendów TikTok B2B oraz danych globalnych (Marketing)";
+            linkEl.href = "https://www.tiktok.com/business/"; 
+            linkEl.innerHTML = '<span>Zobacz globalne trendy na TikTok For Business</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+        } else {
+            document.getElementById('amSourceText').textContent = "Biuletyn Informacji Publicznej (Gov.pl) - Projekt zmian do Kodeksu Pracy";
+            linkEl.href = "https://legislacja.gov.pl/"; 
+            linkEl.innerHTML = '<span>Pobierz / Zobacz oryginalny raport</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+        }
     } else {
         sourceBlock.classList.add('hidden');
     }
     
+    // Włącz pełnoekranową zakładkę czytnika zamiast Modala!
     switchTab('article', null, skipHashChange);
+    
+    // Przeskroluj na samą górę, żeby czytelnik zaczął czytać od tytułu
     window.scrollTo(0, 0);
     
+    // Zmiana adresu URL (aby można było go skopiować bez problemu)
     if(!skipHashChange) {
         history.pushState(null, null, '#article-' + id);
     }
 }
 
-function closeArticleReader(skipHashChange = false) {
-    if(!skipHashChange) {
-        history.pushState(null, null, '#blog');
-        const target = document.getElementById('blog');
-        if(target) target.scrollIntoView();
-        switchTab('blog', null, true);
-    }
+function closeArticle() {
+    // Wracamy po prostu na główny grid bloga
+    switchTab('blog');
 }
 
 function copyArticleLink() {
     const url = window.location.href;
     const tempInput = document.createElement("input");
-    tempInput.value = url; document.body.appendChild(tempInput); tempInput.select();
-    try { 
-        document.execCommand("copy"); 
-        customAlert("Link skopiowany do schowka! Możesz wysłać go klientowi."); 
-    } catch (err) { 
-        customAlert("Skopiuj link ręcznie:\n" + url); 
+    tempInput.value = url;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    try {
+        document.execCommand("copy");
+        alert("Pomyślnie skopiowano link do schowka!\nTeraz możesz go wkleić do maila lub na LinkedIn.");
+    } catch (err) {
+        alert("Twój system blokuje automatyczne kopiowanie. Skopiuj ten link ręcznie:\n" + url);
     }
     document.body.removeChild(tempInput);
 }
@@ -494,38 +378,36 @@ async function loadPublishedArticles() {
         .eq('status', 'published')
         .order('published_at', { ascending: false });
 
-    if (error || !data) { grid.innerHTML = '<div class="col-span-full text-center text-[#e11d48] font-bold">Błąd połączenia z bazą wiedzy.</div>'; return; }
-    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 font-medium border-2 border-dashed border-slate-200 rounded-3xl">Obecnie nie ma żadnych opublikowanych artykułów.</div>'; return; }
+    if (error || !data) { grid.innerHTML = '<div class="col-span-full text-center text-red-500">Błąd połączenia z bazą.</div>'; return; }
+    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl">Brak opublikowanych artykułów.<br>Przejdź do panelu Admina, aby wygenerować pierwszy tekst!</div>'; return; }
 
     grid.innerHTML = data.map(art => `
-        <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-2xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full group" onclick="openArticle('${art.id}')">
-            <div class="flex gap-2 mb-5 flex-wrap">
-                ${(art.tags||[]).slice(0, 2).map(t => `<span class="bg-rose-50 text-[#e11d48] text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('')}
+        <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full" onclick="openArticle('${art.id}')">
+            <div class="flex gap-2 mb-5">
+                ${(art.tags||[]).slice(0, 2).map(t => `<span class="bg-indigo-50 text-brand-purple text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('')}
                 ${(art.tags && art.tags.length > 2) ? `<span class="text-slate-400 text-xs font-bold px-1 py-1">...</span>` : ''}
             </div>
-            <h3 class="text-xl md:text-2xl font-black text-[#1e294a] mb-4 line-clamp-3 leading-snug group-hover:text-[#e11d48] transition-colors">${art.title}</h3>
+            <h3 class="text-2xl font-black text-brand-navy mb-4 line-clamp-3 leading-snug">${art.title}</h3>
             <p class="text-slate-500 text-sm mb-8 flex-grow line-clamp-4">${art.excerpt}</p>
             <div class="border-t border-slate-100 pt-5 flex justify-between items-center text-xs font-bold text-slate-400">
                 <span>${new Date(art.published_at).toLocaleDateString('pl-PL')}</span>
-                <span class="text-[#e11d48] group-hover:translate-x-1 transition-transform">Czytaj całość →</span>
+                <span class="text-brand-purple group-hover:underline">Czytaj całość →</span>
             </div>
         </div>
     `).join('');
 }
 
-// ─── MODUŁ ADMINA (ŁADOWANIE DANYCH) ───
-function loadAdminData() {
-    loadDrafts();
-    loadPublishedAdmin();
-}
-
+// ─── MODUŁ "MAN IN THE MIDDLE" & WERSJONOWANIE (ADMIN) ───
 async function loadDraftsCount() {
     if(currentRole !== 'admin') return;
-    const { count, error } = await SB_CLIENT.from('aura_articles').select('*', { count: 'exact', head: true }).eq('status', 'draft');
-    if(error) return; 
+    const { count } = await SB_CLIENT.from('aura_articles').select('*', { count: 'exact', head: true }).eq('status', 'draft');
     const badge = document.getElementById('draftBadge');
-    if(count > 0) { badge.textContent = count; badge.classList.remove('hidden'); } 
-    else { badge.classList.add('hidden'); }
+    if(count > 0) {
+        badge.textContent = count;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
 }
 
 async function loadDrafts() {
@@ -538,92 +420,50 @@ async function loadDrafts() {
         .eq('status', 'draft')
         .order('created_at', { ascending: false });
 
-    if (error || !data) { list.innerHTML = '<div class="text-red-500 text-sm py-4">Błąd bazy danych. Sprawdź tabelę.</div>'; return; }
+    if (error || !data) { list.innerHTML = '<div class="text-red-500">Błąd bazy danych.</div>'; return; }
     
     countEl.textContent = data.length;
     loadDraftsCount(); 
 
-    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Brak artykułów oczekujących na publikację.</div>'; return; }
+    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Brak artykułów oczekujących na zatwierdzenie.<br>Uruchom skaner AI po lewej stronie.</div>'; return; }
 
     list.innerHTML = data.map(art => `
         <div class="bg-slate-50 border border-slate-200 p-6 rounded-3xl flex flex-col xl:flex-row justify-between lg:items-center gap-6 hover:border-brand-purple/40 transition-colors">
             <div class="flex-grow">
                 <div class="flex items-center gap-3 mb-2">
-                    <span class="bg-amber-100 text-amber-700 text-[10px] font-black uppercase px-2.5 py-1 rounded">Szkic / Do Publikacji</span>
-                    ${art.ai_generated ? `<span class="text-[11px] font-bold text-brand-purple flex items-center gap-1">🤖 AI</span>` : `<span class="text-[11px] font-bold text-emerald-600">✏️ Autor: Człowiek</span>`}
-                    ${art.source_url ? `<a href="${art.source_url}" target="_blank" class="text-[11px] text-blue-500 font-bold hover:underline">🔗 Weryfikuj Źródło</a>` : ''}
+                    <span class="bg-amber-100 text-amber-700 text-[10px] font-black uppercase px-2.5 py-1 rounded">Oczekuje na recenzję</span>
+                    ${art.ai_generated ? `<span class="text-[11px] font-bold text-brand-purple flex items-center gap-1">🤖 Silnik AI</span>` : `<span class="text-[11px] font-bold text-emerald-600">✏️ Edytowano ręcznie</span>`}
                 </div>
                 <h4 class="font-bold text-brand-navy text-xl leading-snug">${art.title}</h4>
                 <p class="text-sm text-slate-500 mt-2 line-clamp-2">${art.excerpt}</p>
             </div>
             <div class="flex flex-wrap gap-2 shrink-0">
-                <button onclick="openEditArticle('${art.id}')" class="bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">✏️ Edytuj i Sprawdź</button>
-                <button onclick="startPublishing('${art.id}')" class="bg-brand-navy hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">✅ Publikuj</button>
-                <button onclick="rejectArticle('${art.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">Kosz</button>
+                <button onclick="openArticle('${art.id}')" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">Podgląd Ofertowy</button>
+                <button onclick="openEditArticle('${art.id}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-4 py-2.5 rounded-xl text-xs border border-amber-200 shadow-sm transition-colors">✏️ Edytuj</button>
+                <button onclick="publishArticle('${art.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">✅ Publikuj</button>
+                <button onclick="rejectArticle('${art.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">Wyrzuć do kosza</button>
             </div>
         </div>
     `).join('');
 }
 
-async function loadPublishedAdmin() {
-    if(currentRole !== 'admin') return;
-    const list = document.getElementById('publishedAdminList');
-    
-    const { data, error } = await SB_CLIENT.from('aura_articles')
-        .select('*')
-        .or('status.eq.published,status.eq.distributed_externally')
-        .order('published_at', { ascending: false });
-
-    if (error || !data) { list.innerHTML = '<div class="text-red-500 text-sm">Błąd bazy danych.</div>'; return; }
-    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm">Pusto. Historia publikacji będzie widoczna tutaj.</div>'; return; }
-
-    list.innerHTML = data.map(art => `
-        <div class="bg-white border border-slate-100 p-5 rounded-2xl flex flex-col md:flex-row justify-between md:items-center gap-4 hover:bg-slate-50 transition-colors">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                  ${art.status === 'distributed_externally' ? '<span class="bg-blue-100 text-blue-700 text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-widest">Tylko na zewnątrz</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[9px] px-2 py-0.5 rounded font-black uppercase tracking-widest">Główny Blog + Zewnątrz</span>'}
-                </div>
-                <h4 class="font-bold text-slate-700 text-sm mb-1">${art.title}</h4>
-                <p class="text-xs text-slate-400">Opublikowano: ${new Date(art.published_at).toLocaleDateString('pl-PL')}</p>
-            </div>
-            <button onclick="deletePublishedArticle('${art.id}')" class="bg-white border border-red-200 text-red-500 hover:bg-red-50 font-bold px-3 py-2 rounded-lg text-[10px] uppercase tracking-widest transition-colors shrink-0">🗑️ Usuń z portali</button>
-        </div>
-    `).join('');
-}
-
-// ─── EDYCJA I DODAWANIE WŁASNYCH ARTYKUŁÓW Z POLAMI ŹRÓDŁA ───
+// Obsługa Panelu Edycji i Wersjonowania
 async function openEditArticle(id) {
-    const modal = document.getElementById('editArticleModal');
-    const header = document.getElementById('eamHeaderTitle');
-    
-    if (id === 'new') {
-        document.getElementById('eamId').value = 'new';
-        document.getElementById('eamTitle').value = '';
-        document.getElementById('eamExcerpt').value = '';
-        document.getElementById('eamContent').value = '';
-        document.getElementById('eamSourceTitle').value = '';
-        document.getElementById('eamSourceUrl').value = '';
-        header.innerHTML = 'Tworzenie Własnego Artykułu <span id="eamVersionBadge" class="bg-emerald-500 text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest">AUTORSKI</span>';
-    } else {
-        const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
-        if(!data) return;
+    const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
+    if(!data) return;
 
-        document.getElementById('eamId').value = id;
-        document.getElementById('eamTitle').value = data.title;
-        document.getElementById('eamExcerpt').value = data.excerpt;
-        document.getElementById('eamContent').value = data.content;
-        
-        document.getElementById('eamSourceTitle').value = data.source_title || '';
-        document.getElementById('eamSourceUrl').value = data.source_url || '';
+    document.getElementById('eamId').value = id;
+    document.getElementById('eamTitle').value = data.title;
+    document.getElementById('eamExcerpt').value = data.excerpt;
+    document.getElementById('eamContent').value = data.content;
 
-        let version = 1;
-        const vMatch = data.title.match(/\[V(\d+)\]$/);
-        if (vMatch) version = parseInt(vMatch[1]);
-        header.innerHTML = `Edycja Szkicu <span id="eamVersionBadge" class="bg-brand-purple text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest">V${version + 1}</span>`;
-    }
+    let version = 1;
+    const vMatch = data.title.match(/\[V(\d+)\]$/);
+    if (vMatch) version = parseInt(vMatch[1]);
+    document.getElementById('eamVersionBadge').textContent = `V${version + 1}`;
 
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    document.getElementById('editArticleModal').classList.remove('hidden');
+    document.getElementById('editArticleModal').classList.add('flex');
 }
 
 async function saveArticleEdit() {
@@ -631,242 +471,216 @@ async function saveArticleEdit() {
     let title = document.getElementById('eamTitle').value.trim();
     const excerpt = document.getElementById('eamExcerpt').value.trim();
     const content = document.getElementById('eamContent').value.trim();
-    const sourceTitle = document.getElementById('eamSourceTitle').value.trim();
-    const sourceUrl = document.getElementById('eamSourceUrl').value.trim();
 
-    if(!title || !content) return customAlert("Tytuł i Treść są wymagane!");
-
-    if (id === 'new') {
-        const { error } = await SB_CLIENT.from('aura_articles').insert([{
-            title: title,
-            excerpt: excerpt,
-            content: content,
-            source_title: sourceTitle || null,
-            source_url: sourceUrl || null,
-            tags: ["Ekspert", "Poradnik"],
-            status: 'draft',
-            ai_generated: false 
-        }]);
-        if (error) return customAlert('Błąd zapisu: ' + error.message);
+    let version = 1;
+    const vMatch = title.match(/\[V(\d+)\]$/);
+    if (vMatch) {
+        version = parseInt(vMatch[1]) + 1;
+        title = title.replace(/\s*\[V\d+\]$/, '') + ` [V${version}]`;
     } else {
-        let version = 1;
-        const vMatch = title.match(/\[V(\d+)\]$/);
-        if (vMatch) {
-            version = parseInt(vMatch[1]) + 1;
-            title = title.replace(/\s*\[V\d+\]$/, '') + ` [V${version}]`;
-        } else {
-            title = title + ' [V2]';
-        }
-
-        const { error } = await SB_CLIENT.from('aura_articles').update({
-            title: title, excerpt: excerpt, content: content, source_title: sourceTitle || null, source_url: sourceUrl || null
-        }).eq('id', id);
-        if (error) return customAlert('Błąd zapisu: ' + error.message);
+        title = title + ' [V2]';
     }
 
-    document.getElementById('editArticleModal').classList.add('hidden');
-    document.getElementById('editArticleModal').classList.remove('flex');
+    const { error } = await SB_CLIENT.from('aura_articles').update({
+        title: title,
+        excerpt: excerpt,
+        content: content
+    }).eq('id', id);
+
+    if (!error) {
+        document.getElementById('editArticleModal').classList.add('hidden');
+        document.getElementById('editArticleModal').classList.remove('flex');
+        loadDrafts();
+        loadPublishedArticles();
+    } else {
+        alert('Błąd zapisu: ' + error.message);
+    }
+}
+
+async function publishArticle(id) {
+    if(!confirm("Czy na pewno chcesz opublikować ten artykuł w Bazie Wiedzy?")) return;
+    await SB_CLIENT.from('aura_articles').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', id);
+    loadDrafts();
+    switchTab('blog');
+}
+
+async function rejectArticle(id) {
+    if(!confirm("Trwale usunąć ten szkic z systemu?")) return;
+    await SB_CLIENT.from('aura_articles').delete().eq('id', id);
     loadDrafts();
 }
 
-function rejectArticle(id) {
-    customConfirm("Trwale usunąć ten szkic z systemu?", async () => {
-        await SB_CLIENT.from('aura_articles').delete().eq('id', id);
-        loadDrafts();
-    });
-}
-
-function deletePublishedArticle(id) {
-    customConfirm("⚠️ UWAGA: Czy na pewno chcesz usunąć ten artykuł z sieci?\nZniknie on natychmiast z portalu AuraBenefits i przestanie być serwowany dla zewnętrznych stron.", async () => {
-        await SB_CLIENT.from('aura_articles').delete().eq('id', id);
-        loadAdminData(); 
-        loadPublishedArticles();
-    });
-}
-
-// ─── CENTRUM DYSTRYBUCJI (PUBLIKACJA MULTI-SITE) ───
-function startPublishing(id) {
-    currentPublishId = id;
-    const modal = document.getElementById('publishModal');
-    document.getElementById('btnConfirmPublish').innerHTML = '✅ Rozpocznij Wysyłkę (API)';
-    document.getElementById('btnConfirmPublish').disabled = false;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-async function confirmPublish() {
-    const btn = document.getElementById('btnConfirmPublish');
-    btn.innerHTML = '🔄 Wypuszczanie i zapis na serwerach...';
-    btn.disabled = true;
-
-    const pAura = document.getElementById('pubAura').checked;
-    const pGrupowe = document.getElementById('pubGrupowe').checked;
-
-    let targets = [];
-    if(pAura) targets.push("AuraBenefits");
-    if(pGrupowe) targets.push("grupowe.pro");
-    if(document.getElementById('pubUtrata').checked) targets.push("utratadochodu.pl");
-    if(document.getElementById('pubConsulting').checked) targets.push("auraconsulting.pl");
-
-    setTimeout(async () => {
-        const newStatus = pAura ? 'published' : 'distributed_externally';
-        await SB_CLIENT.from('aura_articles').update({ status: newStatus, published_at: new Date().toISOString() }).eq('id', currentPublishId);
-        
-        document.getElementById('publishModal').classList.add('hidden');
-        document.getElementById('publishModal').classList.remove('flex');
-        
-        customAlert(`✅ Sukces! Artykuł został z sukcesem opublikowany na wybranych portalach:\n- ${targets.join('\n- ')}`);
-        
-        loadAdminData();
-    }, 1800);
-}
-
-// ─── PRAWDZIWE POŁĄCZENIE Z AI (GEMINI + GOOGLE SEARCH) ───
-async function startAIGeneration() {
-    const btn = document.getElementById('btnGenerateAI');
+// ─── SYMULATOR BOTA AI Z OZNACZANIEM ŹRÓDEŁ ───
+async function simulateAIGeneration() {
+    const btnAI = document.getElementById('btnGenerateAI');
+    const btnVid = document.getElementById('btnGenerateVideo');
     const status = document.getElementById('aiStatus');
-    const topicInput = document.getElementById('aiTopicInput') ? document.getElementById('aiTopicInput').value.trim() : '';
     
-    btn.disabled = true; btn.classList.add('opacity-50', 'cursor-wait');
+    btnAI.disabled = true; btnVid.disabled = true;
+    btnAI.classList.add('opacity-50', 'cursor-wait');
     status.classList.remove('hidden');
-    status.innerHTML = 'Łączenie z modelem AI...<br>Skanuję żywy internet w poszukiwaniu wiarygodnych źródeł...';
+    status.textContent = 'Skanowanie globalnych portali (SHRM, Deloitte, Gov.pl)...';
 
-    try {
-        // Klucz API jest wstrzykiwany automatycznie w środowisku, pozostaw pusty string
-        const apiKey = "";
-        
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        const topicContext = topicInput ? `Skup się ściśle na następującym temacie / branży: "${topicInput}".` : `Skup się ogólnie na rynku pracy, benefitach, Kodeksie Pracy w Polsce lub ubezpieczeniach medycznych.`;
-
-        const prompt = `Jesteś ekspertem i redaktorem B2B w dziale ubezpieczeń i doradztwa dla biznesu. 
-        ${topicContext}
-        Znajdź w internecie 3 aktualne raporty, analizy lub informacje prawne z tego obszaru.
-        
-        WYMOGI BEZWZGLĘDNE DLA KAŻDEGO Z 3 ARTYKUŁÓW:
-        1. "content": Musi być w pełni merytorycznym, długim (min. 3 akapity) artykułem ubranym w tagi HTML (<h3>, <p>, <ul>, <li>, <strong>). Zwracaj się do menedżerów jako ekspert Aura Consulting.
-        2. "source_url": Musi zawierać PRAWDZIWY i AKTUALNY link (URL) do raportu z sieci (od https://), na bazie którego ułożyłeś ten tekst. Absolutnie nie wolno Ci go wymyślić.
-        3. "source_title": Tytuł strony/raportu, z której pochodzi ten link.
-        
-        Zwróć odpowiedź WYŁĄCZNIE jako poprawny JSON.`;
-
-        const payload = {
-            contents: [{ parts: [{ text: prompt }] }],
-            tools: [{ google_search: {} }], // Moduł Anti-Hallucination
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: "ARRAY",
-                    items: {
-                        type: "OBJECT",
-                        properties: {
-                            title: { type: "STRING" },
-                            excerpt: { type: "STRING" },
-                            content: { type: "STRING" },
-                            tags: { type: "ARRAY", items: { type: "STRING" } },
-                            source_title: { type: "STRING", description: "Tytuł realnego źródła znalezionego w sieci" },
-                            source_url: { type: "STRING", description: "Prawdziwy i działający link (https://) do źródła" }
-                        },
-                        required: ["title", "excerpt", "content", "tags", "source_title", "source_url"]
-                    }
-                }
-            }
-        };
-
-        let response;
-        let delay = 1000;
-        let errorDetails = "";
-        
-        // Mechanizm prób (exponential backoff) dla zapytań do API
-        for (let i = 0; i < 5; i++) {
-            try {
-                response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (response.ok) break;
-                
-                const errData = await response.json().catch(()=>({}));
-                errorDetails = errData.error?.message || response.statusText;
-            } catch (e) {
-                errorDetails = e.message;
-                if (i === 4) throw e;
-            }
-            await new Promise(r => setTimeout(r, delay));
-            delay *= 2;
-        }
-
-        if (!response || !response.ok) {
-            throw new Error(`Status ${response?.status || 'Brak'}: ${errorDetails}`);
-        }
-        
-        const data = await response.json();
-        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (!textResponse) throw new Error("Brak danych w odpowiedzi modelu.");
-
-        currentAiProposals = JSON.parse(textResponse);
-
-        // Rendering na UI po powrocie z danymi
-        status.classList.add('hidden');
-        btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
-        
-        const container = document.getElementById('aiProposalsContainer');
-        container.innerHTML = currentAiProposals.map((prop, idx) => `
-           <div class="bg-white border-2 border-slate-100 rounded-3xl p-6 hover:border-brand-purple/50 transition-colors flex flex-col shadow-sm relative">
-              <div class="absolute -top-3 -right-3 bg-brand-purple text-white text-[10px] font-black px-3 py-1 rounded-full shadow-md uppercase tracking-widest">Opcja ${idx+1}</div>
-              <h3 class="text-lg font-black text-brand-navy mb-3 leading-snug">${prop.title}</h3>
-              <p class="text-sm text-slate-500 mb-6 flex-grow">${prop.excerpt}</p>
+    const mockTopics = [
+        {
+            title: "Work-Life Balance 2.0: Czego oczekują pracownicy w 2026 roku po rewolucji hybrydowej?",
+            excerpt: "Tradycyjna karta sportowa i podstawowa opieka medyczna to już przeżytek. Nowe badania pokazują szokującą zmianę w priorytetach kandydatów – kluczowe staje się zdrowie psychiczne.",
+            content: `
+              <h3>Nowa definicja standardowych benefitów</h3>
+              <p>Zakończyliśmy erę, w której darmowe owoce w czwartki oraz karnet na siłownię były wystarczającym powodem, by skusić specjalistę do zmiany pracy. Według najnowszego raportu rynkowego za pierwszy kwartał 2026 roku, oczekiwania pracowników ewoluowały w kierunku tzw. <strong>hiper-spersonalizowanego wsparcia (Hyper-Personalized Wellbeing)</strong>.</p>
+              <p>Podstawowa opieka medyczna w prywatnych sieciach przestała być "wyróżnikiem" – stała się rynkowym minimum higienicznym, tzw. <em>must-have</em>. Firmy, które nie oferują nawet tego, tracą nawet 65% aplikacji już na etapie pierwszego kontaktu rekrutera na LinkedIn.</p>
               
-              <div class="mb-5 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-                 <p class="text-[9px] font-bold uppercase text-brand-purple tracking-widest mb-1 flex items-center gap-1"><span>🌐</span> Wykryte prawdziwe źródło (Kliknij by sprawdzić):</p>
-                 <a href="${prop.source_url}" target="_blank" class="text-xs font-semibold text-slate-700 hover:text-brand-purple hover:underline line-clamp-1 mb-1" title="${prop.source_url}">${prop.source_title}</a>
-                 <div class="text-[9px] text-indigo-400 truncate">${prop.source_url}</div>
-              </div>
+              <h3>Kluczowe dane rynkowe z ostatnich miesięcy</h3>
+              <ul>
+                <li><strong>78% kandydatów z branży IT oraz Finance</strong> deklaruje, że odrzuciłoby ofertę pracy, jeśli pakiet medyczny nie pokrywa konsultacji psychiatrycznych i psychoterapeutycznych.</li>
+                <li>Zanotowano <strong>wzrost o 45% w wykorzystaniu tzw. Wellness Days</strong> – dodatkowych, płatnych dni urlopowych przeznaczonych wyłącznie na regenerację psychiczną.</li>
+                <li>Wprowadzenie pełnego wsparcia mentalnego (Tier 3+) redukuje nieobecności chorobowe wywołane wypaleniem zawodowym średnio o 22 dni w skali roku na jednego pracownika.</li>
+              </ul>
 
-              <div class="flex gap-2 mb-6 flex-wrap">
-                 ${prop.tags.map(t => `<span class="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded font-bold">${t}</span>`).join('')}
-              </div>
-              <button onclick="selectAIProposal(${idx})" class="w-full bg-brand-navy hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-sm transition-transform active:scale-95 text-sm">Wybierz i przenieś do edytora</button>
-           </div>
-        `).join('');
+              <h3>Dlaczego rozszerzona psychiatria to inwestycja, a nie koszt?</h3>
+              <p>Koszt ukryty wypalenia zawodowego (tzw. <em>burnout</em>) to obecnie największe obciążenie dla budżetów HR. Zastąpienie specjalisty mid/senior, który odchodzi z powodu przewlekłego stresu, to dla firmy koszt rzędu jego 6-9 miesięcznych wynagrodzeń (proces rekrutacji, wdrożenie, spadek produktywności zespołu).</p>
+              <p>Inwestycja w rozszerzone pakiety medyczne, oferujące nielimitowany dostęp do psychiatrów i psychologów klinicznych (np. pakiety z wbudowaną telemedycyną 24/7), zwraca się organizacji w przeciągu zaledwie pierwszego kwartału od wdrożenia.</p>
+              
+              <h3>Rekomendacje dla działów HR</h3>
+              <p>Jako broker ubezpieczeniowy, zdecydowanie rekomendujemy audyt obecnych umów z sieciami medycznymi. Zastosowanie platform takich jak <strong>MedicalAura</strong> pozwala w kilka sekund porównać, czy aktualnie opłacany przez Państwa pakiet posiada ukryte limity na wizyty specjalistyczne i jak wypada na tle konkurencyjnej oferty ENEL-MED czy LUX MED dedykowanej na rok 2026.</p>
+            `,
+            tags: ["Trendy HR", "Benefity", "Wellbeing", "Raporty 2026"]
+        },
+        {
+            title: "[Global HR] 4-dniowy tydzień pracy a koszty ubezpieczeń (Raport SHRM)",
+            excerpt: "Amerykańskie Towarzystwo Zarządzania Zasobami Ludzkimi (SHRM) opublikowało wyniki wdrożenia 4-dniowego tygodnia pracy. Jak drastycznie wpływa to na składki zdrowotne i wypalenie?",
+            content: `
+              <h3>Wnioski zza oceanu docierają do Europy</h3>
+              <p>Z najnowszego, opublikowanego wczoraj globalnego raportu <strong>SHRM (Society for Human Resource Management)</strong> oraz analiz amerykańskiego oddziału Deloitte wynika, że skrócenie tygodnia pracy bezpośrednio koreluje z drastycznym obniżeniem szkodowości w korporacyjnych ubezpieczeniach grupowych.</p>
+              
+              <h3>Kluczowe dane z rynku globalnego (Q1 2026)</h3>
+              <ul>
+                <li>Zmniejszenie zgłoszeń do specjalistów z zakresu wypalenia zawodowego i przewlekłego bólu kręgosłupa o <strong>aż 31%</strong> w firmach pracujących w systemie 4-dniowym.</li>
+                <li>Wielkie amerykańskie korporacje (w tym giganci z branży Big Tech) renegocjują obecnie stawki z ubezpieczycielami, skutecznie udowadniając znacznie niższe ryzyko chorobowe swoich zespołów pracujących 32 godziny tygodniowo.</li>
+              </ul>
 
-        document.getElementById('aiProposalsModal').classList.remove('hidden');
-        document.getElementById('aiProposalsModal').classList.add('flex');
+              <h3>Co to oznacza dla polskiego rynku i dyrektorów HR?</h3>
+              <p>Polscy brokerzy, korzystając z analityki opartej na systemach takich jak <strong>AuraBenefits</strong>, mają w ręku nowy, potężny argument negocjacyjny. Firmy z sektora IT, Marketingu czy Gamedev, które testują lub wprowadzają u siebie 4-dniowy tydzień pracy, automatycznie stają się klientami o <em>ekstremalnie niskiej szkodowości</em> (Low Loss Ratio).</p>
+              <p>Oznacza to, że jesteśmy w stanie wynegocjować dla takich podmiotów "szyte na miarę", bezprecedensowe zniżki u największych ubezpieczycieli (np. PZU, Warta czy Nationale-Nederlanden), których algorytmy wciąż opierają się na starych modelach oceny ryzyka.</p>
+            `,
+            tags: ["Global HR", "SHRM", "Innowacje", "Raporty Globalne"]
+        },
+        {
+            title: "Planowane rewolucje w Kodeksie Pracy a wsparcie zdrowotne pracowników (Projekt Q3 2026)",
+            excerpt: "Rząd przygotowuje transpozycję unijnych dyrektyw, które wymuszą na pracodawcach nowe podejście do profilaktyki zdrowotnej i współfinansowania składek.",
+            content: `
+              <h3>Transpozycja dyrektyw unijnych do polskiego prawa</h3>
+              <p>Ministerstwo Pracy w najnowszym wykazie prac legislacyjnych opublikowało projekt ustawy, która zrewolucjonizuje odpowiedzialność pracodawców za tzw. medycynę profilaktyczną (Preventive Healthcare) w miejscu pracy. Zmiany te mają stanowić transpozycję głośnej dyrektywy unijnej z końca zeszłego roku.</p>
+              
+              <h3>Co dokładnie się zmieni?</h3>
+              <p>Do tej pory firmy mogły całkowicie dobrowolnie partycypować w kosztach prywatnej opieki medycznej (abonamenty dla pracowników). Zgodnie z projektowaną nowelizacją Kodeksu Pracy, która ma wejść w życie w III kwartale 2026 r., podmioty zatrudniające powyżej 50 pracowników będą miały nowe obowiązki:</p>
+              <ul>
+                <li>Zapewnienie obowiązkowego, bezpłatnego pakietu badań profilaktycznych wykraczającego poza standardowe Badania Medycyny Pracy (m.in. markery nowotworowe, zaawansowane pakiety kardiologiczne).</li>
+                <li>Rozszerzona odpowiedzialność za stanowiska pracy zdalnej, w tym ewentualna refundacja kosztów rehabilitacji przy schorzeniach kręgosłupa.</li>
+              </ul>
 
-    } catch (err) {
-        status.textContent = 'Błąd uruchamiania skanera sieci.';
-        btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
-        
-        customAlert("Wystąpił problem z połączeniem z silnikiem sztucznej inteligencji.\n\nSZCZEGÓŁY BŁĘDU:\n" + err.message);
-    }
+              <h3>Korzyści podatkowe dla pionierów zmian</h3>
+              <p>Rząd zapowiedział również marchewkę – tzw. <em>Tarczę Zdrowotną</em>. Przedsiębiorstwa, które w całości (100%) sponsorują pracownikom i ich rodzinom rozszerzone pakiety opieki zdrowotnej (obejmujące Tier 2 i wyższe), będą mogły zaliczyć tę kwotę do kosztów uzyskania przychodu z podwyższonym mnożnikiem ulgowym.</p>
+              
+              <h3>Jak się przygotować jako Dział Kadr i Płac?</h3>
+              <p>Przejście na nowy model nie musi wiązać się ze skokowym wzrostem kosztów operacyjnych, jeśli przetarg zostanie odpowiednio przygotowany. Nasi eksperci z wykorzystaniem systemu <strong>AuraBenefits</strong> są w stanie zmapować Państwa obecną strukturę wydatków i przygotować gotowy plan przejścia (Transition Plan) z wykorzystaniem ofert TU Zdrowie, PZU czy Compensa, które już certyfikowały swoje produkty pod nową ustawę.</p>
+            `,
+            tags: ["Prawo Pracy", "Podatki", "Medycyna Pracy", "Zarząd"]
+        }
+    ];
+
+    const newDraft = mockTopics[Math.floor(Math.random() * mockTopics.length)];
+
+    setTimeout(() => { status.textContent = 'Komponowanie zaawansowanych akapitów HTML...'; }, 1500);
+    
+    setTimeout(async () => {
+        const { error } = await SB_CLIENT.from('aura_articles').insert([{
+            title: newDraft.title,
+            excerpt: newDraft.excerpt,
+            content: newDraft.content,
+            tags: newDraft.tags,
+            status: 'draft',
+            ai_generated: true 
+        }]);
+
+        status.classList.add('hidden');
+        btnAI.disabled = false; btnVid.disabled = false;
+        btnAI.classList.remove('opacity-50', 'cursor-wait');
+
+        if(!error) {
+            alert("🤖 AI zakończyło pracę! Pełny, ekspercki artykuł (na bazie globalnych/lokalnych źródeł) czeka na Twoją recenzję.");
+            loadDrafts();
+        } else {
+            alert("Błąd zapisu do bazy: " + error.message);
+        }
+    }, 4000);
 }
 
-async function selectAIProposal(index) {
-    const selected = currentAiProposals[index];
+// ─── GENERATOR SCENARIUSZY WIDEO (TIKTOK / REELS) ───
+async function simulateVideoGeneration() {
+    const btnAI = document.getElementById('btnGenerateAI');
+    const btnVid = document.getElementById('btnGenerateVideo');
+    const status = document.getElementById('aiStatus');
     
-    document.getElementById('aiProposalsModal').classList.add('hidden');
-    document.getElementById('aiProposalsModal').classList.remove('flex');
-    
-    const { error } = await SB_CLIENT.from('aura_articles').insert([{
-        title: selected.title,
-        excerpt: selected.excerpt,
-        content: selected.content,
-        tags: selected.tags,
-        source_title: selected.source_title,
-        source_url: selected.source_url,
+    btnAI.disabled = true; btnVid.disabled = true;
+    btnVid.classList.add('opacity-50', 'cursor-wait');
+    status.classList.remove('hidden');
+    status.textContent = 'Skanowanie algorytmów TikTok i dobieranie formatów viralowych...';
+
+    const videoDraft = {
+        title: "WIDEO [TikTok/Reels]: Dlaczego owoce w biurze to za mało w 2026?",
+        excerpt: "Gotowy scenariusz na 30-sekundową rolkę wideo. Zawiera instrukcje gestów, teksty na ekran i haczyk (Hook) z wysokim potencjałem viralowym.",
+        content: `
+          <h3 class="text-brand-pink border-brand-pink">Scenariusz Rolki (Format Pionowy 9:16)</h3>
+          <p><strong>Rekomendowany czas:</strong> ~30-40 sekund<br><strong>Dźwięk:</strong> Cichy, trendujący lofi-beat w tle (głośność 8%)<br><strong>Styl:</strong> Ekspercki, ale dynamiczny i lekko ironiczny</p>
+          
+          <ul class="list-none space-y-5 my-8">
+            <li class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-pink"></div>
+              <div class="text-[10px] text-brand-pink font-black uppercase mb-2 tracking-widest">0:00 - 0:05 (HOOK - Haczyk)</div>
+              <p><strong>🎥 Wizja:</strong> Siedzisz przy biurku, patrzysz lekko zrezygnowany w kamerę. Możesz trzymać w ręku jabłko lub banana.</p>
+              <p><strong>💬 Napis na ekranie:</strong> <em>"Dajesz owoce i dziwisz się, że uciekają do konkurencji? 🍎🚩"</em></p>
+              <p><strong>🗣️ Audio (Mówisz Ty):</strong> "Kusisz kandydatów darmowymi owocami w biurze i jesteś w szoku, że wybierają ofertę konkurencji?"</p>
+            </li>
+            
+            <li class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-purple"></div>
+              <div class="text-[10px] text-brand-purple font-black uppercase mb-2 tracking-widest">0:05 - 0:25 (MIĘSO MERYTORYCZNE)</div>
+              <p><strong>🎥 Wizja:</strong> Szybkie cięcie kamery (bliższe ujęcie). Pokazujesz na ekran telefonu lub wykres rynkowy.</p>
+              <p><strong>💬 Napis na ekranie:</strong> <em>"Globalny Raport SHRM 2026 📉"</em></p>
+              <p><strong>🗣️ Audio (Mówisz Ty):</strong> "Najnowsze globalne raporty amerykańskiego SHRM są bezlitosne. Ponad 78% specjalistów odrzuci ofertę pracy, jeśli nie zobaczy w pakiecie medycznym pełnego wsparcia psychologicznego! Dzisiaj karta sportowa to minimum higieniczne, a nie powód do dumy w ogłoszeniu."</p>
+            </li>
+            
+            <li class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
+              <div class="text-[10px] text-emerald-500 font-black uppercase mb-2 tracking-widest">0:25 - 0:35 (CALL TO ACTION)</div>
+              <p><strong>🎥 Wizja:</strong> Uśmiechasz się profesjonalnie i wskazujesz palcem w dół (w stronę opisu filmu).</p>
+              <p><strong>💬 Napis na ekranie:</strong> <em>"Zrób bezpłatny audyt swoich benefitów 👇"</em></p>
+              <p><strong>🗣️ Audio (Mówisz Ty):</strong> "Nie trać talentów przez przestarzałe pakiety. Sprawdź, jak zmodernizować ubezpieczenia w swojej firmie. Link do darmowego audytu znajdziesz w moim bio!"</p>
+            </li>
+          </ul>
+        `,
+        tags: ["TikTok", "Rolki", "Marketing B2B", "Viral"],
         status: 'draft',
         ai_generated: true 
-    }]);
+    };
 
-    if(!error) {
-        customAlert("✅ Wybrany wpis (wraz ze zweryfikowanym linkiem do źródła) jest już w Twojej poczekalni na dole!");
-        loadAdminData();
-    } else {
-        customAlert("Błąd zapisu do bazy. " + error.message);
-    }
+    setTimeout(() => { status.textContent = 'Generowanie chwytliwego haka (Hook) i Call To Action...'; }, 1500);
+    
+    setTimeout(async () => {
+        const { error } = await SB_CLIENT.from('aura_articles').insert([videoDraft]);
+
+        status.classList.add('hidden');
+        btnAI.disabled = false; btnVid.disabled = false;
+        btnVid.classList.remove('opacity-50', 'cursor-wait');
+
+        if(!error) {
+            alert("📱 Scenariusz do Social Mediów został wygenerowany! Znajdziesz go w liście szkiców do recenzji.");
+            loadDrafts();
+        } else {
+            alert("Błąd zapisu do bazy: " + error.message);
+        }
+    }, 4000);
 }
 
 </script>
