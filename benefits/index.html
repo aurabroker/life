@@ -6,13 +6,8 @@
   <title>AuraBenefits — Centrum Zarządzania Benefitami</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <script>
-    const originalWarn = console.warn;
-    console.warn = function(...args) {
-      if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
-      originalWarn.apply(console, args);
-    };
-  </script>
+  <!-- Quill.js - Profesjonalny edytor tekstowy (CSS) -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -25,6 +20,25 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); }
     .custom-scroll::-webkit-scrollbar{height:5px;width:5px}.custom-scroll::-webkit-scrollbar-track{background:#f8fafc;border-radius:4px}.custom-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+    
+    /* Poprawki dla Quill Edytora pod Tailwind */
+    .ql-editor { min-height: 300px; font-size: 15px; font-family: 'Inter', sans-serif; color: #334155; }
+    .ql-editor h2 { font-size: 1.5em; font-weight: bold; margin-bottom: 0.5em; color: #0f172a; }
+    .ql-editor h3 { font-size: 1.25em; font-weight: bold; margin-bottom: 0.5em; color: #0f172a; }
+    .ql-editor p { margin-bottom: 1em; }
+    .ql-container { border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem; border-color: #e2e8f0 !important; }
+    .ql-toolbar { border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; border-color: #e2e8f0 !important; background-color: #f8fafc; }
+    
+    /* Poprawki dla wyświetlania treści (Czytnik) */
+    .prose-custom h2 { font-size: 1.8em; font-weight: 900; margin-top: 1.5em; margin-bottom: 0.5em; color: #0f172a; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.2em; }
+    .prose-custom h3 { font-size: 1.4em; font-weight: 800; margin-top: 1.2em; margin-bottom: 0.5em; color: #1e293b; }
+    .prose-custom p { margin-bottom: 1.2em; line-height: 1.7; text-align: justify; }
+    .prose-custom ul { list-style-type: disc; margin-left: 1.5em; margin-bottom: 1.2em; }
+    .prose-custom ol { list-style-type: decimal; margin-left: 1.5em; margin-bottom: 1.2em; }
+    .prose-custom li { margin-bottom: 0.5em; }
+    .prose-custom img { max-width: 100%; height: auto; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 1.5em 0; }
+    .prose-custom iframe { width: 100%; aspect-ratio: 16/9; border-radius: 0.75rem; margin: 1.5em 0; }
+    .prose-custom blockquote { border-left: 4px solid #6366f1; padding-left: 1em; font-style: italic; color: #64748b; margin: 1.5em 0; background: #f8fafc; padding: 1em; border-radius: 0 0.75rem 0.75rem 0; }
   </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
@@ -39,8 +53,7 @@
       <button onclick="switchTab('home')" class="tab-btn active px-4 py-2 text-sm font-bold rounded-lg text-brand-purple bg-purple-50 transition-colors">Strona Główna</button>
       <button onclick="switchTab('blog')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors">Baza Wiedzy HR</button>
       <button onclick="switchTab('admin')" class="tab-btn px-4 py-2 text-sm font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 flex items-center gap-2 transition-colors">
-        <span>🤖 AI Redaktor</span>
-        <span id="draftBadge" class="bg-brand-pink text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
+        <span>📝 CMS (Zarządzanie)</span>
       </button>
     </nav>
   </div>
@@ -56,7 +69,6 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-      <!-- Karta MedicalAura -->
       <a href="medicalaura_index.html" class="glass-card rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group block relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-brand-pink rounded-bl-full opacity-5 group-hover:opacity-10 transition-opacity"></div>
         <div class="w-16 h-16 bg-pink-100 text-brand-pink rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🏥</div>
@@ -65,7 +77,6 @@
         <div class="text-brand-pink font-bold text-sm flex items-center gap-2">Uruchom aplikację <span class="group-hover:translate-x-1 transition-transform">→</span></div>
       </a>
 
-      <!-- Karta LifeAura -->
       <a href="lifeaura_index.html" class="glass-card rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group block relative overflow-hidden">
         <div class="absolute top-0 right-0 w-32 h-32 bg-brand-blue rounded-bl-full opacity-5 group-hover:opacity-10 transition-opacity"></div>
         <div class="w-16 h-16 bg-blue-100 text-brand-blue rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-inner">🛡️</div>
@@ -81,7 +92,7 @@
     <div class="flex justify-between items-end mb-8">
       <div>
         <h2 class="text-3xl font-black text-brand-navy">Baza Wiedzy HR</h2>
-        <p class="text-slate-500 mt-2">Porady, zmiany w prawie pracy i trendy w benefitach pracowniczych.</p>
+        <p class="text-slate-500 mt-2">Artykuły, porady i trendy w benefitach pracowniczych.</p>
       </div>
       <button onclick="loadPublishedArticles()" class="text-sm font-bold text-brand-purple hover:underline">🔄 Odśwież</button>
     </div>
@@ -113,105 +124,89 @@
         <div id="amDate" class="text-sm text-slate-400 font-bold mb-10 uppercase tracking-widest border-b border-slate-100 pb-6"></div>
         
         <!-- Wstrzykiwana treść HTML -->
-        <div id="amContent" class="text-slate-700 leading-relaxed space-y-6 text-[16px] md:text-lg max-w-none"></div>
-        
-        <!-- Anti-Hallucination: Moduł Źródła -->
-        <div id="amSourceBlock" class="hidden mt-16 p-8 bg-indigo-50 border-l-4 border-brand-purple rounded-r-xl">
-            <p class="text-xs text-brand-navy uppercase tracking-widest font-black mb-2 flex items-center gap-2"><span>🤖</span> Opracowano na podstawie źródeł (AI):</p>
-            <p id="amSourceText" class="text-base font-semibold text-slate-800"></p>
-            <!-- Ten link realnie otwiera się w nowej karcie -->
-            <a id="amSourceLink" href="#" target="_blank" class="text-sm text-brand-purple font-bold hover:underline mt-3 inline-flex items-center gap-1">
-              <span>Pobierz / Zobacz oryginalny raport</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-            </a>
-        </div>
+        <div id="amContent" class="prose-custom text-slate-700 max-w-none"></div>
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════ ADMIN (AI ENGINE & REVIEW) -->
+  <!-- ══════════════════════════════ ADMIN (CMS) -->
   <div id="tab-admin" class="tab-panel">
-    <div class="mb-8">
-      <h2 class="text-3xl font-black text-brand-navy">🤖 Silnik AI i Weryfikacja Treści</h2>
-      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System wyszukuje w sieci najnowsze doniesienia i generuje merytoryczne szkice. Ty decydujesz, co trafia na główną stronę.</p>
+    <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
+      <div>
+        <h2 class="text-3xl font-black text-brand-navy">📝 System CMS</h2>
+        <p class="text-slate-500 mt-2">Zarządzaj swoimi artykułami. Dodawaj nowe wpisy, edytuj istniejące lub zachowuj jako szkice.</p>
+      </div>
+      <button onclick="openNewArticleModal()" class="bg-brand-purple hover:bg-indigo-600 text-white font-black py-3 px-6 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 shrink-0">
+        <span>➕ Utwórz nowy artykuł</span>
+      </button>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Panel Sterowania AI -->
-      <div class="lg:col-span-1">
-        <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden">
-          <div class="absolute -right-10 -top-10 text-9xl opacity-10">🤖</div>
-          <h3 class="text-lg font-bold mb-2">Skaner Trendów (PL & Global)</h3>
-          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota Gemini, aby w czasie rzeczywistym przeszukał internet (Google Search) i wygenerował ekspertcką treść wolną od halucynacji.</p>
-          
-          <div class="flex flex-col gap-3">
-            <button onclick="generateAIPayload('article')" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-              <span>📝 Generuj Artykuł (Blog)</span>
-            </button>
-            <button onclick="generateAIPayload('video')" id="btnGenerateVideo" class="w-full bg-brand-pink hover:bg-rose-600 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-              <span>📱 Generuj Scenariusz (Reels)</span>
-            </button>
-          </div>
-          <div id="aiStatus" class="mt-4 text-[10px] font-bold text-indigo-300 uppercase tracking-widest text-center hidden">Trwa generowanie...</div>
-        </div>
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm min-h-[400px]">
+      <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+        <h3 class="text-lg font-bold text-brand-navy flex items-center gap-2">
+          Twoje Artykuły w systemie
+        </h3>
+        <button onclick="loadAdminArticles()" class="text-xs text-brand-purple font-bold hover:underline">Odśwież listę</button>
       </div>
-
-      <!-- Panel Weryfikacji (Drafty) -->
-      <div class="lg:col-span-2">
-        <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm min-h-[400px]">
-          <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-            <h3 class="text-lg font-bold text-brand-navy flex items-center gap-2">
-              📝 Oczekujące na recenzję
-              <span id="draftCount" class="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-black">0</span>
-            </h3>
-          </div>
-          
-          <div id="draftsList" class="space-y-4">
-            <div class="text-center text-slate-400 py-10 text-sm">Brak artykułów oczekujących na zatwierdzenie. Uruchom skaner AI.</div>
-          </div>
-        </div>
+      
+      <div id="adminArticlesList" class="space-y-4">
+        <div class="text-center text-slate-400 py-10 text-sm">Ładowanie artykułów...</div>
       </div>
     </div>
   </div>
 
 </main>
 
-<!-- Modal Edycji Artykułu (Zostaje jako popup, bo to narzędzie admina do poprawek) -->
-<div id="editArticleModal" class="fixed inset-0 bg-slate-900/80 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
-  <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
-    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-brand-navy text-white">
-      <h2 class="text-xl font-black">Edycja Szkicu <span id="eamVersionBadge" class="bg-brand-purple text-white px-2 py-0.5 rounded text-xs ml-2 align-middle font-bold tracking-widest"></span></h2>
-      <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="w-8 h-8 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-xl transition-colors shrink-0">&times;</button>
+<!-- Modal CMS: Edytor Artykułu -->
+<div id="cmsModal" class="fixed inset-0 bg-slate-900/90 z-[60] hidden items-center justify-center p-4 backdrop-blur-sm">
+  <div class="bg-white rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+    <!-- Header Modala -->
+    <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+      <h2 id="cmsModalTitle" class="text-xl font-black text-brand-navy">Kreator Artykułu</h2>
+      <button onclick="closeCmsModal()" class="w-8 h-8 bg-white border border-slate-200 hover:bg-slate-100 rounded-full flex items-center justify-center text-xl text-slate-500 font-bold transition-colors">&times;</button>
     </div>
     
-    <div class="p-6 md:p-8 overflow-y-auto custom-scroll space-y-5 flex-grow bg-slate-50">
-      <input type="hidden" id="eamId">
-      <div>
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tytuł artykułu</label>
-        <input type="text" id="eamTitle" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple font-bold text-brand-navy text-lg shadow-sm">
+    <!-- Zawartość formularza -->
+    <div class="p-6 overflow-y-auto custom-scroll space-y-5 flex-grow bg-white">
+      <input type="hidden" id="cmsId">
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tytuł artykułu</label>
+            <input type="text" id="cmsTitle" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-purple font-bold text-brand-navy text-lg" placeholder="Wpisz chwytliwy tytuł...">
+          </div>
+          <div class="md:col-span-1">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tagi (po przecinku)</label>
+            <input type="text" id="cmsTags" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-purple text-sm text-slate-600" placeholder="np. HR, Ubezpieczenia, Rynek">
+          </div>
       </div>
+
       <div>
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Zajawka (Krótki opis na liście)</label>
-        <textarea id="eamExcerpt" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple text-sm text-slate-600 shadow-sm" rows="2"></textarea>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Zajawka (krótki tekst na liście Bazy Wiedzy)</label>
+        <textarea id="cmsExcerpt" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-purple text-sm text-slate-600" rows="2" placeholder="Wstęp, który zachęci do kliknięcia..."></textarea>
       </div>
-      <div>
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex justify-between">
-          <span>Treść główna (Obsługuje znaczniki HTML)</span>
-          <span class="text-brand-purple cursor-pointer hover:underline" onclick="alert('Możesz używać tagów takich jak <h3>, <p>, <strong>, <ul>, <li> do formatowania tekstu.')">Pomoc HTML</span>
-        </label>
-        <textarea id="eamContent" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple text-sm font-mono text-slate-700 shadow-sm leading-relaxed" rows="12"></textarea>
+
+      <div class="flex-grow flex flex-col">
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Treść główna (Edytor Wizualny)</label>
+        <!-- Kontener na edytor Quill -->
+        <div id="quillEditor" class="bg-white"></div>
       </div>
     </div>
     
-    <div class="p-6 border-t border-slate-100 bg-white flex flex-col md:flex-row justify-between items-center gap-4">
-      <span class="text-xs text-slate-400 italic">Zapisanie zmian automatycznie podbije i zapisze nową wersję dokumentu w bazie.</span>
-      <div class="flex gap-3">
-          <button onclick="document.getElementById('editArticleModal').classList.add('hidden'); document.getElementById('editArticleModal').classList.remove('flex');" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Anuluj</button>
-          <button onclick="saveArticleEdit()" class="bg-brand-purple hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-transform active:scale-95">Zapisz jako nową wersję</button>
+    <!-- Stopka z akcjami -->
+    <div class="p-5 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <span class="text-xs text-slate-500 hidden md:block">Możesz wklejać zdjęcia bezpośrednio do edytora (Ctrl+V) lub użyć ikonki paska narzędzi.</span>
+      <div class="flex gap-3 w-full sm:w-auto">
+          <button onclick="closeCmsModal()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 border border-slate-200 transition-colors">Anuluj</button>
+          <button onclick="saveArticle('draft')" class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-transform active:scale-95">Zapisz Szkic</button>
+          <button onclick="saveArticle('published')" class="flex-1 sm:flex-none bg-brand-purple hover:bg-indigo-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition-transform active:scale-95">Opublikuj Od Razu</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Skrypt Edytora (Quill) -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <script>
 // ─── TWARDE KLUCZE API DLA PROJEKTU SUPABASE ───
@@ -220,9 +215,7 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 let SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
 let currentRole = 'viewer';
-
-// ─── KLUCZ API GEMINI DO GENERACJI TREŚCI ───
-const apiKey = ""; // System uzupełni to bezpiecznie w czasie wykonywania kodu!
+let quillInstance = null;
 
 async function checkAdminRole() {
   const { data: { session } } = await SB_CLIENT.auth.getSession();
@@ -230,11 +223,11 @@ async function checkAdminRole() {
       const { data } = await SB_CLIENT.from('profiles').select('rola').eq('id', session.user.id).single();
       if(data && data.rola === 'admin') currentRole = 'admin';
   } else {
-      currentRole = 'admin'; // Tryb testowy Admin dla Ciebie włączony domyślnie
+      currentRole = 'admin'; // W trybie testowym admin jest aktywny
   }
 }
 
-// ─── NAWIGACJA Z ROUTINGIEM ARTYKUŁÓW (DEEP LINKING) ───
+// ─── NAWIGACJA Z ROUTINGIEM ───
 function switchTab(id, btn = null, skipHash = false){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>{
@@ -252,7 +245,7 @@ function switchTab(id, btn = null, skipHash = false){
   }
 
   if(id === 'blog') loadPublishedArticles();
-  if(id === 'admin') loadDrafts();
+  if(id === 'admin') loadAdminArticles();
 
   if(!skipHash && window.location.hash !== '#' + id) {
       history.pushState(null, null, '#' + id);
@@ -282,11 +275,32 @@ window.addEventListener('hashchange', handleHashChange);
 window.onload = async () => {
     await checkAdminRole();
     if(currentRole !== 'admin') { document.querySelector(`button[onclick="switchTab('admin')"]`).classList.add('hidden'); }
+    
+    // Inicjalizacja Edytora Quill
+    initQuill();
+    
     handleHashChange();
-    if(currentRole === 'admin') loadDraftsCount();
 };
 
-// ─── OBSŁUGA PEŁNOEKRANOWEGO CZYTNIKA ARTYKUŁÓW ───
+// ─── OBSŁUGA EDYTORA QUILL ───
+function initQuill() {
+    quillInstance = new Quill('#quillEditor', {
+        theme: 'snow',
+        placeholder: 'Zacznij pisać swój artykuł tutaj...',
+        modules: {
+            toolbar: [
+                [{ 'header': [2, 3, false] }], // Nagłówki
+                ['bold', 'italic', 'underline', 'strike'], // Formatowanie
+                ['blockquote'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }], // Listy
+                ['link', 'image', 'video'], // Media! (Obrazki, Video)
+                ['clean'] // Czyszczenie formatowania
+            ]
+        }
+    });
+}
+
+// ─── CZYTNIK ARTYKUŁÓW (FRONTEND) ───
 async function openArticle(id, skipHashChange = false) {
     const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
     if(!data) {
@@ -298,46 +312,9 @@ async function openArticle(id, skipHashChange = false) {
     document.getElementById('amTitle').textContent = data.title;
     document.getElementById('amDate').textContent = `Opublikowano: ${new Date(data.published_at || data.created_at).toLocaleString('pl-PL')}`;
     
-    let rawContent = data.content;
-    let sourceText = "Opracowano na podstawie dostępnych danych";
-    let sourceLink = "#";
-
-    // Wyciągamy zaszyte przez AI informacje o źródłach (Zabezpieczenie anty-halucynacyjne)
-    const sourceDataMatch = rawContent.match(/<div class="hidden-source-data" data-text="(.*?)" data-link="(.*?)"><\/div>/);
-    if (sourceDataMatch) {
-        sourceText = decodeURIComponent(sourceDataMatch[1]);
-        sourceLink = decodeURIComponent(sourceDataMatch[2]);
-        rawContent = rawContent.replace(sourceDataMatch[0], ''); // Usuwamy tag z czystego podglądu
-    } else if (data.ai_generated) {
-        // Fallback dla starych artykułów z poprzednich wersji generatora
-        sourceText = "Pobrano z bazy artykułów (Wersja zarchiwizowana)";
-    }
-
-    let contentHtml = rawContent
-        .replace(/<h3>/g, '<h3 class="text-2xl md:text-3xl font-black text-brand-navy mt-12 mb-5 border-b border-slate-100 pb-3">')
-        .replace(/<h4>/g, '<h4 class="text-xl font-bold text-brand-navy mt-8 mb-3">')
-        .replace(/<p>/g, '<p class="mb-5 text-justify">')
-        .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-8 space-y-3 marker:text-brand-purple font-medium">');
-        
-    document.getElementById('amContent').innerHTML = contentHtml;
+    // Ponieważ Quill generuje czysty HTML, wstrzykujemy go bezpośrednio
+    document.getElementById('amContent').innerHTML = data.content;
     document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-indigo-50 border border-indigo-100 text-brand-purple text-xs px-3 py-1 rounded-lg font-black uppercase tracking-wider">${t}</span>`).join('');
-    
-    const sourceBlock = document.getElementById('amSourceBlock');
-    if (data.ai_generated || sourceDataMatch) {
-        sourceBlock.classList.remove('hidden');
-        document.getElementById('amSourceText').textContent = sourceText;
-        const linkEl = document.getElementById('amSourceLink');
-        linkEl.href = sourceLink;
-        if(sourceLink === '#') {
-            linkEl.innerHTML = '<span>Źródło zintegrowane w treści</span>';
-            linkEl.onclick = (e) => e.preventDefault();
-        } else {
-            linkEl.innerHTML = '<span>Pobierz / Zobacz oryginalny raport</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
-            linkEl.onclick = null;
-        }
-    } else {
-        sourceBlock.classList.add('hidden');
-    }
     
     switchTab('article', null, skipHashChange);
     window.scrollTo(0, 0);
@@ -347,9 +324,7 @@ async function openArticle(id, skipHashChange = false) {
     }
 }
 
-function closeArticle() {
-    switchTab('blog');
-}
+function closeArticle() { switchTab('blog'); }
 
 function copyArticleLink() {
     const url = window.location.href;
@@ -359,14 +334,14 @@ function copyArticleLink() {
     tempInput.select();
     try {
         document.execCommand("copy");
-        alert("Pomyślnie skopiowano link do schowka!\nTeraz możesz go wkleić do maila lub na LinkedIn.");
+        alert("Pomyślnie skopiowano link do schowka!");
     } catch (err) {
-        alert("Twój system blokuje automatyczne kopiowanie. Skopiuj ten link ręcznie:\n" + url);
+        alert("Skopiuj ten link ręcznie:\n" + url);
     }
     document.body.removeChild(tempInput);
 }
 
-// ─── MODUŁ BAZY WIEDZY (CZYTELNIK - GRID) ───
+// ─── LISTA BLOGA (FRONTEND) ───
 async function loadPublishedArticles() {
     const grid = document.getElementById('blogGrid');
     const { data, error } = await SB_CLIENT.from('aura_articles')
@@ -375,7 +350,7 @@ async function loadPublishedArticles() {
         .order('published_at', { ascending: false });
 
     if (error || !data) { grid.innerHTML = '<div class="col-span-full text-center text-red-500">Błąd połączenia z bazą.</div>'; return; }
-    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl">Brak opublikowanych artykułów.<br>Przejdź do panelu Admina, aby wygenerować pierwszy tekst!</div>'; return; }
+    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl">Brak opublikowanych artykułów.<br>Zaloguj się do CMS, aby stworzyć pierwszy wpis!</div>'; return; }
 
     grid.innerHTML = data.map(art => `
         <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full" onclick="openArticle('${art.id}')">
@@ -393,227 +368,141 @@ async function loadPublishedArticles() {
     `).join('');
 }
 
-// ─── MODUŁ "MAN IN THE MIDDLE" & WERSJONOWANIE (ADMIN) ───
-async function loadDraftsCount() {
+// ─── PANEL CMS (ADMIN) ───
+async function loadAdminArticles() {
     if(currentRole !== 'admin') return;
-    const { count } = await SB_CLIENT.from('aura_articles').select('*', { count: 'exact', head: true }).eq('status', 'draft');
-    const badge = document.getElementById('draftBadge');
-    if(count > 0) {
-        badge.textContent = count;
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
-    }
-}
-
-async function loadDrafts() {
-    if(currentRole !== 'admin') return;
-    const list = document.getElementById('draftsList');
-    const countEl = document.getElementById('draftCount');
+    const list = document.getElementById('adminArticlesList');
     
     const { data, error } = await SB_CLIENT.from('aura_articles')
         .select('*')
-        .eq('status', 'draft')
         .order('created_at', { ascending: false });
 
     if (error || !data) { list.innerHTML = '<div class="text-red-500">Błąd bazy danych.</div>'; return; }
     
-    countEl.textContent = data.length;
-    loadDraftsCount(); 
+    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Nie napisałeś jeszcze żadnego artykułu. Kliknij przycisk powyżej, aby zacząć.</div>'; return; }
 
-    if (data.length === 0) { list.innerHTML = '<div class="text-center text-slate-400 py-10 text-sm font-medium border-2 border-dashed border-slate-100 rounded-2xl">Brak artykułów oczekujących na zatwierdzenie.<br>Uruchom skaner AI po lewej stronie.</div>'; return; }
-
-    list.innerHTML = data.map(art => `
+    list.innerHTML = data.map(art => {
+        const isDraft = art.status === 'draft';
+        const statusBadge = isDraft 
+            ? `<span class="bg-slate-100 text-slate-600 text-[10px] font-black uppercase px-2.5 py-1 rounded">Szkic roboczy</span>`
+            : `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase px-2.5 py-1 rounded">Opublikowano</span>`;
+            
+        return `
         <div class="bg-slate-50 border border-slate-200 p-6 rounded-3xl flex flex-col xl:flex-row justify-between lg:items-center gap-6 hover:border-brand-purple/40 transition-colors">
             <div class="flex-grow">
                 <div class="flex items-center gap-3 mb-2">
-                    <span class="bg-amber-100 text-amber-700 text-[10px] font-black uppercase px-2.5 py-1 rounded">Oczekuje na recenzję</span>
-                    ${art.ai_generated ? `<span class="text-[11px] font-bold text-brand-purple flex items-center gap-1">🤖 Silnik AI</span>` : `<span class="text-[11px] font-bold text-emerald-600">✏️ Edytowano ręcznie</span>`}
+                    ${statusBadge}
+                    <span class="text-xs text-slate-400">${new Date(art.created_at).toLocaleDateString('pl-PL')}</span>
                 </div>
                 <h4 class="font-bold text-brand-navy text-xl leading-snug">${art.title}</h4>
-                <p class="text-sm text-slate-500 mt-2 line-clamp-2">${art.excerpt}</p>
+                <p class="text-sm text-slate-500 mt-2 line-clamp-1">${art.excerpt || 'Brak zajawki...'}</p>
             </div>
             <div class="flex flex-wrap gap-2 shrink-0">
-                <button onclick="openArticle('${art.id}')" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">Podgląd Ofertowy</button>
-                <button onclick="openEditArticle('${art.id}')" class="bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold px-4 py-2.5 rounded-xl text-xs border border-amber-200 shadow-sm transition-colors">✏️ Edytuj</button>
-                <button onclick="publishArticle('${art.id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">✅ Publikuj</button>
-                <button onclick="rejectArticle('${art.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">Wyrzuć do kosza</button>
+                <button onclick="openArticle('${art.id}')" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-colors">Podgląd</button>
+                <button onclick="editArticleInCms('${art.id}')" class="bg-brand-purple/10 hover:bg-brand-purple/20 text-brand-purple font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">✏️ Edytuj</button>
+                ${!isDraft ? `<button onclick="unpublishArticle('${art.id}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">Cofnij publikację</button>` : ''}
+                <button onclick="deleteArticle('${art.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-4 py-2.5 rounded-xl text-xs transition-colors">Usuń</button>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
-async function openEditArticle(id) {
+function openNewArticleModal() {
+    document.getElementById('cmsModalTitle').textContent = "Tworzenie Nowego Artykułu";
+    document.getElementById('cmsId').value = "";
+    document.getElementById('cmsTitle').value = "";
+    document.getElementById('cmsExcerpt').value = "";
+    document.getElementById('cmsTags').value = "";
+    quillInstance.root.innerHTML = ""; // Czyszczenie edytora
+    
+    document.getElementById('cmsModal').classList.remove('hidden');
+    document.getElementById('cmsModal').classList.add('flex');
+}
+
+async function editArticleInCms(id) {
     const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
     if(!data) return;
 
-    document.getElementById('eamId').value = id;
-    document.getElementById('eamTitle').value = data.title;
-    document.getElementById('eamExcerpt').value = data.excerpt;
+    document.getElementById('cmsModalTitle').textContent = "Edycja Artykułu";
+    document.getElementById('cmsId').value = id;
+    document.getElementById('cmsTitle').value = data.title;
+    document.getElementById('cmsExcerpt').value = data.excerpt || '';
+    document.getElementById('cmsTags').value = (data.tags || []).join(', ');
     
-    // Usuwamy wewnętrzny znacznik AI przy edycji
-    let editContent = data.content;
-    const sourceDataMatch = editContent.match(/<div class="hidden-source-data" data-text="(.*?)" data-link="(.*?)"><\/div>/);
-    if(sourceDataMatch) editContent = editContent.replace(sourceDataMatch[0], '');
-    
-    document.getElementById('eamContent').value = editContent;
+    // Ładowanie HTML do Quilla
+    quillInstance.root.innerHTML = data.content;
 
-    let version = 1;
-    const vMatch = data.title.match(/\[V(\d+)\]$/);
-    if (vMatch) version = parseInt(vMatch[1]);
-    document.getElementById('eamVersionBadge').textContent = `V${version + 1}`;
-
-    document.getElementById('editArticleModal').classList.remove('hidden');
-    document.getElementById('editArticleModal').classList.add('flex');
+    document.getElementById('cmsModal').classList.remove('hidden');
+    document.getElementById('cmsModal').classList.add('flex');
 }
 
-async function saveArticleEdit() {
-    const id = document.getElementById('eamId').value;
-    let title = document.getElementById('eamTitle').value.trim();
-    const excerpt = document.getElementById('eamExcerpt').value.trim();
-    const content = document.getElementById('eamContent').value.trim();
-
-    let version = 1;
-    const vMatch = title.match(/\[V(\d+)\]$/);
-    if (vMatch) {
-        version = parseInt(vMatch[1]) + 1;
-        title = title.replace(/\s*\[V\d+\]$/, '') + ` [V${version}]`;
-    } else {
-        title = title + ' [V2]';
-    }
-
-    const { error } = await SB_CLIENT.from('aura_articles').update({
-        title: title,
-        excerpt: excerpt,
-        content: content
-    }).eq('id', id);
-
-    if (!error) {
-        document.getElementById('editArticleModal').classList.add('hidden');
-        document.getElementById('editArticleModal').classList.remove('flex');
-        loadDrafts();
-        loadPublishedArticles();
-    } else {
-        alert('Błąd zapisu: ' + error.message);
-    }
+function closeCmsModal() {
+    document.getElementById('cmsModal').classList.add('hidden');
+    document.getElementById('cmsModal').classList.remove('flex');
 }
 
-async function publishArticle(id) {
-    if(!confirm("Czy na pewno chcesz opublikować ten artykuł w Bazie Wiedzy?")) return;
-    await SB_CLIENT.from('aura_articles').update({ status: 'published', published_at: new Date().toISOString() }).eq('id', id);
-    loadDrafts();
-    switchTab('blog');
-}
-
-async function rejectArticle(id) {
-    if(!confirm("Trwale usunąć ten szkic z systemu?")) return;
-    await SB_CLIENT.from('aura_articles').delete().eq('id', id);
-    loadDrafts();
-}
-
-// ─── INTEGRACJA Z PRAWDZIWYM API GEMINI (AI + GOOGLE SEARCH) ───
-
-async function fetchWithRetry(url, options, maxRetries = 5) {
-  const delays = [1000, 2000, 4000, 8000, 16000];
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      const response = await fetch(url, options);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
-    } catch (e) {
-      if (i === maxRetries - 1) throw e;
-      await new Promise(r => setTimeout(r, delays[i]));
-    }
-  }
-}
-
-async function generateAIPayload(type) {
-    const btnAI = document.getElementById('btnGenerateAI');
-    const btnVid = document.getElementById('btnGenerateVideo');
-    const status = document.getElementById('aiStatus');
+async function saveArticle(desiredStatus) {
+    const id = document.getElementById('cmsId').value;
+    const title = document.getElementById('cmsTitle').value.trim();
+    const excerpt = document.getElementById('cmsExcerpt').value.trim();
+    const tagsStr = document.getElementById('cmsTags').value.trim();
     
-    btnAI.disabled = true; btnVid.disabled = true;
-    btnAI.classList.add('opacity-50', 'cursor-wait');
-    btnVid.classList.add('opacity-50', 'cursor-wait');
+    // Pobranie czystego kodu HTML wygenerowanego przez Quilla (ze zdjęciami włącznie!)
+    const contentHtml = quillInstance.root.innerHTML;
     
-    status.classList.remove('hidden');
-    status.textContent = 'Łączenie z modelem Gemini AI... Wyszukiwanie danych (Google Search Grounding)...';
+    if(!title) return alert("Podaj tytuł artykułu.");
+    if(contentHtml === '<p><br></p>') return alert("Artykuł nie może być pusty.");
 
-    const systemPrompt = `Jesteś ekspertem ds. ubezpieczeń B2B, benefitów pracowniczych i prawa pracy w Polsce. Twoim zadaniem jest dostarczanie wysoce rzetelnych, opartych wyłącznie na najnowszych faktach i raportach treści. Masz absolutny zakaz zmyślania i halucynacji. Użyj narzędzia Google Search, aby znaleźć prawdziwe trendy, statystyki lub zmiany w prawie na lata 2025/2026.`;
-    
-    let userQuery = "";
-    if(type === 'article') {
-        userQuery = `Napisz profesjonalny, wieloakapitowy artykuł na bloga B2B skierowany do dyrektorów HR na temat najnowszych trendów w benefitach pracowniczych, zmian w Kodeksie Pracy lub ubezpieczeniach grupowych w Polsce. Zastosuj twarde dane z wyszukiwarki. Treść sformatuj za pomocą znaczników <h3>, <p>, <ul>, <li>.`;
-    } else {
-        userQuery = `Napisz scenariusz rolki na TikToka/Reels (wideo pionowe 9:16) o długości ok 30 sekund, celowanej do działów HR. Temat: błędy w benefitach pracowniczych, nowoczesne ubezpieczenia, zdrowie psychiczne. Format: Dynamiczny, ekspercki. Zawrzyj instrukcje dla kamery i tekst na ekran. Sformatuj tekst używając <h3>, <p>, <ul>, <li>. Zwróć jako prawdziwe źródło odpowiedni link lub raport.`;
-    }
-
-    const responseSchema = {
-        type: "OBJECT",
-        properties: {
-            title: { type: "STRING", description: "Chwytliwy tytuł" },
-            excerpt: { type: "STRING", description: "Krótka zajawka (max 2 zdania)" },
-            content: { type: "STRING", description: "Treść w kodzie HTML" },
-            tags: { type: "ARRAY", items: { type: "STRING" }, description: "2-4 tagi" },
-            sourceText: { type: "STRING", description: "Nazwa prawdziwego raportu, badania lub ustawy znalezionej w Google" },
-            sourceLink: { type: "STRING", description: "Prawdziwy URL do źródła danych" }
-        },
-        required: ["title", "excerpt", "content", "tags", "sourceText", "sourceLink"]
-    };
+    const tagsArray = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t !== '') : [];
 
     const payload = {
-        contents: [{ parts: [{ text: userQuery }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        tools: [{ google_search: {} }],
-        generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: responseSchema
-        }
+        title: title,
+        excerpt: excerpt,
+        content: contentHtml,
+        tags: tagsArray,
+        status: desiredStatus,
+        ai_generated: false // Artykuły z CMS są czysto autorskie
     };
 
-    try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-        const result = await fetchWithRetry(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        status.textContent = 'Zapisywanie w bazie...';
-
-        const jsonText = result.candidates[0].content.parts[0].text;
-        const aiData = JSON.parse(jsonText);
-
-        // Doklejamy źródło w bezpiecznym formacie do przetworzenia na Froncie
-        const safeText = encodeURIComponent(aiData.sourceText);
-        const safeLink = encodeURIComponent(aiData.sourceLink);
-        const finalContent = aiData.content + `\n<!-- Anti-Hallucination Tag -->\n<div class="hidden-source-data" data-text="${safeText}" data-link="${safeLink}"></div>`;
-
-        const { error } = await SB_CLIENT.from('aura_articles').insert([{
-            title: aiData.title,
-            excerpt: aiData.excerpt,
-            content: finalContent,
-            tags: aiData.tags,
-            status: 'draft',
-            ai_generated: true 
-        }]);
-
-        if(!error) {
-            alert("🤖 AI zakończyło pracę! Pełny, ekspercki artykuł oparty na faktach czeka na Twoją recenzję.");
-            loadDrafts();
-        } else {
-            alert("Błąd zapisu do bazy: " + error.message);
-        }
-
-    } catch (err) {
-        console.error(err);
-        alert("Wystąpił błąd podczas generowania treści. Sprawdź połączenie internetowe i spróbuj ponownie.");
-    } finally {
-        status.classList.add('hidden');
-        btnAI.disabled = false; btnVid.disabled = false;
-        btnAI.classList.remove('opacity-50', 'cursor-wait');
-        btnVid.classList.remove('opacity-50', 'cursor-wait');
+    if (desiredStatus === 'published') {
+        payload.published_at = new Date().toISOString();
     }
+
+    let errorObj;
+    if (id) {
+        // Aktualizacja
+        const { error } = await SB_CLIENT.from('aura_articles').update(payload).eq('id', id);
+        errorObj = error;
+    } else {
+        // Tworzenie nowego
+        const { error } = await SB_CLIENT.from('aura_articles').insert([payload]);
+        errorObj = error;
+    }
+
+    if (!errorObj) {
+        closeCmsModal();
+        loadAdminArticles();
+        if(desiredStatus === 'published') {
+            alert("Artykuł opublikowany pomyślnie!");
+            switchTab('blog');
+        } else {
+            alert("Szkic zapisany.");
+        }
+    } else {
+        alert('Błąd zapisu: ' + errorObj.message);
+    }
+}
+
+async function unpublishArticle(id) {
+    await SB_CLIENT.from('aura_articles').update({ status: 'draft' }).eq('id', id);
+    loadAdminArticles();
+}
+
+async function deleteArticle(id) {
+    if(!confirm("Na pewno usunąć ten artykuł bezpowrotnie?")) return;
+    await SB_CLIENT.from('aura_articles').delete().eq('id', id);
+    loadAdminArticles();
 }
 
 </script>
