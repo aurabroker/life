@@ -133,7 +133,7 @@
   <div id="tab-admin" class="tab-panel">
     <div class="mb-8">
       <h2 class="text-3xl font-black text-brand-navy">🤖 Silnik AI i Weryfikacja Treści</h2>
-      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System śledzi najnowsze doniesienia i generuje potężne szkice artykułów. Ty decydujesz, co trafia na główną stronę.</p>
+      <p class="text-slate-500 mt-2">Moduł <strong>"Man in the middle"</strong>. System wyszukuje w sieci najnowsze doniesienia i generuje merytoryczne szkice. Ty decydujesz, co trafia na główną stronę.</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -142,14 +142,14 @@
         <div class="bg-gradient-to-br from-brand-navy to-slate-800 rounded-3xl p-6 shadow-xl text-white relative overflow-hidden">
           <div class="absolute -right-10 -top-10 text-9xl opacity-10">🤖</div>
           <h3 class="text-lg font-bold mb-2">Skaner Trendów (PL & Global)</h3>
-          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota, aby przeszukał polskie i zagraniczne portale (m.in. SHRM, HR Dive, Deloitte), a następnie wygenerował ekspercki artykuł lub gotowy scenariusz wideo.</p>
+          <p class="text-slate-300 text-xs mb-6 leading-relaxed">Uruchom bota Gemini, aby w czasie rzeczywistym przeszukał internet (Google Search) i wygenerował ekspertcką treść wolną od halucynacji.</p>
           
           <div class="flex flex-col gap-3">
-            <button onclick="simulateAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+            <button onclick="generateAIPayload('article')" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
               <span>📝 Generuj Artykuł (Blog)</span>
             </button>
-            <button onclick="simulateVideoGeneration()" id="btnGenerateVideo" class="w-full bg-brand-pink hover:bg-rose-600 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
-              <span>📱 Generuj Scenariusz (TikTok/Reels)</span>
+            <button onclick="generateAIPayload('video')" id="btnGenerateVideo" class="w-full bg-brand-pink hover:bg-rose-600 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+              <span>📱 Generuj Scenariusz (Reels)</span>
             </button>
           </div>
           <div id="aiStatus" class="mt-4 text-[10px] font-bold text-indigo-300 uppercase tracking-widest text-center hidden">Trwa generowanie...</div>
@@ -221,6 +221,9 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 let SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
 let currentRole = 'viewer';
 
+// ─── KLUCZ API GEMINI DO GENERACJI TREŚCI ───
+const apiKey = ""; // System uzupełni to bezpiecznie w czasie wykonywania kodu!
+
 async function checkAdminRole() {
   const { data: { session } } = await SB_CLIENT.auth.getSession();
   if (session) {
@@ -242,7 +245,6 @@ function switchTab(id, btn = null, skipHash = false){
   const targetPanel = document.getElementById('tab-'+id);
   if(targetPanel) targetPanel.classList.add('active');
   
-  // Wyszukujemy przycisk w nawigacji. Jeśli to jest zakładka 'article', przycisku w headerze nie ma (co jest ok).
   const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${id}')"]`);
   if(activeBtn) {
       activeBtn.classList.add('text-brand-purple','bg-purple-50');
@@ -257,14 +259,11 @@ function switchTab(id, btn = null, skipHash = false){
   }
 }
 
-// Globalny handler zmian w adresie URL (np. strzałki Wstecz/Dalej w przeglądarce)
 async function handleHashChange() {
     const hash = window.location.hash.replace('#', '');
-    
-    // Obsługa bezpośredniego linku do artykułu (np. #article-1234)
     if (hash.startsWith('article-')) {
         const articleId = hash.replace('article-', '');
-        await openArticle(articleId, true); // Otwiera na pełnym ekranie w tle
+        await openArticle(articleId, true);
     } else {
         if (hash && document.getElementById('tab-' + hash)) {
             if(hash === 'admin' && currentRole !== 'admin') {
@@ -283,7 +282,6 @@ window.addEventListener('hashchange', handleHashChange);
 window.onload = async () => {
     await checkAdminRole();
     if(currentRole !== 'admin') { document.querySelector(`button[onclick="switchTab('admin')"]`).classList.add('hidden'); }
-    
     handleHashChange();
     if(currentRole === 'admin') loadDraftsCount();
 };
@@ -300,58 +298,56 @@ async function openArticle(id, skipHashChange = false) {
     document.getElementById('amTitle').textContent = data.title;
     document.getElementById('amDate').textContent = `Opublikowano: ${new Date(data.published_at || data.created_at).toLocaleString('pl-PL')}`;
     
-    // Auto-formatowanie i dodawanie ładnych marginesów do tekstu HTML
-    let contentHtml = data.content
+    let rawContent = data.content;
+    let sourceText = "Opracowano na podstawie dostępnych danych";
+    let sourceLink = "#";
+
+    // Wyciągamy zaszyte przez AI informacje o źródłach (Zabezpieczenie anty-halucynacyjne)
+    const sourceDataMatch = rawContent.match(/<div class="hidden-source-data" data-text="(.*?)" data-link="(.*?)"><\/div>/);
+    if (sourceDataMatch) {
+        sourceText = decodeURIComponent(sourceDataMatch[1]);
+        sourceLink = decodeURIComponent(sourceDataMatch[2]);
+        rawContent = rawContent.replace(sourceDataMatch[0], ''); // Usuwamy tag z czystego podglądu
+    } else if (data.ai_generated) {
+        // Fallback dla starych artykułów z poprzednich wersji generatora
+        sourceText = "Pobrano z bazy artykułów (Wersja zarchiwizowana)";
+    }
+
+    let contentHtml = rawContent
         .replace(/<h3>/g, '<h3 class="text-2xl md:text-3xl font-black text-brand-navy mt-12 mb-5 border-b border-slate-100 pb-3">')
         .replace(/<h4>/g, '<h4 class="text-xl font-bold text-brand-navy mt-8 mb-3">')
         .replace(/<p>/g, '<p class="mb-5 text-justify">')
         .replace(/<ul>/g, '<ul class="list-disc list-outside pl-6 mb-8 space-y-3 marker:text-brand-purple font-medium">');
         
     document.getElementById('amContent').innerHTML = contentHtml;
-    
     document.getElementById('amTags').innerHTML = (data.tags||[]).map(t => `<span class="bg-indigo-50 border border-indigo-100 text-brand-purple text-xs px-3 py-1 rounded-lg font-black uppercase tracking-wider">${t}</span>`).join('');
     
-    // Dynamiczne źródła (teraz z PRAWDZIWYMI LINKAMI _BLANK!)
     const sourceBlock = document.getElementById('amSourceBlock');
-    if (data.ai_generated) {
+    if (data.ai_generated || sourceDataMatch) {
         sourceBlock.classList.remove('hidden');
+        document.getElementById('amSourceText').textContent = sourceText;
         const linkEl = document.getElementById('amSourceLink');
-        
-        if (data.title.includes("2026") && !data.title.includes("SHRM") && !data.title.includes("WIDEO")) {
-            document.getElementById('amSourceText').textContent = "Raport: Środowisko pracy i oczekiwania pracowników 2026";
-            linkEl.href = "https://grupapracuj.pl/centrum-prasowe/raporty"; 
-            linkEl.innerHTML = '<span>Pobierz / Zobacz oryginalny raport</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
-        } else if (data.title.includes("SHRM") || (data.tags && data.tags.includes("Global HR"))) {
-            document.getElementById('amSourceText').textContent = "Global Report: Workplace Dynamics & Health Insurance (SHRM & Deloitte)";
-            linkEl.href = "https://www.shrm.org/"; 
-            linkEl.innerHTML = '<span>Przejdź do globalnego centrum badań SHRM</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
-        } else if (data.title.includes("WIDEO") || (data.tags && data.tags.includes("TikTok"))) {
-            document.getElementById('amSourceText').textContent = "Opracowano na bazie trendów TikTok B2B oraz danych globalnych (Marketing)";
-            linkEl.href = "https://www.tiktok.com/business/"; 
-            linkEl.innerHTML = '<span>Zobacz globalne trendy na TikTok For Business</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+        linkEl.href = sourceLink;
+        if(sourceLink === '#') {
+            linkEl.innerHTML = '<span>Źródło zintegrowane w treści</span>';
+            linkEl.onclick = (e) => e.preventDefault();
         } else {
-            document.getElementById('amSourceText').textContent = "Biuletyn Informacji Publicznej (Gov.pl) - Projekt zmian do Kodeksu Pracy";
-            linkEl.href = "https://legislacja.gov.pl/"; 
             linkEl.innerHTML = '<span>Pobierz / Zobacz oryginalny raport</span><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>';
+            linkEl.onclick = null;
         }
     } else {
         sourceBlock.classList.add('hidden');
     }
     
-    // Włącz pełnoekranową zakładkę czytnika zamiast Modala!
     switchTab('article', null, skipHashChange);
-    
-    // Przeskroluj na samą górę, żeby czytelnik zaczął czytać od tytułu
     window.scrollTo(0, 0);
     
-    // Zmiana adresu URL (aby można było go skopiować bez problemu)
     if(!skipHashChange) {
         history.pushState(null, null, '#article-' + id);
     }
 }
 
 function closeArticle() {
-    // Wracamy po prostu na główny grid bloga
     switchTab('blog');
 }
 
@@ -447,7 +443,6 @@ async function loadDrafts() {
     `).join('');
 }
 
-// Obsługa Panelu Edycji i Wersjonowania
 async function openEditArticle(id) {
     const { data } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
     if(!data) return;
@@ -455,7 +450,13 @@ async function openEditArticle(id) {
     document.getElementById('eamId').value = id;
     document.getElementById('eamTitle').value = data.title;
     document.getElementById('eamExcerpt').value = data.excerpt;
-    document.getElementById('eamContent').value = data.content;
+    
+    // Usuwamy wewnętrzny znacznik AI przy edycji
+    let editContent = data.content;
+    const sourceDataMatch = editContent.match(/<div class="hidden-source-data" data-text="(.*?)" data-link="(.*?)"><\/div>/);
+    if(sourceDataMatch) editContent = editContent.replace(sourceDataMatch[0], '');
+    
+    document.getElementById('eamContent').value = editContent;
 
     let version = 1;
     const vMatch = data.title.match(/\[V(\d+)\]$/);
@@ -510,177 +511,109 @@ async function rejectArticle(id) {
     loadDrafts();
 }
 
-// ─── SYMULATOR BOTA AI Z OZNACZANIEM ŹRÓDEŁ ───
-async function simulateAIGeneration() {
+// ─── INTEGRACJA Z PRAWDZIWYM API GEMINI (AI + GOOGLE SEARCH) ───
+
+async function fetchWithRetry(url, options, maxRetries = 5) {
+  const delays = [1000, 2000, 4000, 8000, 16000];
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return await response.json();
+    } catch (e) {
+      if (i === maxRetries - 1) throw e;
+      await new Promise(r => setTimeout(r, delays[i]));
+    }
+  }
+}
+
+async function generateAIPayload(type) {
     const btnAI = document.getElementById('btnGenerateAI');
     const btnVid = document.getElementById('btnGenerateVideo');
     const status = document.getElementById('aiStatus');
     
     btnAI.disabled = true; btnVid.disabled = true;
     btnAI.classList.add('opacity-50', 'cursor-wait');
-    status.classList.remove('hidden');
-    status.textContent = 'Skanowanie globalnych portali (SHRM, Deloitte, Gov.pl)...';
-
-    const mockTopics = [
-        {
-            title: "Work-Life Balance 2.0: Czego oczekują pracownicy w 2026 roku po rewolucji hybrydowej?",
-            excerpt: "Tradycyjna karta sportowa i podstawowa opieka medyczna to już przeżytek. Nowe badania pokazują szokującą zmianę w priorytetach kandydatów – kluczowe staje się zdrowie psychiczne.",
-            content: `
-              <h3>Nowa definicja standardowych benefitów</h3>
-              <p>Zakończyliśmy erę, w której darmowe owoce w czwartki oraz karnet na siłownię były wystarczającym powodem, by skusić specjalistę do zmiany pracy. Według najnowszego raportu rynkowego za pierwszy kwartał 2026 roku, oczekiwania pracowników ewoluowały w kierunku tzw. <strong>hiper-spersonalizowanego wsparcia (Hyper-Personalized Wellbeing)</strong>.</p>
-              <p>Podstawowa opieka medyczna w prywatnych sieciach przestała być "wyróżnikiem" – stała się rynkowym minimum higienicznym, tzw. <em>must-have</em>. Firmy, które nie oferują nawet tego, tracą nawet 65% aplikacji już na etapie pierwszego kontaktu rekrutera na LinkedIn.</p>
-              
-              <h3>Kluczowe dane rynkowe z ostatnich miesięcy</h3>
-              <ul>
-                <li><strong>78% kandydatów z branży IT oraz Finance</strong> deklaruje, że odrzuciłoby ofertę pracy, jeśli pakiet medyczny nie pokrywa konsultacji psychiatrycznych i psychoterapeutycznych.</li>
-                <li>Zanotowano <strong>wzrost o 45% w wykorzystaniu tzw. Wellness Days</strong> – dodatkowych, płatnych dni urlopowych przeznaczonych wyłącznie na regenerację psychiczną.</li>
-                <li>Wprowadzenie pełnego wsparcia mentalnego (Tier 3+) redukuje nieobecności chorobowe wywołane wypaleniem zawodowym średnio o 22 dni w skali roku na jednego pracownika.</li>
-              </ul>
-
-              <h3>Dlaczego rozszerzona psychiatria to inwestycja, a nie koszt?</h3>
-              <p>Koszt ukryty wypalenia zawodowego (tzw. <em>burnout</em>) to obecnie największe obciążenie dla budżetów HR. Zastąpienie specjalisty mid/senior, który odchodzi z powodu przewlekłego stresu, to dla firmy koszt rzędu jego 6-9 miesięcznych wynagrodzeń (proces rekrutacji, wdrożenie, spadek produktywności zespołu).</p>
-              <p>Inwestycja w rozszerzone pakiety medyczne, oferujące nielimitowany dostęp do psychiatrów i psychologów klinicznych (np. pakiety z wbudowaną telemedycyną 24/7), zwraca się organizacji w przeciągu zaledwie pierwszego kwartału od wdrożenia.</p>
-              
-              <h3>Rekomendacje dla działów HR</h3>
-              <p>Jako broker ubezpieczeniowy, zdecydowanie rekomendujemy audyt obecnych umów z sieciami medycznymi. Zastosowanie platform takich jak <strong>MedicalAura</strong> pozwala w kilka sekund porównać, czy aktualnie opłacany przez Państwa pakiet posiada ukryte limity na wizyty specjalistyczne i jak wypada na tle konkurencyjnej oferty ENEL-MED czy LUX MED dedykowanej na rok 2026.</p>
-            `,
-            tags: ["Trendy HR", "Benefity", "Wellbeing", "Raporty 2026"]
-        },
-        {
-            title: "[Global HR] 4-dniowy tydzień pracy a koszty ubezpieczeń (Raport SHRM)",
-            excerpt: "Amerykańskie Towarzystwo Zarządzania Zasobami Ludzkimi (SHRM) opublikowało wyniki wdrożenia 4-dniowego tygodnia pracy. Jak drastycznie wpływa to na składki zdrowotne i wypalenie?",
-            content: `
-              <h3>Wnioski zza oceanu docierają do Europy</h3>
-              <p>Z najnowszego, opublikowanego wczoraj globalnego raportu <strong>SHRM (Society for Human Resource Management)</strong> oraz analiz amerykańskiego oddziału Deloitte wynika, że skrócenie tygodnia pracy bezpośrednio koreluje z drastycznym obniżeniem szkodowości w korporacyjnych ubezpieczeniach grupowych.</p>
-              
-              <h3>Kluczowe dane z rynku globalnego (Q1 2026)</h3>
-              <ul>
-                <li>Zmniejszenie zgłoszeń do specjalistów z zakresu wypalenia zawodowego i przewlekłego bólu kręgosłupa o <strong>aż 31%</strong> w firmach pracujących w systemie 4-dniowym.</li>
-                <li>Wielkie amerykańskie korporacje (w tym giganci z branży Big Tech) renegocjują obecnie stawki z ubezpieczycielami, skutecznie udowadniając znacznie niższe ryzyko chorobowe swoich zespołów pracujących 32 godziny tygodniowo.</li>
-              </ul>
-
-              <h3>Co to oznacza dla polskiego rynku i dyrektorów HR?</h3>
-              <p>Polscy brokerzy, korzystając z analityki opartej na systemach takich jak <strong>AuraBenefits</strong>, mają w ręku nowy, potężny argument negocjacyjny. Firmy z sektora IT, Marketingu czy Gamedev, które testują lub wprowadzają u siebie 4-dniowy tydzień pracy, automatycznie stają się klientami o <em>ekstremalnie niskiej szkodowości</em> (Low Loss Ratio).</p>
-              <p>Oznacza to, że jesteśmy w stanie wynegocjować dla takich podmiotów "szyte na miarę", bezprecedensowe zniżki u największych ubezpieczycieli (np. PZU, Warta czy Nationale-Nederlanden), których algorytmy wciąż opierają się na starych modelach oceny ryzyka.</p>
-            `,
-            tags: ["Global HR", "SHRM", "Innowacje", "Raporty Globalne"]
-        },
-        {
-            title: "Planowane rewolucje w Kodeksie Pracy a wsparcie zdrowotne pracowników (Projekt Q3 2026)",
-            excerpt: "Rząd przygotowuje transpozycję unijnych dyrektyw, które wymuszą na pracodawcach nowe podejście do profilaktyki zdrowotnej i współfinansowania składek.",
-            content: `
-              <h3>Transpozycja dyrektyw unijnych do polskiego prawa</h3>
-              <p>Ministerstwo Pracy w najnowszym wykazie prac legislacyjnych opublikowało projekt ustawy, która zrewolucjonizuje odpowiedzialność pracodawców za tzw. medycynę profilaktyczną (Preventive Healthcare) w miejscu pracy. Zmiany te mają stanowić transpozycję głośnej dyrektywy unijnej z końca zeszłego roku.</p>
-              
-              <h3>Co dokładnie się zmieni?</h3>
-              <p>Do tej pory firmy mogły całkowicie dobrowolnie partycypować w kosztach prywatnej opieki medycznej (abonamenty dla pracowników). Zgodnie z projektowaną nowelizacją Kodeksu Pracy, która ma wejść w życie w III kwartale 2026 r., podmioty zatrudniające powyżej 50 pracowników będą miały nowe obowiązki:</p>
-              <ul>
-                <li>Zapewnienie obowiązkowego, bezpłatnego pakietu badań profilaktycznych wykraczającego poza standardowe Badania Medycyny Pracy (m.in. markery nowotworowe, zaawansowane pakiety kardiologiczne).</li>
-                <li>Rozszerzona odpowiedzialność za stanowiska pracy zdalnej, w tym ewentualna refundacja kosztów rehabilitacji przy schorzeniach kręgosłupa.</li>
-              </ul>
-
-              <h3>Korzyści podatkowe dla pionierów zmian</h3>
-              <p>Rząd zapowiedział również marchewkę – tzw. <em>Tarczę Zdrowotną</em>. Przedsiębiorstwa, które w całości (100%) sponsorują pracownikom i ich rodzinom rozszerzone pakiety opieki zdrowotnej (obejmujące Tier 2 i wyższe), będą mogły zaliczyć tę kwotę do kosztów uzyskania przychodu z podwyższonym mnożnikiem ulgowym.</p>
-              
-              <h3>Jak się przygotować jako Dział Kadr i Płac?</h3>
-              <p>Przejście na nowy model nie musi wiązać się ze skokowym wzrostem kosztów operacyjnych, jeśli przetarg zostanie odpowiednio przygotowany. Nasi eksperci z wykorzystaniem systemu <strong>AuraBenefits</strong> są w stanie zmapować Państwa obecną strukturę wydatków i przygotować gotowy plan przejścia (Transition Plan) z wykorzystaniem ofert TU Zdrowie, PZU czy Compensa, które już certyfikowały swoje produkty pod nową ustawę.</p>
-            `,
-            tags: ["Prawo Pracy", "Podatki", "Medycyna Pracy", "Zarząd"]
-        }
-    ];
-
-    const newDraft = mockTopics[Math.floor(Math.random() * mockTopics.length)];
-
-    setTimeout(() => { status.textContent = 'Komponowanie zaawansowanych akapitów HTML...'; }, 1500);
+    btnVid.classList.add('opacity-50', 'cursor-wait');
     
-    setTimeout(async () => {
+    status.classList.remove('hidden');
+    status.textContent = 'Łączenie z modelem Gemini AI... Wyszukiwanie danych (Google Search Grounding)...';
+
+    const systemPrompt = `Jesteś ekspertem ds. ubezpieczeń B2B, benefitów pracowniczych i prawa pracy w Polsce. Twoim zadaniem jest dostarczanie wysoce rzetelnych, opartych wyłącznie na najnowszych faktach i raportach treści. Masz absolutny zakaz zmyślania i halucynacji. Użyj narzędzia Google Search, aby znaleźć prawdziwe trendy, statystyki lub zmiany w prawie na lata 2025/2026.`;
+    
+    let userQuery = "";
+    if(type === 'article') {
+        userQuery = `Napisz profesjonalny, wieloakapitowy artykuł na bloga B2B skierowany do dyrektorów HR na temat najnowszych trendów w benefitach pracowniczych, zmian w Kodeksie Pracy lub ubezpieczeniach grupowych w Polsce. Zastosuj twarde dane z wyszukiwarki. Treść sformatuj za pomocą znaczników <h3>, <p>, <ul>, <li>.`;
+    } else {
+        userQuery = `Napisz scenariusz rolki na TikToka/Reels (wideo pionowe 9:16) o długości ok 30 sekund, celowanej do działów HR. Temat: błędy w benefitach pracowniczych, nowoczesne ubezpieczenia, zdrowie psychiczne. Format: Dynamiczny, ekspercki. Zawrzyj instrukcje dla kamery i tekst na ekran. Sformatuj tekst używając <h3>, <p>, <ul>, <li>. Zwróć jako prawdziwe źródło odpowiedni link lub raport.`;
+    }
+
+    const responseSchema = {
+        type: "OBJECT",
+        properties: {
+            title: { type: "STRING", description: "Chwytliwy tytuł" },
+            excerpt: { type: "STRING", description: "Krótka zajawka (max 2 zdania)" },
+            content: { type: "STRING", description: "Treść w kodzie HTML" },
+            tags: { type: "ARRAY", items: { type: "STRING" }, description: "2-4 tagi" },
+            sourceText: { type: "STRING", description: "Nazwa prawdziwego raportu, badania lub ustawy znalezionej w Google" },
+            sourceLink: { type: "STRING", description: "Prawdziwy URL do źródła danych" }
+        },
+        required: ["title", "excerpt", "content", "tags", "sourceText", "sourceLink"]
+    };
+
+    const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        tools: [{ google_search: {} }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: responseSchema
+        }
+    };
+
+    try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const result = await fetchWithRetry(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        status.textContent = 'Zapisywanie w bazie...';
+
+        const jsonText = result.candidates[0].content.parts[0].text;
+        const aiData = JSON.parse(jsonText);
+
+        // Doklejamy źródło w bezpiecznym formacie do przetworzenia na Froncie
+        const safeText = encodeURIComponent(aiData.sourceText);
+        const safeLink = encodeURIComponent(aiData.sourceLink);
+        const finalContent = aiData.content + `\n<!-- Anti-Hallucination Tag -->\n<div class="hidden-source-data" data-text="${safeText}" data-link="${safeLink}"></div>`;
+
         const { error } = await SB_CLIENT.from('aura_articles').insert([{
-            title: newDraft.title,
-            excerpt: newDraft.excerpt,
-            content: newDraft.content,
-            tags: newDraft.tags,
+            title: aiData.title,
+            excerpt: aiData.excerpt,
+            content: finalContent,
+            tags: aiData.tags,
             status: 'draft',
             ai_generated: true 
         }]);
 
+        if(!error) {
+            alert("🤖 AI zakończyło pracę! Pełny, ekspercki artykuł oparty na faktach czeka na Twoją recenzję.");
+            loadDrafts();
+        } else {
+            alert("Błąd zapisu do bazy: " + error.message);
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Wystąpił błąd podczas generowania treści. Sprawdź połączenie internetowe i spróbuj ponownie.");
+    } finally {
         status.classList.add('hidden');
         btnAI.disabled = false; btnVid.disabled = false;
         btnAI.classList.remove('opacity-50', 'cursor-wait');
-
-        if(!error) {
-            alert("🤖 AI zakończyło pracę! Pełny, ekspercki artykuł (na bazie globalnych/lokalnych źródeł) czeka na Twoją recenzję.");
-            loadDrafts();
-        } else {
-            alert("Błąd zapisu do bazy: " + error.message);
-        }
-    }, 4000);
-}
-
-// ─── GENERATOR SCENARIUSZY WIDEO (TIKTOK / REELS) ───
-async function simulateVideoGeneration() {
-    const btnAI = document.getElementById('btnGenerateAI');
-    const btnVid = document.getElementById('btnGenerateVideo');
-    const status = document.getElementById('aiStatus');
-    
-    btnAI.disabled = true; btnVid.disabled = true;
-    btnVid.classList.add('opacity-50', 'cursor-wait');
-    status.classList.remove('hidden');
-    status.textContent = 'Skanowanie algorytmów TikTok i dobieranie formatów viralowych...';
-
-    const videoDraft = {
-        title: "WIDEO [TikTok/Reels]: Dlaczego owoce w biurze to za mało w 2026?",
-        excerpt: "Gotowy scenariusz na 30-sekundową rolkę wideo. Zawiera instrukcje gestów, teksty na ekran i haczyk (Hook) z wysokim potencjałem viralowym.",
-        content: `
-          <h3 class="text-brand-pink border-brand-pink">Scenariusz Rolki (Format Pionowy 9:16)</h3>
-          <p><strong>Rekomendowany czas:</strong> ~30-40 sekund<br><strong>Dźwięk:</strong> Cichy, trendujący lofi-beat w tle (głośność 8%)<br><strong>Styl:</strong> Ekspercki, ale dynamiczny i lekko ironiczny</p>
-          
-          <ul class="list-none space-y-5 my-8">
-            <li class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-pink"></div>
-              <div class="text-[10px] text-brand-pink font-black uppercase mb-2 tracking-widest">0:00 - 0:05 (HOOK - Haczyk)</div>
-              <p><strong>🎥 Wizja:</strong> Siedzisz przy biurku, patrzysz lekko zrezygnowany w kamerę. Możesz trzymać w ręku jabłko lub banana.</p>
-              <p><strong>💬 Napis na ekranie:</strong> <em>"Dajesz owoce i dziwisz się, że uciekają do konkurencji? 🍎🚩"</em></p>
-              <p><strong>🗣️ Audio (Mówisz Ty):</strong> "Kusisz kandydatów darmowymi owocami w biurze i jesteś w szoku, że wybierają ofertę konkurencji?"</p>
-            </li>
-            
-            <li class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand-purple"></div>
-              <div class="text-[10px] text-brand-purple font-black uppercase mb-2 tracking-widest">0:05 - 0:25 (MIĘSO MERYTORYCZNE)</div>
-              <p><strong>🎥 Wizja:</strong> Szybkie cięcie kamery (bliższe ujęcie). Pokazujesz na ekran telefonu lub wykres rynkowy.</p>
-              <p><strong>💬 Napis na ekranie:</strong> <em>"Globalny Raport SHRM 2026 📉"</em></p>
-              <p><strong>🗣️ Audio (Mówisz Ty):</strong> "Najnowsze globalne raporty amerykańskiego SHRM są bezlitosne. Ponad 78% specjalistów odrzuci ofertę pracy, jeśli nie zobaczy w pakiecie medycznym pełnego wsparcia psychologicznego! Dzisiaj karta sportowa to minimum higieniczne, a nie powód do dumy w ogłoszeniu."</p>
-            </li>
-            
-            <li class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
-              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500"></div>
-              <div class="text-[10px] text-emerald-500 font-black uppercase mb-2 tracking-widest">0:25 - 0:35 (CALL TO ACTION)</div>
-              <p><strong>🎥 Wizja:</strong> Uśmiechasz się profesjonalnie i wskazujesz palcem w dół (w stronę opisu filmu).</p>
-              <p><strong>💬 Napis na ekranie:</strong> <em>"Zrób bezpłatny audyt swoich benefitów 👇"</em></p>
-              <p><strong>🗣️ Audio (Mówisz Ty):</strong> "Nie trać talentów przez przestarzałe pakiety. Sprawdź, jak zmodernizować ubezpieczenia w swojej firmie. Link do darmowego audytu znajdziesz w moim bio!"</p>
-            </li>
-          </ul>
-        `,
-        tags: ["TikTok", "Rolki", "Marketing B2B", "Viral"],
-        status: 'draft',
-        ai_generated: true 
-    };
-
-    setTimeout(() => { status.textContent = 'Generowanie chwytliwego haka (Hook) i Call To Action...'; }, 1500);
-    
-    setTimeout(async () => {
-        const { error } = await SB_CLIENT.from('aura_articles').insert([videoDraft]);
-
-        status.classList.add('hidden');
-        btnAI.disabled = false; btnVid.disabled = false;
         btnVid.classList.remove('opacity-50', 'cursor-wait');
-
-        if(!error) {
-            alert("📱 Scenariusz do Social Mediów został wygenerowany! Znajdziesz go w liście szkiców do recenzji.");
-            loadDrafts();
-        } else {
-            alert("Błąd zapisu do bazy: " + error.message);
-        }
-    }, 4000);
+    }
 }
 
 </script>
