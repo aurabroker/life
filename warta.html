@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WartaSzkoła.pl | Ubezpieczenia Grupowe dla Edukacji</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'warta-blue': '#003366',
+                        'warta-orange': '#f97316', // Tailwind orange-500
+                        'brand-light': '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { overflow-x: hidden; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .custom-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            background: #e2e8f0;
+            outline: none;
+        }
+        .custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f97316;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+        }
+        .custom-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+        
+        .risk-row:hover { background-color: #f1f5f9; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-warta-orange selection:text-white">
+
+    <!-- Nawigacja -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="#" class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-warta-blue rounded-lg flex items-center justify-center text-white font-black text-2xl shadow-md">W</div>
+                    <div class="flex flex-col">
+                        <span class="font-extrabold text-2xl text-warta-blue tracking-tight leading-none">Warta<span class="text-warta-orange">Szkoła.pl</span></span>
+                        <span class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Dedykowane dla oświaty</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#dlaczego-my" class="text-slate-600 hover:text-warta-blue transition-colors font-medium">Dlaczego My?</a>
+                    <a href="#kalkulator" class="text-warta-orange font-bold border-b-2 border-warta-orange pb-1">Kalkulator Składki</a>
+                    <a href="#kontakt" class="text-slate-600 hover:text-warta-blue transition-colors font-medium">Kontakt z Agentem</a>
+                    <a href="#kalkulator" class="bg-warta-blue text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-colors shadow-md font-semibold">Sprawdź Ofertę</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-warta-blue overflow-hidden">
+        <!-- Tło dekoracyjne -->
+        <div class="absolute inset-0 z-0 opacity-20">
+            <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-warta-orange blur-3xl"></div>
+            <div class="absolute bottom-0 left-0 w-full max-w-2xl h-96 rounded-full bg-blue-400 blur-3xl"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 md:py-24 flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2 text-center md:text-left" data-aos="fade-right">
+                <div class="inline-block bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider mb-6">
+                    Agent: Aura Expert sp. z o.o.
+                </div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-6">
+                    Spokój nauczyciela to <span class="text-warta-orange">bezpieczna szkoła.</span>
+                </h1>
+                <p class="text-lg text-blue-100 mb-8 max-w-xl mx-auto md:mx-0 leading-relaxed">
+                    Nowoczesne ubezpieczenie grupowe na życie, skrojone idealnie pod potrzeby pracowników placówek oświatowych. Elastyczne składki, potężne sumy gwarancyjne i minimum formalności.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <a href="#kalkulator" class="bg-warta-orange text-white px-8 py-4 rounded-xl font-black text-lg hover:bg-orange-600 shadow-lg transition-transform active:scale-95 text-center">
+                        Uruchom Kalkulator
+                    </a>
+                </div>
+            </div>
+            
+            <div class="md:w-1/2" data-aos="fade-left" data-aos-delay="200">
+                <div class="bg-white p-2 rounded-3xl shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                    <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Nauczyciele w szkole" class="rounded-2xl w-full h-auto object-cover aspect-[4/3]">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEKCJIA KALKULATORA (GŁÓWNY ZAKRES DLA INWESTORÓW) -->
+    <section id="kalkulator" class="py-16 md:py-24 bg-slate-50 relative">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-black text-warta-blue mb-4">Skonfiguruj swój wariant</h2>
+                <p class="text-slate-500 max-w-2xl mx-auto text-lg">Przesuń suwak, aby sprawdzić, jakie potężne zabezpieczenie finansowe oferujemy Tobie i Twojej rodzinie już za kilkadziesiąt złotych miesięcznie.</p>
+            </div>
+
+            <!-- Interfejs Suwaka -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-10 border border-slate-200" data-aos="fade-up" data-aos-delay="100">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
+                    <div class="w-full md:w-2/3">
+                        <label class="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Wybierz miesięczną składkę (PLN)</label>
+                        <input type="range" id="premiumSlider" min="50" max="100" step="1" value="75" class="custom-slider">
+                        <div class="flex justify-between mt-3 text-xs font-bold text-slate-400">
+                            <span>50 zł</span>
+                            <span>75 zł</span>
+                            <span>100 zł</span>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/3 bg-slate-50 rounded-2xl p-6 border border-slate-100 text-center flex flex-col justify-center">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Twoja Składka</span>
+                        <div class="text-warta-orange font-black text-5xl md:text-6xl flex items-baseline justify-center gap-1">
+                            <span id="premiumValue">75</span>
+                            <span class="text-2xl text-slate-400 font-bold">zł/mc</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Matryca Ryzyk -->
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                <div class="bg-warta-blue px-8 py-5 flex justify-between items-center text-white">
+                    <h3 class="text-xl font-bold flex items-center gap-3"><span>📋</span> Gwarantowane Sumy Ubezpieczenia (SU)</h3>
+                </div>
+                
+                <div class="p-2 md:p-4">
+                    <table class="w-full text-left border-collapse">
+                        <!-- Kategoria: Zgon -->
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="bg-slate-100 text-warta-blue font-black uppercase tracking-widest text-[11px] px-6 py-3 rounded-t-xl">Zabezpieczenie Życia (Zgon)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm font-medium text-slate-700 divide-y divide-slate-100">
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Zgon naturalny</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base w-1/3" data-base="50000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Zgon w wyniku zawału serca lub udaru mózgu</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="75000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Zgon w wyniku nieszczęśliwego wypadku (NW)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="100000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Zgon w wypadku komunikacyjnym</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="150000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Zgon w wypadku komunikacyjnym przy pracy (np. w drodze do szkoły)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="200000"></td></tr>
+                        </tbody>
+
+                        <!-- Kategoria: Rodzinne -->
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="bg-slate-100 text-warta-blue font-black uppercase tracking-widest text-[11px] px-6 py-3 mt-4 block rounded-t-xl">Zdarzenia Rodzinne</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm font-medium text-slate-700 divide-y divide-slate-100">
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Śmierć małżonka / partnera</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base w-1/3" data-base="20000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Śmierć małżonka w wypadku komunikacyjnym</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="40000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Śmierć rodziców lub teściów</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="2000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4 flex items-center gap-2"><span class="bg-pink-100 text-pink-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Popularne</span> Urodzenie dziecka (becikowe)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="1500"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Poważne zachorowanie współmałżonka lub dziecka</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="5000"></td></tr>
+                        </tbody>
+
+                        <!-- Kategoria: Zdrowie i Wypadki -->
+                        <thead>
+                            <tr>
+                                <th colspan="2" class="bg-slate-100 text-warta-blue font-black uppercase tracking-widest text-[11px] px-6 py-3 mt-4 block rounded-t-xl">Wypadki i Zdrowie (Nauczyciela)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm font-medium text-slate-700 divide-y divide-slate-100 border-b border-slate-100">
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4 flex items-center gap-2"><span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Ważne</span> Trwały uszczerbek na zdrowiu w wyniku NW (za każdy 1%)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base w-1/3" data-base="800"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Poważne zachorowanie Ubezpieczonego (Aż 45 jednostek chorobowych)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="20000"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Pobyt w szpitalu w wyniku choroby (za każdy dzień)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="50"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Pobyt w szpitalu w wyniku wypadku komunikacyjnego (za każdy dzień)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="100"></td></tr>
+                            <tr class="risk-row transition-colors"><td class="px-6 py-4">Rekonwalescencja poszpitalna (wypłata jednorazowa po 14 dniach)</td><td class="px-6 py-4 text-right font-black text-warta-blue text-base" data-base="1000"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="bg-slate-50 p-6 border-t border-slate-200 text-center">
+                    <button class="bg-warta-blue hover:bg-slate-800 text-white font-bold py-4 px-10 rounded-xl shadow-lg transition-transform active:scale-95 text-lg">
+                        Jestem zainteresowany - Kontakt
+                    </button>
+                    <p class="text-xs text-slate-400 mt-4 max-w-xl mx-auto">Powyższe kwoty stanowią symulację algorytmiczną poglądową dla inwestorów. Ostateczne stawki i sumy ubezpieczenia mogą ulec delikatnej zmianie po audycie w konkretnej placówce oświatowej.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer z Agentem -->
+    <footer class="bg-warta-blue text-white py-12 border-t-8 border-warta-orange">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-warta-blue font-black text-2xl">W</div>
+                <div class="flex flex-col">
+                    <span class="font-extrabold text-2xl tracking-tight leading-none">Warta<span class="text-warta-orange">Szkoła.pl</span></span>
+                    <span class="text-[10px] text-blue-200 font-bold tracking-widest uppercase">Bezpieczeństwo w Edukacji</span>
+                </div>
+            </div>
+            
+            <div class="text-center md:text-right">
+                <p class="text-sm text-blue-200 font-medium mb-1">Wyłączny dystrybutor platformy:</p>
+                <p class="text-xl font-black text-white">Aura Expert sp. z o.o.</p>
+                <p class="text-xs text-blue-300 mt-2">Projekt zintegrowany z ekosystemem AuraBenefits / LifeAura.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Skrypt Kalkulatora Demo -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        // Elementy suwaka i matrycy
+        const slider = document.getElementById('premiumSlider');
+        const display = document.getElementById('premiumValue');
+        const basePremium = 50; // Wartość bazowa dla wycen w HTML (dla 50 zł)
+
+        function updateCalculator() {
+            const currentPremium = parseInt(slider.value);
+            display.textContent = currentPremium;
+            
+            // Obliczamy mnożnik proporcjonalny. 
+            // Jeśli baza = 50, a na suwaku 100, mnożnik = 2.0
+            const multiplier = currentPremium / basePremium;
+
+            // Aktualizujemy wszystkie rzędy z atrybutem data-base
+            document.querySelectorAll('[data-base]').forEach(el => {
+                const baseValue = parseFloat(el.getAttribute('data-base'));
+                const calculatedValue = Math.round(baseValue * multiplier);
+                
+                // Formatowanie liczby (np. 150000 -> 150 000 zł)
+                el.textContent = calculatedValue.toLocaleString('pl-PL') + ' zł';
+            });
+        }
+
+        // Podpięcie zdarzeń
+        slider.addEventListener('input', updateCalculator);
+        
+        // Inicjalizacja na starcie (Dla 75 zł ustawionych domyślnie)
+        updateCalculator();
+    </script>
+</body>
+</html>
