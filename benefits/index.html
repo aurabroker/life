@@ -134,7 +134,7 @@
     <div class="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
       <div>
         <h2 class="text-3xl font-black text-brand-navy">📝 System CMS</h2>
-        <p class="text-slate-500 mt-2">Zarządzaj swoimi artykułami. Dodawaj nowe wpisy, edytuj istniejące lub zachowuj jako szkice.</p>
+        <p class="text-slate-500 mt-2">Zarządzaj swoimi artykułami. Dodawaj nowe wpisy, decyduj, gdzie je publikujesz i edytuj istniejące.</p>
       </div>
       <button onclick="openNewArticleModal()" class="bg-brand-purple hover:bg-indigo-600 text-white font-black py-3 px-6 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 shrink-0">
         <span>➕ Utwórz nowy artykuł</span>
@@ -182,8 +182,27 @@
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Zajawka (krótki tekst na liście Bazy Wiedzy)</label>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Zajawka (krótki tekst na liście)</label>
         <textarea id="cmsExcerpt" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-purple text-sm text-slate-600" rows="2" placeholder="Wstęp, który zachęci do kliknięcia..."></textarea>
+      </div>
+
+      <!-- Miejsca Publikacji (Checkboxy) -->
+      <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Opublikuj na portalach:</label>
+        <div class="flex flex-wrap gap-5">
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" id="plat_aurabenefits" value="AuraBenefits" class="w-5 h-5 text-brand-purple rounded border-slate-300 focus:ring-brand-purple">
+            <span class="text-sm font-bold text-brand-navy group-hover:text-brand-purple transition-colors">AuraBenefits <span class="font-normal text-xs text-slate-500">(Główny Portal)</span></span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" id="plat_medicalaura" value="MedicalAura" class="w-5 h-5 text-brand-pink rounded border-slate-300 focus:ring-brand-pink">
+            <span class="text-sm font-bold text-brand-navy group-hover:text-brand-pink transition-colors">MedicalAura</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" id="plat_lifeaura" value="LifeAura" class="w-5 h-5 text-brand-blue rounded border-slate-300 focus:ring-brand-blue">
+            <span class="text-sm font-bold text-brand-navy group-hover:text-brand-blue transition-colors">LifeAura</span>
+          </label>
+        </div>
       </div>
 
       <div class="flex-grow flex flex-col">
@@ -350,9 +369,13 @@ async function loadPublishedArticles() {
         .order('published_at', { ascending: false });
 
     if (error || !data) { grid.innerHTML = '<div class="col-span-full text-center text-red-500">Błąd połączenia z bazą.</div>'; return; }
-    if (data.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl">Brak opublikowanych artykułów.<br>Zaloguj się do CMS, aby stworzyć pierwszy wpis!</div>'; return; }
+    
+    // Pokaż na blogu tylko te artykuły, które mają w platformach wpisane "AuraBenefits"
+    const filteredData = data.filter(art => !art.platforms || art.platforms.includes('AuraBenefits'));
 
-    grid.innerHTML = data.map(art => `
+    if (filteredData.length === 0) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-10 border-2 border-dashed border-slate-200 rounded-3xl">Brak opublikowanych artykułów dla portalu AuraBenefits.<br>Zaloguj się do CMS, aby stworzyć pierwszy wpis!</div>'; return; }
+
+    grid.innerHTML = filteredData.map(art => `
         <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full" onclick="openArticle('${art.id}')">
             <div class="flex gap-2 mb-5">
                 ${(art.tags||[]).slice(0, 2).map(t => `<span class="bg-indigo-50 text-brand-purple text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${t}</span>`).join('')}
@@ -387,12 +410,22 @@ async function loadAdminArticles() {
             ? `<span class="bg-slate-100 text-slate-600 text-[10px] font-black uppercase px-2.5 py-1 rounded">Szkic roboczy</span>`
             : `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase px-2.5 py-1 rounded">Opublikowano</span>`;
             
+        // Generowanie plakietek dla zaznaczonych portali
+        const plats = art.platforms || ['AuraBenefits'];
+        const platBadges = plats.map(p => {
+             if(p === 'MedicalAura') return `<span class="bg-pink-100 text-brand-pink text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">MedicalAura</span>`;
+             if(p === 'LifeAura') return `<span class="bg-blue-100 text-brand-blue text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">LifeAura</span>`;
+             return `<span class="bg-purple-100 text-brand-purple text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">AuraBenefits</span>`;
+        }).join(' ');
+
         return `
         <div class="bg-slate-50 border border-slate-200 p-6 rounded-3xl flex flex-col xl:flex-row justify-between lg:items-center gap-6 hover:border-brand-purple/40 transition-colors">
             <div class="flex-grow">
-                <div class="flex items-center gap-3 mb-2">
+                <div class="flex items-center gap-3 mb-2 flex-wrap">
                     ${statusBadge}
-                    <span class="text-xs text-slate-400">${new Date(art.created_at).toLocaleDateString('pl-PL')}</span>
+                    <span class="text-slate-300">|</span>
+                    ${platBadges}
+                    <span class="text-xs text-slate-400 ml-auto">${new Date(art.created_at).toLocaleDateString('pl-PL')}</span>
                 </div>
                 <h4 class="font-bold text-brand-navy text-xl leading-snug">${art.title}</h4>
                 <p class="text-sm text-slate-500 mt-2 line-clamp-1">${art.excerpt || 'Brak zajawki...'}</p>
@@ -414,6 +447,12 @@ function openNewArticleModal() {
     document.getElementById('cmsTitle').value = "";
     document.getElementById('cmsExcerpt').value = "";
     document.getElementById('cmsTags').value = "";
+    
+    // Zaznaczamy tylko główny portal domyślnie
+    document.getElementById('plat_aurabenefits').checked = true;
+    document.getElementById('plat_medicalaura').checked = false;
+    document.getElementById('plat_lifeaura').checked = false;
+
     quillInstance.root.innerHTML = ""; // Czyszczenie edytora
     
     document.getElementById('cmsModal').classList.remove('hidden');
@@ -430,6 +469,12 @@ async function editArticleInCms(id) {
     document.getElementById('cmsExcerpt').value = data.excerpt || '';
     document.getElementById('cmsTags').value = (data.tags || []).join(', ');
     
+    // Zaznaczanie wybranych platform z bazy
+    const platforms = data.platforms || ['AuraBenefits']; // Fallback do AuraBenefits jeśli null
+    document.getElementById('plat_aurabenefits').checked = platforms.includes('AuraBenefits');
+    document.getElementById('plat_medicalaura').checked = platforms.includes('MedicalAura');
+    document.getElementById('plat_lifeaura').checked = platforms.includes('LifeAura');
+
     // Ładowanie HTML do Quilla
     quillInstance.root.innerHTML = data.content;
 
@@ -448,6 +493,14 @@ async function saveArticle(desiredStatus) {
     const excerpt = document.getElementById('cmsExcerpt').value.trim();
     const tagsStr = document.getElementById('cmsTags').value.trim();
     
+    // Zbieranie platform z checkboxów
+    const platformsArray = [];
+    if(document.getElementById('plat_aurabenefits').checked) platformsArray.push('AuraBenefits');
+    if(document.getElementById('plat_medicalaura').checked) platformsArray.push('MedicalAura');
+    if(document.getElementById('plat_lifeaura').checked) platformsArray.push('LifeAura');
+
+    if(platformsArray.length === 0) return alert("Wybierz przynajmniej jedno miejsce publikacji (np. AuraBenefits).");
+
     // Pobranie czystego kodu HTML wygenerowanego przez Quilla (ze zdjęciami włącznie!)
     const contentHtml = quillInstance.root.innerHTML;
     
@@ -461,6 +514,7 @@ async function saveArticle(desiredStatus) {
         excerpt: excerpt,
         content: contentHtml,
         tags: tagsArray,
+        platforms: platformsArray,
         status: desiredStatus,
         ai_generated: false // Artykuły z CMS są czysto autorskie
     };
@@ -471,11 +525,9 @@ async function saveArticle(desiredStatus) {
 
     let errorObj;
     if (id) {
-        // Aktualizacja
         const { error } = await SB_CLIENT.from('aura_articles').update(payload).eq('id', id);
         errorObj = error;
     } else {
-        // Tworzenie nowego
         const { error } = await SB_CLIENT.from('aura_articles').insert([payload]);
         errorObj = error;
     }
@@ -490,7 +542,7 @@ async function saveArticle(desiredStatus) {
             alert("Szkic zapisany.");
         }
     } else {
-        alert('Błąd zapisu: ' + errorObj.message);
+        alert('Błąd zapisu: ' + errorObj.message + '\nUpewnij się, że wykonałeś skrypt w bazie dodający kolumnę "platforms"!');
     }
 }
 
