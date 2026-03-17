@@ -146,11 +146,8 @@
               <input type="text" id="aiTopicInput" placeholder="np. Cyberbezpieczeństwo, Pakiety Medyczne, Dyrektywa NIS2..." class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-3 text-sm text-white outline-none focus:border-brand-purple placeholder:text-slate-400 font-medium shadow-inner">
             </div>
             <button onclick="startAIGeneration()" id="btnGenerateAI" class="w-full bg-brand-purple hover:bg-indigo-500 text-white font-black py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2 mt-2">
-              <span>⚡ Skanuj Internet (Gemini API)</span>
+              <span>⚡ Skanuj Internet (Gemini)</span>
             </button>
-            <div class="text-center">
-               <button onclick="resetApiKey()" class="text-[10px] text-slate-400 hover:text-white underline transition-colors">🔑 Zmień lub zresetuj klucz API</button>
-            </div>
           </div>
           <div id="aiStatus" class="mt-4 text-[10px] font-bold text-indigo-300 uppercase tracking-widest text-center hidden">Uruchamiam skanowanie...</div>
         </div>
@@ -301,7 +298,7 @@
       <div>
         <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 flex justify-between">
           <span>Treść główna (Oparta na źródle)</span>
-          <span class="text-brand-purple cursor-pointer hover:underline" onclick="alert('Możesz używać tagów HTML.')">Pomoc HTML</span>
+          <span class="text-brand-purple cursor-pointer hover:underline" onclick="customAlert('Możesz używać standardowych tagów HTML do formatowania tekstu.')">Pomoc HTML</span>
         </label>
         <textarea id="eamContent" class="w-full bg-white border border-slate-200 rounded-xl p-4 outline-none focus:border-brand-purple text-sm font-mono text-slate-700 shadow-sm leading-relaxed" rows="12"></textarea>
       </div>
@@ -317,6 +314,17 @@
   </div>
 </div>
 
+<!-- Custom Dialog Modal (Zastępstwo dla alert() i confirm()) -->
+<div id="customDialogModal" class="fixed inset-0 bg-slate-900/80 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center">
+        <p id="customDialogMessage" class="text-slate-700 mb-6 font-medium leading-relaxed whitespace-pre-line"></p>
+        <div class="flex justify-center gap-3">
+            <button id="customDialogCancel" class="hidden px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition-colors">Anuluj</button>
+            <button id="customDialogOk" class="px-5 py-2.5 bg-brand-purple hover:bg-indigo-600 text-white rounded-xl font-bold transition-colors shadow-md">Zrozumiałem</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ─── TWARDE KLUCZE API (SUPABASE) ───
 const SB_URL = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
@@ -326,6 +334,34 @@ let SB_CLIENT = supabase.createClient(SB_URL, SB_KEY);
 let currentRole = 'viewer';
 let currentPublishId = null; 
 let currentAiProposals = []; 
+
+// ─── ZASTĘPSTWA DLA ALERT I CONFIRM ───
+function customAlert(message) {
+    document.getElementById('customDialogMessage').innerText = message;
+    document.getElementById('customDialogCancel').classList.add('hidden');
+    document.getElementById('customDialogOk').onclick = () => {
+        document.getElementById('customDialogModal').classList.add('hidden');
+        document.getElementById('customDialogModal').classList.remove('flex');
+    };
+    document.getElementById('customDialogModal').classList.remove('hidden');
+    document.getElementById('customDialogModal').classList.add('flex');
+}
+
+function customConfirm(message, onConfirm) {
+    document.getElementById('customDialogMessage').innerText = message;
+    document.getElementById('customDialogCancel').classList.remove('hidden');
+    document.getElementById('customDialogOk').onclick = () => {
+        document.getElementById('customDialogModal').classList.add('hidden');
+        document.getElementById('customDialogModal').classList.remove('flex');
+        if (onConfirm) onConfirm();
+    };
+    document.getElementById('customDialogCancel').onclick = () => {
+        document.getElementById('customDialogModal').classList.add('hidden');
+        document.getElementById('customDialogModal').classList.remove('flex');
+    };
+    document.getElementById('customDialogModal').classList.remove('hidden');
+    document.getElementById('customDialogModal').classList.add('flex');
+}
 
 async function checkAdminRole() {
   const { data: { session } } = await SB_CLIENT.auth.getSession();
@@ -394,7 +430,7 @@ window.onload = async () => {
 async function openArticle(id, skipHashChange = false) {
     const { data, error } = await SB_CLIENT.from('aura_articles').select('*').eq('id', id).single();
     if(error || !data) {
-       alert("Nie znaleziono artykułu.");
+       customAlert("Nie znaleziono artykułu.");
        closeArticleReader();
        return;
     }
@@ -441,8 +477,12 @@ function copyArticleLink() {
     const url = window.location.href;
     const tempInput = document.createElement("input");
     tempInput.value = url; document.body.appendChild(tempInput); tempInput.select();
-    try { document.execCommand("copy"); alert("Link skopiowany do schowka! Możesz wysłać go klientowi."); } 
-    catch (err) { alert("Skopiuj link ręcznie:\n" + url); }
+    try { 
+        document.execCommand("copy"); 
+        customAlert("Link skopiowany do schowka! Możesz wysłać go klientowi."); 
+    } catch (err) { 
+        customAlert("Skopiuj link ręcznie:\n" + url); 
+    }
     document.body.removeChild(tempInput);
 }
 
@@ -594,7 +634,7 @@ async function saveArticleEdit() {
     const sourceTitle = document.getElementById('eamSourceTitle').value.trim();
     const sourceUrl = document.getElementById('eamSourceUrl').value.trim();
 
-    if(!title || !content) return alert("Tytuł i Treść są wymagane!");
+    if(!title || !content) return customAlert("Tytuł i Treść są wymagane!");
 
     if (id === 'new') {
         const { error } = await SB_CLIENT.from('aura_articles').insert([{
@@ -607,7 +647,7 @@ async function saveArticleEdit() {
             status: 'draft',
             ai_generated: false 
         }]);
-        if (error) return alert('Błąd zapisu: ' + error.message);
+        if (error) return customAlert('Błąd zapisu: ' + error.message);
     } else {
         let version = 1;
         const vMatch = title.match(/\[V(\d+)\]$/);
@@ -621,7 +661,7 @@ async function saveArticleEdit() {
         const { error } = await SB_CLIENT.from('aura_articles').update({
             title: title, excerpt: excerpt, content: content, source_title: sourceTitle || null, source_url: sourceUrl || null
         }).eq('id', id);
-        if (error) return alert('Błąd zapisu: ' + error.message);
+        if (error) return customAlert('Błąd zapisu: ' + error.message);
     }
 
     document.getElementById('editArticleModal').classList.add('hidden');
@@ -629,17 +669,19 @@ async function saveArticleEdit() {
     loadDrafts();
 }
 
-async function rejectArticle(id) {
-    if(!confirm("Trwale usunąć ten szkic z systemu?")) return;
-    await SB_CLIENT.from('aura_articles').delete().eq('id', id);
-    loadDrafts();
+function rejectArticle(id) {
+    customConfirm("Trwale usunąć ten szkic z systemu?", async () => {
+        await SB_CLIENT.from('aura_articles').delete().eq('id', id);
+        loadDrafts();
+    });
 }
 
-async function deletePublishedArticle(id) {
-    if(!confirm("⚠️ UWAGA: Czy na pewno chcesz usunąć ten artykuł z sieci?\nZniknie on natychmiast z portalu AuraBenefits i przestanie być serwowany dla zewnętrznych stron (grupowe.pro itp.).")) return;
-    await SB_CLIENT.from('aura_articles').delete().eq('id', id);
-    loadAdminData(); 
-    loadPublishedArticles();
+function deletePublishedArticle(id) {
+    customConfirm("⚠️ UWAGA: Czy na pewno chcesz usunąć ten artykuł z sieci?\nZniknie on natychmiast z portalu AuraBenefits i przestanie być serwowany dla zewnętrznych stron.", async () => {
+        await SB_CLIENT.from('aura_articles').delete().eq('id', id);
+        loadAdminData(); 
+        loadPublishedArticles();
+    });
 }
 
 // ─── CENTRUM DYSTRYBUCJI (PUBLIKACJA MULTI-SITE) ───
@@ -673,19 +715,13 @@ async function confirmPublish() {
         document.getElementById('publishModal').classList.add('hidden');
         document.getElementById('publishModal').classList.remove('flex');
         
-        alert(`✅ Sukces! Artykuł został z sukcesem opublikowany na wybranych portalach:\n- ${targets.join('\n- ')}`);
+        customAlert(`✅ Sukces! Artykuł został z sukcesem opublikowany na wybranych portalach:\n- ${targets.join('\n- ')}`);
         
         loadAdminData();
     }, 1800);
 }
 
-// ─── PRAWDZIWE POŁĄCZENIE Z AI (GEMINI + GOOGLE SEARCH) Z ULEPSZONYM WYKRYWANIEM BŁĘDÓW ───
-
-function resetApiKey() {
-    localStorage.removeItem('gemini_api_key');
-    alert("Klucz API został usunięty z pamięci przeglądarki. Przy następnym uruchomieniu generatora system poprosi o jego ponowne wpisanie.");
-}
-
+// ─── PRAWDZIWE POŁĄCZENIE Z AI (GEMINI + GOOGLE SEARCH) ───
 async function startAIGeneration() {
     const btn = document.getElementById('btnGenerateAI');
     const status = document.getElementById('aiStatus');
@@ -693,27 +729,16 @@ async function startAIGeneration() {
     
     btn.disabled = true; btn.classList.add('opacity-50', 'cursor-wait');
     status.classList.remove('hidden');
-    status.innerHTML = 'Łączenie z modelem językowym AI...<br>Skanuję żywy internet w poszukiwaniu wiarygodnych źródeł...';
+    status.innerHTML = 'Łączenie z modelem AI...<br>Skanuję żywy internet w poszukiwaniu wiarygodnych źródeł...';
 
     try {
-        // BEZPIECZEŃSTWO: Pobieramy klucz z pamięci lokalnej, a nie z kodu źródłowego
-        let apiKey = localStorage.getItem('gemini_api_key');
-        
-        if (!apiKey) {
-            apiKey = prompt("Ze względów bezpieczeństwa klucz API nie jest zapisany w kodzie.\n\nPodaj swój klucz API Gemini (zostanie on bezpiecznie zapisany w pamięci Twojej przeglądarki):");
-            if (!apiKey) {
-                status.classList.add('hidden');
-                btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
-                return; // Anulowano
-            }
-            localStorage.setItem('gemini_api_key', apiKey.trim());
-        }
+        // Klucz API jest wstrzykiwany automatycznie w środowisku, pozostaw pusty string
+        const apiKey = "";
         
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const topicContext = topicInput ? `Skup się ściśle na następującym temacie / branży: "${topicInput}".` : `Skup się ogólnie na rynku pracy, benefitach, Kodeksie Pracy w Polsce lub ubezpieczeniach medycznych.`;
 
-        // Instrukcja, która zmusza AI do korzystania ze stron i umieszczania ich w formacie JSON
         const prompt = `Jesteś ekspertem i redaktorem B2B w dziale ubezpieczeń i doradztwa dla biznesu. 
         ${topicContext}
         Znajdź w internecie 3 aktualne raporty, analizy lub informacje prawne z tego obszaru.
@@ -727,7 +752,7 @@ async function startAIGeneration() {
 
         const payload = {
             contents: [{ parts: [{ text: prompt }] }],
-            tools: [{ google_search: {} }], // Moduł Anti-Hallucination (Google Search Grounding)
+            tools: [{ google_search: {} }], // Moduł Anti-Hallucination
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -752,7 +777,7 @@ async function startAIGeneration() {
         let delay = 1000;
         let errorDetails = "";
         
-        // Mechanizm prób (exponential backoff) z dokładnym czytaniem komunikatu błędu
+        // Mechanizm prób (exponential backoff) dla zapytań do API
         for (let i = 0; i < 5; i++) {
             try {
                 response = await fetch(url, {
@@ -763,16 +788,8 @@ async function startAIGeneration() {
                 
                 if (response.ok) break;
                 
-                // Jeśli błąd, próbujemy wyciągnąć jego powód od Google
-                const errData = await response.json();
+                const errData = await response.json().catch(()=>({}));
                 errorDetails = errData.error?.message || response.statusText;
-                
-                // Przerywamy pętlę wcześniej, jeśli to jawny błąd uwierzytelnienia (zły klucz)
-                if (response.status === 400 || response.status === 403) {
-                    localStorage.removeItem('gemini_api_key'); // Automatyczny reset błędnego klucza
-                    break;
-                }
-                
             } catch (e) {
                 errorDetails = e.message;
                 if (i === 4) throw e;
@@ -782,10 +799,7 @@ async function startAIGeneration() {
         }
 
         if (!response || !response.ok) {
-            if (response && (response.status === 400 || response.status === 403)) {
-                throw new Error("Wprowadzony klucz API jest nieprawidłowy lub wygasł.\nKlucz został automatycznie zresetowany. Kliknij przycisk generowania ponownie, aby wprowadzić nowy klucz.");
-            }
-            throw new Error(`Błąd serwera Google AI (Status ${response?.status || 'Brak'}): ${errorDetails}`);
+            throw new Error(`Status ${response?.status || 'Brak'}: ${errorDetails}`);
         }
         
         const data = await response.json();
@@ -795,7 +809,7 @@ async function startAIGeneration() {
 
         currentAiProposals = JSON.parse(textResponse);
 
-        // Rendering na UI po powrocie z żywymi danymi
+        // Rendering na UI po powrocie z danymi
         status.classList.add('hidden');
         btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
         
@@ -806,7 +820,6 @@ async function startAIGeneration() {
               <h3 class="text-lg font-black text-brand-navy mb-3 leading-snug">${prop.title}</h3>
               <p class="text-sm text-slate-500 mb-6 flex-grow">${prop.excerpt}</p>
               
-              <!-- Przejrzyste Prawdziwe źródło z internetu dla eksperta przed akceptacją -->
               <div class="mb-5 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
                  <p class="text-[9px] font-bold uppercase text-brand-purple tracking-widest mb-1 flex items-center gap-1"><span>🌐</span> Wykryte prawdziwe źródło (Kliknij by sprawdzić):</p>
                  <a href="${prop.source_url}" target="_blank" class="text-xs font-semibold text-slate-700 hover:text-brand-purple hover:underline line-clamp-1 mb-1" title="${prop.source_url}">${prop.source_title}</a>
@@ -827,7 +840,7 @@ async function startAIGeneration() {
         status.textContent = 'Błąd uruchamiania skanera sieci.';
         btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-wait');
         
-        alert("Wystąpił problem z połączeniem z silnikiem sztucznej inteligencji.\n\nSZCZEGÓŁY BŁĘDU:\n" + err.message + "\n\n⚠️ WSKAZÓWKA:\nBłąd odmowy dostępu (400 / 403) pojawia się, gdy używasz tego pliku na swoim dysku lub hostingu i nie wpisałeś klucza API.\nWygeneruj darmowy klucz na stronie https://aistudio.google.com/ i wklej go w linii 635 kodu (zmienna apiKey)!");
+        customAlert("Wystąpił problem z połączeniem z silnikiem sztucznej inteligencji.\n\nSZCZEGÓŁY BŁĘDU:\n" + err.message);
     }
 }
 
@@ -849,10 +862,10 @@ async function selectAIProposal(index) {
     }]);
 
     if(!error) {
-        alert("✅ Wybrany wpis (wraz ze zweryfikowanym linkiem do źródła) jest już w Twojej poczekalni na dole!");
+        customAlert("✅ Wybrany wpis (wraz ze zweryfikowanym linkiem do źródła) jest już w Twojej poczekalni na dole!");
         loadAdminData();
     } else {
-        alert("Błąd zapisu do bazy. Sprawdź, czy uruchomiłeś wymagany kod SQL dodający kolumny source! " + error.message);
+        customAlert("Błąd zapisu do bazy. " + error.message);
     }
 }
 
