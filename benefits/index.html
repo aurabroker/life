@@ -192,13 +192,17 @@
             <input type="checkbox" id="plat_aurabenefits" value="AuraBenefits" class="w-5 h-5 text-brand-purple rounded border-slate-300 focus:ring-brand-purple">
             <span class="text-sm font-bold text-brand-navy group-hover:text-brand-purple transition-colors">AuraBenefits <span class="font-normal text-xs text-slate-500">(Główny Portal)</span></span>
           </label>
-          <label class="flex items-center gap-3 cursor-pointer group bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-brand-pink transition-colors">
-            <input type="checkbox" id="plat_medicalaura" value="MedicalAura" class="w-5 h-5 text-brand-pink rounded border-slate-300 focus:ring-brand-pink">
-            <span class="text-sm font-bold text-brand-navy group-hover:text-brand-pink transition-colors">MedicalAura</span>
+          <label class="flex items-center gap-3 cursor-pointer group bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-blue-600 transition-colors">
+            <input type="checkbox" id="plat_grupowe" value="Grupowe.pro" class="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-600">
+            <span class="text-sm font-bold text-brand-navy group-hover:text-blue-600 transition-colors">Grupowe.pro</span>
           </label>
-          <label class="flex items-center gap-3 cursor-pointer group bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-brand-blue transition-colors">
-            <input type="checkbox" id="plat_lifeaura" value="LifeAura" class="w-5 h-5 text-brand-blue rounded border-slate-300 focus:ring-brand-blue">
-            <span class="text-sm font-bold text-brand-navy group-hover:text-brand-blue transition-colors">LifeAura</span>
+          <label class="flex items-center gap-3 cursor-pointer group bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-teal-600 transition-colors">
+            <input type="checkbox" id="plat_utratadochodu" value="UtrataDochodu.pl" class="w-5 h-5 text-teal-600 rounded border-slate-300 focus:ring-teal-600">
+            <span class="text-sm font-bold text-brand-navy group-hover:text-teal-600 transition-colors">UtrataDochodu.pl</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer group bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-amber-600 transition-colors">
+            <input type="checkbox" id="plat_auraconsulting" value="AuraConsulting.pl" class="w-5 h-5 text-amber-600 rounded border-slate-300 focus:ring-amber-600">
+            <span class="text-sm font-bold text-brand-navy group-hover:text-amber-600 transition-colors">AuraConsulting.pl</span>
           </label>
         </div>
       </div>
@@ -416,8 +420,9 @@ async function loadAdminArticles() {
         // Generowanie plakietek dla zaznaczonych portali
         const plats = art.platforms || ['AuraBenefits'];
         const platBadges = plats.map(p => {
-             if(p === 'MedicalAura') return `<span class="bg-pink-100 text-brand-pink text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">MedicalAura</span>`;
-             if(p === 'LifeAura') return `<span class="bg-blue-100 text-brand-blue text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">LifeAura</span>`;
+             if(p === 'Grupowe.pro') return `<span class="bg-blue-100 text-blue-700 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Grupowe.pro</span>`;
+             if(p === 'UtrataDochodu.pl') return `<span class="bg-teal-100 text-teal-700 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">UtrataDochodu.pl</span>`;
+             if(p === 'AuraConsulting.pl') return `<span class="bg-amber-100 text-amber-700 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">AuraConsulting.pl</span>`;
              return `<span class="bg-purple-100 text-brand-purple text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">AuraBenefits</span>`;
         }).join(' ');
 
@@ -453,8 +458,9 @@ function openNewArticleModal() {
     
     // Zaznaczamy tylko główny portal domyślnie
     document.getElementById('plat_aurabenefits').checked = true;
-    document.getElementById('plat_medicalaura').checked = false;
-    document.getElementById('plat_lifeaura').checked = false;
+    document.getElementById('plat_grupowe').checked = false;
+    document.getElementById('plat_utratadochodu').checked = false;
+    document.getElementById('plat_auraconsulting').checked = false;
 
     quillInstance.root.innerHTML = ""; // Czyszczenie edytora
     
@@ -475,8 +481,9 @@ async function editArticleInCms(id) {
     // Zaznaczanie wybranych platform z bazy
     const platforms = data.platforms || ['AuraBenefits']; // Fallback do AuraBenefits jeśli null
     document.getElementById('plat_aurabenefits').checked = platforms.includes('AuraBenefits');
-    document.getElementById('plat_medicalaura').checked = platforms.includes('MedicalAura');
-    document.getElementById('plat_lifeaura').checked = platforms.includes('LifeAura');
+    document.getElementById('plat_grupowe').checked = platforms.includes('Grupowe.pro');
+    document.getElementById('plat_utratadochodu').checked = platforms.includes('UtrataDochodu.pl');
+    document.getElementById('plat_auraconsulting').checked = platforms.includes('AuraConsulting.pl');
 
     // Ładowanie HTML do Quilla
     quillInstance.root.innerHTML = data.content;
@@ -499,8 +506,9 @@ async function saveArticle(desiredStatus) {
     // Zbieranie platform z checkboxów
     const platformsArray = [];
     if(document.getElementById('plat_aurabenefits').checked) platformsArray.push('AuraBenefits');
-    if(document.getElementById('plat_medicalaura').checked) platformsArray.push('MedicalAura');
-    if(document.getElementById('plat_lifeaura').checked) platformsArray.push('LifeAura');
+    if(document.getElementById('plat_grupowe').checked) platformsArray.push('Grupowe.pro');
+    if(document.getElementById('plat_utratadochodu').checked) platformsArray.push('UtrataDochodu.pl');
+    if(document.getElementById('plat_auraconsulting').checked) platformsArray.push('AuraConsulting.pl');
 
     if(platformsArray.length === 0) return alert("Wybierz przynajmniej jedno miejsce publikacji (np. AuraBenefits).");
 
