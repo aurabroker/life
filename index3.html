@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LIFEAURA — Porównywarka B2B v1.9</title>
+  <title>LIFEAURA — Porównywarka B2B v1.8</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -191,4 +191,183 @@
                 
                 <div class="mt-2 flex items-center justify-center gap-1 bg-white border border-slate-300 rounded shadow-inner overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue mx-auto w-24">
                     <input type="number" value="${state.totals[tu.id]||''}" oninput="updateTotal('${tu.id}', this.value)" placeholder="Składka" class="w-full px-2 py-1 text-xs text-center font-bold text-brand-blue outline-none">
-                    <span class="text-
+                    <span class="text-[9px] text-slate-400 font-bold pr-2">PLN</span>
+                </div>
+
+                <button onclick="removeInsurer('${tu.id}')" class="absolute right-1 top-2 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all">✕</button>
+            </th>`;
+        });
+        thead.innerHTML = headerHtml;
+
+        let grouped = {};
+        state.benefits.forEach(b => { const c = b.category || 'Inne'; if(!grouped[c]) grouped[c] = []; grouped[c].push(b); });
+
+        let bodyHtml = '';
+        for (const [cat, items] of Object.entries(grouped)) {
+            bodyHtml += `<tr class="bg-blue-50/50 border-b border-slate-300"><td colspan="${state.insurers.length+1}" class="px-2 py-1.5 text-xs font-black text-brand-blue uppercase tracking-widest">📁 ${cat}</td></tr>`;
+            items.forEach(b => {
+                let w = b.weight || 1;
+                bodyHtml += `<tr class="border-b border-slate-200 hover:bg-slate-50 group/row transition-colors">
+                    <td class="p-2 border-r border-slate-200 relative group pl-4 align-top pt-2">
+                        <select onchange="updateBenefitWeight('${b.id}', this.value)" class="mb-1.5 text-[10px] font-bold outline-none bg-slate-100 border border-slate-200 rounded px-1 py-0.5 text-slate-600 focus:border-brand-blue transition-colors hover:bg-slate-200 cursor-pointer">
+                            <option value="3" ${w===3?'selected':''}>🔥 Krytyczne (x3)</option><option value="2" ${w===2?'selected':''}>⭐️ Ważne (x2)</option><option value="1" ${w===1?'selected':''}>⚪️ Dodatkowe (x1)</option>
+                        </select>
+                        <div class="w-[90%] font-medium text-slate-800 leading-tight text-xs">${b.name}</div>
+                        <button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-3 text-red-400 opacity-0 group/row-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all">✕</button>
+                    </td>`;
+                state.insurers.forEach(tu => {
+                    const data = state.matrixData[b.id][tu.id];
+                    bodyHtml += `<td class="p-2 border-r border-slate-200 align-top">
+                        <div class="flex bg-white border border-slate-200 rounded overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue transition-shadow">
+                            <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-1.5 py-1.5 border-r border-slate-200 flex items-center justify-center min-w-[30px]">SU</span>
+                            <input type="number" value="${data.su}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'su', this.value)" placeholder="PLN" class="w-full px-2 py-1.5 text-xs outline-none font-medium text-slate-700">
+                        </div>
+                    </td>`;
+                });
+                bodyHtml += `</tr>`;
+            });
+        }
+        if(state.benefits.length === 0) bodyHtml = `<tr><td colspan="${state.insurers.length+1}" class="text-center p-6 text-slate-500 italic bg-white text-sm">Brak świadczeń. Użyj przycisku <span class="font-bold text-brand-blue">➕ Dodaj Świadczenie</span> powyżej, aby zbudować matrycę.</td></tr>`;
+        tbody.innerHTML = bodyHtml;
+
+        updateScoring();
+    }
+
+    function updateMatrixData(bId, tuId, field, val) { if(state.matrixData[bId]?.[tuId]) { state.matrixData[bId][tuId][field] = val; if(field==='su') updateScoring(); } }
+    function updateTotal(tuId, val) { state.totals[tuId] = val; updateScoring(); }
+    function updateBenefitWeight(id, w) { const b = state.benefits.find(x => x.id === id); if(b) { b.weight = parseInt(w); updateScoring(); } }
+    function removeBenefit(id) { state.benefits = state.benefits.filter(b => b.id !== id); delete state.matrixData[id]; renderMatrix(); }
+    function removeInsurer(id) { state.insurers = state.insurers.filter(t => t.id !== id); delete state.totals[id]; renderMatrix(); }
+
+    function addBenefitModal() {
+        let grouped = {}; dbData.risks.forEach(r => { const c = r.category || 'Inne'; if(!grouped[c]) grouped[c]=[]; grouped[c].push(r); });
+        let html = dbData.risks.length === 0 ? '<div class="p-4 text-red-500 font-bold text-center">Brak ryzyk w Supabase (life_risks).</div>' : '';
+        for(let cat in grouped) {
+            html += `<div class="mb-4"><h4 class="font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded mb-2 border border-slate-200 shadow-sm">${cat}</h4><div class="space-y-1.5 pl-2">`;
+            grouped[cat].forEach(r => {
+                const isAdded = state.benefits.some(b => b.id === r.id);
+                if(isAdded) html += `<div class="flex justify-between items-center p-2 text-sm text-slate-400 bg-slate-50 border border-slate-100 rounded"><span>${r.name}</span><span class="text-xs bg-slate-200 rounded px-2 py-0.5 font-bold">Dodano</span></div>`;
+                else html += `<div class="flex justify-between items-center p-2 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded cursor-pointer group transition-colors" onclick="selectRiskFromDb('${r.id}')"><span class="text-slate-800">${r.name}</span><button class="text-xs bg-white text-brand-blue border border-brand-blue rounded px-2.5 py-1 group-hover:bg-brand-blue group-hover:text-white transition-colors">Dodaj</button></div>`;
+            });
+            html += `</div></div>`;
+        }
+        document.getElementById('risksDbList').innerHTML = html; document.getElementById('riskModal').classList.remove('hidden');
+    }
+    function closeRiskModal() { document.getElementById('riskModal').classList.add('hidden'); }
+    function selectRiskFromDb(id) { const r = dbData.risks.find(x => x.id === id); if(r && !state.benefits.some(b => b.id === id)) { state.benefits.push({...r, weight: 1}); renderMatrix(); addBenefitModal(); } }
+
+    function addInsurerModal() {
+        let html = dbData.insurers.length === 0 ? '<div class="p-4 text-red-500 font-bold text-center">Brak TU w Supabase (life_insurers).</div>' : '';
+        dbData.insurers.forEach(tu => {
+            if(state.insurers.some(i => i.id === tu.id)) html += `<div class="flex justify-between items-center p-3 text-sm text-slate-400 bg-slate-50 border border-slate-100 rounded"><span class="font-bold">${tu.name}</span><span class="text-xs px-2 bg-slate-200 rounded py-0.5 font-bold">Dodano</span></div>`;
+            else html += `<div class="flex justify-between items-center p-3 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded cursor-pointer group transition-colors" onclick="selectInsurerFromDb('${tu.id}')"><span class="font-bold text-slate-800">${tu.name}</span><button class="text-xs bg-white text-brand-blue border border-brand-blue rounded px-3 py-1.5 group-hover:bg-brand-blue group-hover:text-white transition-colors shadow-sm">Wybierz</button></div>`;
+        });
+        document.getElementById('insurersDbList').innerHTML = html; document.getElementById('insurerModal').classList.remove('hidden');
+    }
+    function closeInsurerModal() { document.getElementById('insurerModal').classList.add('hidden'); }
+    function selectInsurerFromDb(id) { const tu = dbData.insurers.find(x => x.id === id); if(tu && !state.insurers.some(i => i.id === id)) { state.insurers.push({...tu}); renderMatrix(); addInsurerModal(); } }
+
+    function updateScoring() {
+        let maxScope = 0; state.benefits.forEach(b => maxScope += (b.weight || 1));
+        let validPremiums = state.insurers.map(tu => parseFloat(state.totals[tu.id]) || 0).filter(p => p > 0);
+        let minPremium = validPremiums.length > 0 ? Math.min(...validPremiums) : 0;
+        let scores = [];
+
+        state.insurers.forEach(tu => {
+            let scopePts = 0;
+            state.benefits.forEach(b => {
+                let currentSu = parseFloat(state.matrixData[b.id]?.[tu.id]?.su) || 0;
+                let maxSuRow = 0;
+                state.insurers.forEach(t => { let s = parseFloat(state.matrixData[b.id]?.[t.id]?.su)||0; if(s > maxSuRow) maxSuRow = s; });
+                if (maxSuRow > 0 && currentSu > 0) scopePts += (currentSu / maxSuRow) * (b.weight || 1);
+            });
+            let scopePerc = maxScope > 0 ? (scopePts / maxScope) * 100 : 0;
+            let prem = parseFloat(state.totals[tu.id]) || 0;
+            let pricePerc = (minPremium > 0 && prem > 0) ? (minPremium / prem) * 100 : (prem === 0 && minPremium === 0 ? 100 : 0);
+            scores.push({ name: tu.name, total: (scopePerc * 0.7) + (pricePerc * 0.3), scope: scopePerc, price: pricePerc, prem: prem });
+        });
+
+        scores.sort((a,b) => b.total - a.total);
+        const cont = document.getElementById('scoringResults');
+        if (scores.length === 0 || maxScope === 0) { cont.innerHTML = '<p class="col-span-3 text-center text-slate-500 italic p-6 bg-slate-50 rounded-lg border border-dashed border-slate-300">Dodaj minimum jedno TU oraz świadczenie i wypełnij pole SU, aby system mógł wygenerować rekomendację.</p>'; return; }
+
+        let html = '';
+        scores.forEach((s, i) => {
+            let win = i === 0 && s.total > 0;
+            html += `<div class="relative bg-white border ${win ? 'border-brand-gold ring-1 ring-brand-gold shadow-lg' : 'border-slate-200 shadow-sm'} rounded-xl p-5 flex flex-col transition-all duration-300">
+                ${win ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full tracking-wider shadow-sm">Zwycięzca</div>' : ''}
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3 mb-4"><div class="text-3xl">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1+'.'}</div><h3 class="font-bold text-brand-blue truncate">${s.name}</h3></div>
+                <div class="mb-4"><span class="text-xs text-slate-500 font-semibold uppercase">Dopasowanie oferty</span><div class="flex items-end gap-1"><span class="text-4xl font-black ${win?'text-brand-gold':'text-slate-700'}">${s.total.toFixed(1)}</span><span class="text-lg font-bold text-slate-400">%</span></div></div>
+                <div class="space-y-2 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100 mt-auto">
+                    <div class="flex justify-between"><span class="text-slate-500">Ocena Zakresu (Waga: 70%)</span><span class="font-bold">${s.scope.toFixed(1)}%</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Ocena Składki (Waga: 30%)</span><span class="font-bold">${s.price.toFixed(1)}%</span></div>
+                    <div class="h-px bg-slate-200 my-1"></div>
+                    <div class="flex justify-between"><span class="text-slate-600 font-medium">Składka końcowa</span><span class="font-bold text-brand-blue">${s.prem>0?s.prem.toFixed(2)+' zł':'-'}</span></div>
+                </div></div>`;
+        });
+        cont.innerHTML = html;
+    }
+
+    function syncOfferDataToState() { 
+        state.offerName = document.getElementById('offerName').value; 
+    }
+    
+    function syncUI() { 
+        document.getElementById('offerName').value = state.offerName; 
+    }
+
+    function saveOffer() {
+        let currentInput = document.getElementById('offerName').value.trim();
+        if(!currentInput) {
+            currentInput = generateAutoName();
+            document.getElementById('offerName').value = currentInput;
+        }
+        state.offerName = currentInput;
+
+        let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}');
+        const k = Date.now().toString(); 
+        offers[k] = { id: k, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state) };
+        localStorage.setItem('lifeaura_db_v18', JSON.stringify(offers)); 
+        
+        const btn = document.querySelector('button[onclick="saveOffer()"]');
+        const old = btn.innerHTML; btn.innerHTML = '✅ Zapisano'; btn.classList.add('bg-green-600'); 
+        setTimeout(()=> { btn.innerHTML = old; btn.classList.remove('bg-green-600'); }, 2000);
+    }
+    
+    function openLoadModal() {
+        let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}');
+        let html = ''; Object.keys(offers).sort((a,b)=>b-a).forEach(k => {
+            let o = offers[k]; html += `<div class="flex justify-between items-center p-3 border border-slate-200 rounded mb-2 bg-slate-50 hover:bg-slate-100 transition-colors"><div><div class="font-bold text-brand-blue">${o.name}</div><div class="text-[10px] text-slate-500">${o.date}</div></div><div class="flex gap-2"><button onclick="loadOffer('${k}')" class="bg-brand-blue text-white text-xs px-3 py-1.5 rounded hover:bg-blue-800 transition-colors">Wczytaj</button><button onclick="deleteOffer('${k}')" class="bg-red-100 text-red-600 text-xs px-2.5 py-1.5 rounded hover:bg-red-200 transition-colors" title="Usuń">🗑️</button></div></div>`;
+        });
+        document.getElementById('offersList').innerHTML = html || '<p class="text-sm text-slate-500 italic p-4 text-center">Brak zapisanych ofert</p>'; document.getElementById('loadModal').classList.remove('hidden');
+    }
+    
+    function closeLoadModal() { document.getElementById('loadModal').classList.add('hidden'); }
+    function loadOffer(k) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}'); if(offers[k]) { state = JSON.parse(offers[k].data); syncUI(); renderMatrix(); closeLoadModal(); } }
+    function deleteOffer(k) { if(confirm('Usunąć tę ofertę?')) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}'); delete offers[k]; localStorage.setItem('lifeaura_db_v18', JSON.stringify(offers)); openLoadModal(); } }
+
+    function exportToCSV() {
+        let currentInput = document.getElementById('offerName').value.trim();
+        if(!currentInput) {
+            currentInput = generateAutoName();
+            document.getElementById('offerName').value = currentInput;
+        }
+        state.offerName = currentInput;
+        
+        let csv = "data:text/csv;charset=utf-8,\uFEFFOferta:;" + state.offerName + "\n\nKategoria;Waga dla Klienta;Świadczenie";
+        state.insurers.forEach(tu => { csv += `;${tu.name} - SU`; }); csv += "\n";
+        state.benefits.forEach(b => {
+            csv += `${b.category||''};${b.weight===3?'Krytyczne (3)':b.weight===2?'Ważne (2)':'Dodatkowe (1)'};${b.name}`;
+            state.insurers.forEach(tu => { const d = state.matrixData[b.id]?.[tu.id] || {su:''}; csv += `;${d.su}`; }); csv += "\n";
+        });
+        csv += ";;Składka końcowa (Suma)"; state.insurers.forEach(tu => csv += `;${state.totals[tu.id]||'0'}`); csv += "\n";
+        const a = document.createElement("a"); a.href = encodeURI(csv); a.download = `Lifeaura_${state.offerName}.csv`; a.click();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        document.getElementById('offerName').addEventListener('change', syncOfferDataToState);
+        await initSupabaseData(); renderMatrix();
+    });
+  </script>
+</body>
+</html>
