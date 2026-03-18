@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LIFEAURA — Porównywarka B2B v1.9</title>
+  <title>AURA LIFE — Porównywarka B2B v1.9.1</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -21,11 +22,14 @@
     .matrix-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .matrix-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+    
+    /* Ukrywamy przyciski usuwania podczas generowania PDF, by nie "brudziły" wydruku */
+    .pdf-export-mode button { display: none !important; }
   </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
-  <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50">
+  <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50" data-html2canvas-ignore>
     <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🛡️</span>
@@ -48,12 +52,12 @@
         
         <button onclick="saveOffer()" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-medium transition-colors">💾 Zapisz</button>
         <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-medium transition-colors">📂 Wczytaj</button>
-        <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded text-sm font-medium transition-colors">📥 Export</button>
+        <button id="btnExportPdf" onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded text-sm font-medium transition-colors">📄 PDF</button>
       </div>
     </div>
   </header>
 
-  <main class="container mx-auto px-4 py-6 flex-grow flex flex-col gap-6">
+  <main id="exportContent" class="container mx-auto px-4 py-6 flex-grow flex flex-col gap-6">
 
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
         <div class="p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4 bg-slate-50/50">
@@ -62,8 +66,8 @@
                 <p class="text-sm text-slate-600 mt-1">Dodaj Towarzystwa i Świadczenia z bazy. Określ wagi (Krytyczne, Ważne, Dodatkowe), aby system wyliczył rekomendację.</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="addBenefitModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium shadow-sm transition-colors">➕ Dodaj Świadczenie</button>
-                <button onclick="addInsurerModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium shadow-sm transition-colors">➕ Dodaj Towarzystwo (TU)</button>
+                <button onclick="addBenefitModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium shadow-sm transition-colors" data-html2canvas-ignore>➕ Dodaj Świadczenie</button>
+                <button onclick="addInsurerModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium shadow-sm transition-colors" data-html2canvas-ignore>➕ Dodaj Towarzystwo (TU)</button>
             </div>
         </div>
 
@@ -194,7 +198,7 @@
                     <span class="text-[9px] text-slate-400 font-bold pr-2">PLN</span>
                 </div>
 
-                <button onclick="removeInsurer('${tu.id}')" class="absolute right-1 top-2 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all">✕</button>
+                <button onclick="removeInsurer('${tu.id}')" class="absolute right-1 top-2 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all" data-html2canvas-ignore>✕</button>
             </th>`;
         });
         thead.innerHTML = headerHtml;
@@ -213,7 +217,7 @@
                             <option value="3" ${w===3?'selected':''}>🔥 Krytyczne (x3)</option><option value="2" ${w===2?'selected':''}>⭐️ Ważne (x2)</option><option value="1" ${w===1?'selected':''}>⚪️ Dodatkowe (x1)</option>
                         </select>
                         <div class="w-[90%] font-medium text-slate-800 leading-tight text-xs">${b.name}</div>
-                        <button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-3 text-red-400 opacity-0 group/row-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all">✕</button>
+                        <button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-3 text-red-400 opacity-0 group/row-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all" data-html2canvas-ignore>✕</button>
                     </td>`;
                 state.insurers.forEach(tu => {
                     const data = state.matrixData[b.id][tu.id];
@@ -346,22 +350,49 @@
     function loadOffer(k) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}'); if(offers[k]) { state = JSON.parse(offers[k].data); syncUI(); renderMatrix(); closeLoadModal(); } }
     function deleteOffer(k) { if(confirm('Usunąć tę ofertę?')) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}'); delete offers[k]; localStorage.setItem('lifeaura_db_v18', JSON.stringify(offers)); openLoadModal(); } }
 
-    function exportToCSV() {
+    // --- GENEROWANIE PDF ---
+    function exportToPDF() {
         let currentInput = document.getElementById('offerName').value.trim();
         if(!currentInput) {
             currentInput = generateAutoName();
             document.getElementById('offerName').value = currentInput;
+            state.offerName = currentInput;
         }
-        state.offerName = currentInput;
-        
-        let csv = "data:text/csv;charset=utf-8,\uFEFFOferta:;" + state.offerName + "\n\nKategoria;Waga dla Klienta;Świadczenie";
-        state.insurers.forEach(tu => { csv += `;${tu.name} - SU`; }); csv += "\n";
-        state.benefits.forEach(b => {
-            csv += `${b.category||''};${b.weight===3?'Krytyczne (3)':b.weight===2?'Ważne (2)':'Dodatkowe (1)'};${b.name}`;
-            state.insurers.forEach(tu => { const d = state.matrixData[b.id]?.[tu.id] || {su:''}; csv += `;${d.su}`; }); csv += "\n";
+
+        // Przed eksportem musimy zmapować aktualne wartości inputów i selectów jako atrybuty HTML, 
+        // żeby biblioteka html2canvas poprawnie je narysowała.
+        document.querySelectorAll('input').forEach(el => {
+            if(el.type === 'number' || el.type === 'text') el.setAttribute('value', el.value);
         });
-        csv += ";;Składka końcowa (Suma)"; state.insurers.forEach(tu => csv += `;${state.totals[tu.id]||'0'}`); csv += "\n";
-        const a = document.createElement("a"); a.href = encodeURI(csv); a.download = `Lifeaura_${state.offerName}.csv`; a.click();
+        document.querySelectorAll('select').forEach(el => {
+            Array.from(el.options).forEach(opt => {
+                if(opt.value === el.value) opt.setAttribute('selected', 'selected');
+                else opt.removeAttribute('selected');
+            });
+        });
+
+        // Ukrywamy "iksy" do usuwania elementów (przyciski bez klasy generują śmieci na dokumencie)
+        document.body.classList.add('pdf-export-mode');
+
+        const btn = document.getElementById('btnExportPdf');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Trwa eksport...';
+        btn.disabled = true;
+
+        const element = document.getElementById('exportContent');
+        const opt = {
+            margin:       0.3,
+            filename:     `Lifeaura_${state.offerName}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 }, // wymusza renderowanie tabeli w szerszym oknie
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' } // Poziomy format ze względu na ilość kolumn
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            document.body.classList.remove('pdf-export-mode');
+        });
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
