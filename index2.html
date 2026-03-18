@@ -6,7 +6,6 @@
   <title>LIFEAURA — Porównywarka Życiowa B2B (SaaS)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- Usunięto Chart.js, dodano Supabase -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -28,35 +27,16 @@
   </script>
   
   <style>
-    /* Niestandardowe style dla paska przewijania matrycy */
     .matrix-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
     .matrix-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     .matrix-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     .matrix-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     
-    /* Zabezpieczenie kontenerów wykresów zgodnie z wymaganiami */
-    .chart-container { 
-        position: relative; 
-        width: 100%; 
-        max-width: 600px; 
-        margin-left: auto; 
-        margin-right: auto; 
-        height: 300px; 
-        max-height: 400px; 
-    }
-    @media (min-width: 768px) { .chart-container { height: 350px; } }
-
     .modal-overlay {
         background-color: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(2px);
     }
   </style>
-
-  <!-- Chosen Palette: Profesjonalny Granat (Brand Blue #1e3a8a) i Ciemne Złoto (Brand Gold #d97706) na jasnym, neutralnym tle (Slate 50). Paleta budzi zaufanie, powagę i elegancję, odpowiednią dla sektora ubezpieczeń B2B. -->
-  <!-- Application Structure Plan: Aplikacja zbudowana jako jednolity dashboard SPA. Zmiany względem poprzedniej wersji: 1. Konfiguracja klienta (GUS). 2. Główna "Matryca Porównawcza" - usunięto pojedynczą kolumnę SU. Zamiast tego, każdy ubezpieczyciel ma własne komórki do wpisywania SU oraz opcjonalnej Składki Jednostkowej dla każdego świadczenia. Składka końcowa wpisywana jest ręcznie w stopce. 3. Panel boczny/Górny pasek zawiera narzędzia do zapisu/odczytu ofert (localStorage) oraz eksportu do CSV. 4. Sekcja analityczna na dole generuje wykresy na podstawie wprowadzonych w matrycy danych. -->
-  <!-- Visualization & Content Choices: 1. Tabela Matrycy: Interaktywna siatka HTML/CSS do szybkiego wprowadzania danych (brak SVG/Mermaid). 2. Wykresy (Chart.js): Słupkowy wykres porównujący ręcznie wpisane składki całkowite oraz wykres radarowy/słupkowy do analizy sum ubezpieczenia dla kluczowych świadczeń, pozwalający wizualnie ocenić konkurencyjność ofert. -->
-  <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
@@ -99,7 +79,7 @@
         
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">NIP (do pobrania z GUS)</label>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">NIP (do pobrania z MF)</label>
                 <div class="flex gap-2">
                     <input type="text" id="nkNip" placeholder="10 cyfr" class="w-full border border-slate-300 rounded p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none">
                     <button type="button" onclick="pobierzDaneGUS()" class="bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded px-3 py-2 text-sm transition-colors" title="Pobierz z GUS">🔍</button>
@@ -121,12 +101,12 @@
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
         <div class="p-5 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4 bg-slate-50/50">
             <div>
-                <h2 class="text-lg font-bold text-brand-blue flex items-center gap-2"><span>📊</span> Matryca Porównawcza</h2>
-                <p class="text-sm text-slate-600 mt-1">Wprowadź sumy ubezpieczenia (SU) i opcjonalne składki jednostkowe osobno dla każdego ubezpieczyciela. Składkę końcową wprowadź ręcznie w stopce.</p>
+                <h2 class="text-lg font-bold text-brand-blue flex items-center gap-2"><span>📊</span> Matryca Porównawcza i Wagi</h2>
+                <p class="text-sm text-slate-600 mt-1">Dodaj TU i Świadczenia. Przy każdym świadczeniu ustal priorytet dla Klienta (Krytyczne, Ważne, Dodatkowe).</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="addBenefit()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors">➕ Dodaj Świadczenie</button>
-                <button onclick="addInsurer()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors">➕ Dodaj Towarzystwo (TU)</button>
+                <button onclick="addBenefitModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors">➕ Dodaj Świadczenie</button>
+                <button onclick="addInsurerModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors">➕ Dodaj Towarzystwo (TU)</button>
             </div>
         </div>
 
@@ -147,17 +127,6 @@
         </div>
     </section>
 
-    <!-- Sekcja 3: Analiza i Wykresy -->
-    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-10">
-        <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>📈</span> Analiza Oferty</h2>
-        <p class="text-sm text-slate-600 mb-6">Poniższe wykresy aktualizują się automatycznie na podstawie danych wprowadzonych w matrycy. Pomagają wizualnie ocenić konkurencyjność składek i sum ubezpieczenia.</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="flex flex-col items-center">
-                <h3 class="text-md font-semibold text-slate-700 mb-4">Porównanie ręcznie wpisanej składki</h3>
-                <div class="chart-container">
-                    <canvas id="premiumChart"></canvas>
-                </div>
     <!-- Sekcja 3: Rekomendacja i Scoring -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-10">
         <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>🏆</span> Rekomendacja Systemu</h2>
@@ -170,22 +139,18 @@
 
   </main>
 
-  <!-- Modal Wczytywania Ofert -->
+  <!-- Modale -->
   <div id="loadModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
               <h3 class="text-lg font-bold text-brand-blue">Wczytaj zapisaną ofertę</h3>
               <button onclick="closeLoadModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
           </div>
-          <p class="text-sm text-slate-600 mb-4">Wybierz ofertę zapisaną w pamięci Twojej przeglądarki (localStorage).</p>
-          <div id="offersList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll">
-              <!-- Lista ofert wpada tutaj -->
-          </div>
-          <button onclick="closeLoadModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium transition-colors">Anuluj</button>
+          <div id="offersList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll"></div>
+          <button onclick="closeLoadModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded font-medium transition-colors">Zamknij</button>
       </div>
   </div>
 
-  <!-- Modal Bazy Ubezpieczycieli -->
   <div id="insurerModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
@@ -197,7 +162,6 @@
       </div>
   </div>
 
-  <!-- Modal Bazy Ryzyk (Kategorie) -->
   <div id="riskModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
@@ -210,62 +174,76 @@
   </div>
 
   <script>
-    // --- BAZA DANYCH SUPABASE ---
-    // UWAGA: Skopiuj swoje prawdziwe dane logowania z pliku index(1).html
-    const supabaseUrl = 'https://TUTAJ_WKLEJ_SWOJ_ADRES.supabase.co';
-    const supabaseKey = 'TUTAJ_WKLEJ_SWOJ_KLUCZ_ANON';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-    let dbData = {
-        insurers: [],
-        risks: []
+    // --- SUPABASE ORAZ DANE ZAPASOWE ---
+    const MOCK_DB = {
+        insurers: [
+            { id: 'tu1', name: 'Warta Życie' }, { id: 'tu2', name: 'PZU Życie' }, { id: 'tu3', name: 'Generali Życie' },
+            { id: 'tu4', name: 'Allianz Życie' }, { id: 'tu5', name: 'Nationale-Nederlanden' }, { id: 'tu6', name: 'UNIQA Życie' },
+            { id: 'tu7', name: 'Ergo Hestia Życie' }, { id: 'tu8', name: 'Compensa Życie' }, { id: 'tu9', name: 'Vienna Life' },
+            { id: 'tu10', name: 'Pru (Prudential)' }, { id: 'tu11', name: 'Saltus Życie' }, { id: 'tu12', name: 'Signal Iduna Życie' },
+            { id: 'tu13', name: 'TU Zdrowie' }, { id: 'tu14', name: 'Unum Życie' }, { id: 'tu15', name: 'TU Europa Życie' }
+        ],
+        risks: [
+            { id: 'r1', category: 'Życie', name: 'Zgon ubezpieczonego' },
+            { id: 'r2', category: 'Życie', name: 'Zgon w wyniku wypadku komunikacyjnego' },
+            { id: 'r3', category: 'Wypadki', name: 'Trwały uszczerbek na zdrowiu w NW' },
+            { id: 'r4', category: 'Wypadki', name: 'Złamanie kości' },
+            { id: 'r5', category: 'Zdrowie', name: 'Poważne zachorowanie ubezpieczonego' },
+            { id: 'r6', category: 'Zdrowie', name: 'Leczenie specjalistyczne' },
+            { id: 'r7', category: 'Szpital', name: 'Pobyt w szpitalu w wyniku choroby (za dzień)' },
+            { id: 'r10', category: 'Rodzina', name: 'Zgon współmałżonka' },
+            { id: 'r11', category: 'Rodzina', name: 'Zgon rodzica ubezpieczonego' }
+        ]
     };
 
-    async function initSupabaseData() {
-        try {
-            // Pobieranie Towarzystw
-            const { data: insurersData, error: insurersError } = await supabase.from('insurers').select('*');
-            if (insurersError) console.error("Błąd pobierania TU:", insurersError);
-            if (insurersData) dbData.insurers = insurersData;
+    let dbData = { insurers: [], risks: [] };
 
-            // Pobieranie Ryzyk (Świadczeń)
+    // WAŻNE: Wpisz swoje prawdziwe dane Supabase poniżej. 
+    // Jeśli się nie połączy, system użyje MOCK_DB by aplikacja się nie zawiesiła.
+    const supabaseUrl = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
+    
+    let supabase = null;
+    try {
+        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    } catch(e) {
+        console.warn("Błędny URL Supabase, używam bazy lokalnej (Mock).");
+    }
+
+    async function initSupabaseData() {
+        if (!supabase) {
+            dbData = { ...MOCK_DB };
+            return;
+        }
+
+        try {
+            const { data: insurersData, error: insurersError } = await supabase.from('insurers').select('*');
+            if (insurersData && insurersData.length > 0) dbData.insurers = insurersData;
+            else dbData.insurers = MOCK_DB.insurers; // Fallback w razie pustej bazy
+            
             const { data: risksData, error: risksError } = await supabase.from('risks').select('*').order('category');
-            if (risksError) console.error("Błąd pobierania ryzyk:", risksError);
-            if (risksData) dbData.risks = risksData;
+            if (risksData && risksData.length > 0) dbData.risks = risksData;
+            else dbData.risks = MOCK_DB.risks; // Fallback w razie pustej bazy
             
         } catch (error) {
-            console.error("Błąd połączenia z Supabase:", error);
+            console.error("Błąd połączenia z Supabase, ładuję dane awaryjne:", error);
+            dbData = { ...MOCK_DB };
         }
     }
 
     // --- STAN APLIKACJI (STATE) ---
     let state = {
-        client: {
-            nip: '',
-            nazwa: '',
-            zatrudnienie: ''
-        },
+        client: { nip: '', nazwa: '', zatrudnienie: '' },
         offerName: 'Nowa Oferta',
-        insurers: [
-            { id: 'tu1', name: 'Warta' },
-            { id: 'tu2', name: 'PZU Życie' }
-        ],
+        insurers: [ { id: 'tu1', name: 'Warta Życie' }, { id: 'tu2', name: 'PZU Życie' } ],
         benefits: [
-            { id: 'r1', category: 'Życie', name: 'Zgon ubezpieczonego' },
-            { id: 'r5', category: 'Zdrowie', name: 'Poważne zachorowanie ubezpieczonego' }
+            { id: 'r1', category: 'Życie', name: 'Zgon ubezpieczonego', weight: 3 },
+            { id: 'r5', category: 'Zdrowie', name: 'Poważne zachorowanie ubezpieczonego', weight: 2 }
         ],
-        // Struktura: matrixData[benefitId][insurerId] = { su: '', premium: '' }
         matrixData: {},
-        // Struktura: totals[insurerId] = ''
         totals: {}
     };
 
-    let charts = {
-        premium: null,
-        su: null
-    };
-
-    // Inicjalizacja pustych danych jeśli brakuje
     function initializeDataStructure() {
         state.benefits.forEach(b => {
             if (!state.matrixData[b.id]) state.matrixData[b.id] = {};
@@ -280,8 +258,7 @@
         });
     }
 
-    // --- RENDEROWANIE UI ---
-
+    // --- RENDEROWANIE MATRYCY ---
     function renderMatrix() {
         initializeDataStructure();
         
@@ -290,8 +267,8 @@
         const tfoot = document.getElementById('matrixFooter');
 
         // Nagłówki
-        let headerHtml = `<th class="p-3 w-1/4 min-w-[250px] border-r border-slate-200">Świadczenie</th>`;
-        state.insurers.forEach((tu, index) => {
+        let headerHtml = `<th class="p-3 w-1/4 min-w-[250px] border-r border-slate-200">Kategoria / Świadczenie</th>`;
+        state.insurers.forEach((tu) => {
             headerHtml += `
                 <th class="p-3 text-center border-r border-slate-200 relative group min-w-[180px]">
                     <div class="font-bold w-[80%] mx-auto">${tu.name}</div>
@@ -301,18 +278,16 @@
         });
         thead.innerHTML = headerHtml;
 
-        // Grupowanie świadczeń w locie do wyświetlania
+        // Grupowanie
         let groupedBenefits = {};
         state.benefits.forEach(b => {
             if (!groupedBenefits[b.category]) groupedBenefits[b.category] = [];
             groupedBenefits[b.category].push(b);
         });
 
-        // Ciało tabeli (Świadczenia z nagłówkami kategorii)
+        // Ciało tabeli
         let bodyHtml = '';
-        
         for (const [category, benefitsInCategory] of Object.entries(groupedBenefits)) {
-            // Wiersz kategorii
             bodyHtml += `
                 <tr class="bg-slate-200/60 border-b border-slate-300">
                     <td colspan="${state.insurers.length + 1}" class="px-3 py-2 text-xs font-black text-slate-800 uppercase tracking-widest">
@@ -321,11 +296,9 @@
                 </tr>
             `;
             
-            // Wiersze świadczeń w tej kategorii
             benefitsInCategory.forEach((b) => {
-                let weight = b.weight || 1; // Domyślna waga to 1
+                let weight = b.weight || 1;
                 bodyHtml += `<tr class="border-b border-slate-200 hover:bg-slate-50 transition-colors">`;
-                // Kolumna nazwy świadczenia z selektorem wagi
                 bodyHtml += `
                     <td class="p-3 border-r border-slate-200 relative group pl-6 align-top pt-4">
                         <div class="mb-2">
@@ -339,17 +312,17 @@
                         <button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-4 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity" title="Usuń świadczenie">✕</button>
                     </td>
                 `;
-                // Kolumny ubezpieczycieli (SU i Składka pod każdym)
+                
                 state.insurers.forEach(tu => {
                     const data = state.matrixData[b.id][tu.id];
                     bodyHtml += `
                         <td class="p-2 border-r border-slate-200 align-top">
                             <div class="flex flex-col gap-2">
-                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
+                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue">
                                     <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-2 py-1.5 border-r border-slate-200 w-12 text-center">SU</span>
                                     <input type="number" step="1" value="${data.su}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'su', this.value)" placeholder="Kwota PLN" class="w-full px-2 py-1.5 text-sm outline-none">
                                 </div>
-                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
+                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue">
                                     <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-2 py-1.5 border-r border-slate-200 w-12 text-center" title="Składka jednostkowa">Skł.</span>
                                     <input type="number" step="0.01" value="${data.premium}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'premium', this.value)" placeholder="Opcjonalna" class="w-full px-2 py-1.5 text-sm outline-none">
                                 </div>
@@ -367,13 +340,13 @@
         
         tbody.innerHTML = bodyHtml;
 
-        // Stopka (Suma ręczna)
-        let footerHtml = `<tr><td class="p-4 font-bold text-right border-r border-slate-200">Składka miesięczna<br/><span class="text-xs font-normal text-slate-500">(Wpisz ręcznie)</span></td>`;
+        // Stopka
+        let footerHtml = `<tr><td class="p-4 font-bold text-right border-r border-slate-200">Składka miesięczna<br/><span class="text-xs font-normal text-slate-500">(Wpisz sumę)</span></td>`;
         state.insurers.forEach(tu => {
             const total = state.totals[tu.id] || '';
             footerHtml += `
                 <td class="p-3 border-r border-slate-200">
-                    <div class="flex items-center bg-white rounded shadow-inner border border-blue-200 overflow-hidden">
+                    <div class="flex items-center bg-white rounded shadow-inner border border-blue-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue">
                         <input type="number" step="0.01" value="${total}" oninput="updateTotal('${tu.id}', this.value)" placeholder="0.00" class="w-full p-2 text-center font-bold text-brand-blue outline-none text-lg">
                         <span class="pr-3 text-sm text-blue-400 font-bold">PLN</span>
                     </div>
@@ -387,10 +360,11 @@
     }
 
     // --- LOGIKA AKTUALIZACJI DANYCH ---
-
     function updateMatrixData(bId, tuId, field, value) {
-        state.matrixData[bId][tuId][field] = value;
-        if(field === 'su') updateScoring(); 
+        if(state.matrixData[bId] && state.matrixData[bId][tuId]) {
+            state.matrixData[bId][tuId][field] = value;
+            if(field === 'su') updateScoring(); 
+        }
     }
 
     function updateTotal(tuId, value) {
@@ -406,17 +380,34 @@
         }
     }
 
-    function updateInsurerName(id, newName) {
+    function removeBenefit(id) {
+        if(confirm('Na pewno usunąć to świadczenie z matrycy?')) {
+            state.benefits = state.benefits.filter(b => b.id !== id);
+            delete state.matrixData[id];
+            renderMatrix();
+        }
+    }
+
+    function removeInsurer(id) {
+        if(confirm('Na pewno usunąć to Towarzystwo z matrycy?')) {
+            state.insurers = state.insurers.filter(tu => tu.id !== id);
+            delete state.totals[id];
+            renderMatrix();
+        }
+    }
+
+    // --- BAZA I MODALE ---
+    function addBenefitModal() {
+        const modal = document.getElementById('riskModal');
+        const list = document.getElementById('risksDbList');
+        
+        let groupedDb = {};
         dbData.risks.forEach(r => {
             if(!groupedDb[r.category]) groupedDb[r.category] = [];
             groupedDb[r.category].push(r);
         });
 
         let html = '';
-        if (dbData.risks.length === 0) {
-            html = '<div class="text-sm text-red-500 font-bold p-4">Nie udało się pobrać ryzyk z Supabase. Sprawdź klucze API.</div>';
-        }
-
         for(let cat in groupedDb) {
             html += `<div class="mb-4">
                         <h4 class="font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded mb-2">${cat}</h4>
@@ -441,37 +432,22 @@
         modal.classList.remove('hidden');
     }
     
-    function closeRiskModal() {
-        document.getElementById('riskModal').classList.add('hidden');
-    }
+    function closeRiskModal() { document.getElementById('riskModal').classList.add('hidden'); }
     
     function selectRiskFromDb(riskId) {
         const risk = dbData.risks.find(r => r.id === riskId);
         if(risk && !state.benefits.some(b => b.id === risk.id)) {
-            // Dodajemy z domyślną wagą 1
             state.benefits.push({ id: risk.id, category: risk.category, name: risk.name, weight: 1 });
             renderMatrix();
-            addBenefit(); // Odśwież listę w modalu
+            addBenefitModal(); 
         }
     }
 
-    function removeBenefit(id) {
-        if(confirm('Na pewno usunąć to świadczenie z matrycy?')) {
-            state.benefits = state.benefits.filter(b => b.id !== id);
-            delete state.matrixData[id];
-            renderMatrix();
-        }
-    }
-
-    function addInsurer() {
+    function addInsurerModal() {
         const modal = document.getElementById('insurerModal');
         const list = document.getElementById('insurersDbList');
         
         let html = '';
-        if (dbData.insurers.length === 0) {
-            html = '<div class="text-sm text-red-500 font-bold p-4">Nie udało się pobrać towarzystw z Supabase. Sprawdź klucze API.</div>';
-        }
-
         dbData.insurers.forEach(tu => {
             const isAdded = state.insurers.some(i => i.id === tu.id);
             if(isAdded) {
@@ -484,117 +460,65 @@
                             <span class="font-bold text-slate-800">${tu.name}</span>
                             <button onclick="selectInsurerFromDb('${tu.id}')" class="text-xs bg-white border border-brand-blue text-brand-blue group-hover:bg-brand-blue group-hover:text-white px-3 py-1.5 rounded transition-colors">Wybierz</button>
                          </div>`;
-    function removeInsurer(id) {
-        if(confirm('Na pewno usunąć tego ubezpieczyciela z matrycy?')) {
-            state.insurers = state.insurers.filter(tu => tu.id !== id);
-            delete state.totals[id];
+            }
+        });
+        list.innerHTML = html;
+        modal.classList.remove('hidden');
+    }
+    
+    function closeInsurerModal() { document.getElementById('insurerModal').classList.add('hidden'); }
+    
+    function selectInsurerFromDb(tuId) {
+        const tu = dbData.insurers.find(i => i.id === tuId);
+        if(tu && !state.insurers.some(i => i.id === tu.id)) {
+            state.insurers.push({ id: tu.id, name: tu.name });
             renderMatrix();
+            addInsurerModal(); 
         }
     }
 
-    // --- INTEGRACJA GUS (Biała Lista MF) ---
-    async function pobierzDaneGUS() {
-        const nipInput = document.getElementById('nkNip').value.trim();
-        const cleanNip = nipInput.replace(/[\ \-]/gi, '');
-        const statusEl = document.getElementById('gusStatus');
-        
-        statusEl.classList.remove('hidden');
-        if (!cleanNip || cleanNip.length !== 10 || isNaN(cleanNip)) { 
-            statusEl.textContent = "Wpisz poprawny 10-cyfrowy NIP (same cyfry)."; 
-            statusEl.className = "text-[10px] font-bold mt-2 text-red-500"; 
-            return; 
-        }
-        
-        statusEl.textContent = "⏳ Pobieranie z bazy MF..."; 
-        statusEl.className = "text-[10px] font-bold mt-2 text-blue-500";
-        
-        try {
-            const dzisiaj = new Date().toISOString().split('T')[0];
-            const url = `https://wl-api.mf.gov.pl/api/search/nip/${cleanNip}?date=${dzisiaj}`;
-            
-            const res = await fetch(url);
-            
-            if (!res.ok) {
-                if (res.status === 400) throw new Error("Błędny NIP (nie zgadza się suma kontrolna).");
-                throw new Error(`Błąd serwera MF (${res.status}).`);
-            }
-            
-            const data = await res.json();
-            
-            if (data?.result?.subject?.name) {
-                const nazwaFirmy = data.result.subject.name;
-                document.getElementById('nkNazwa').value = nazwaFirmy;
-                
-                // Zapisz do state, aby zapamiętało do Eksportu
-                state.client.nazwa = nazwaFirmy;
-                state.client.nip = cleanNip;
-                syncClientDataToState();
-                
-                statusEl.textContent = "✅ Pobrano dane firmy."; 
-                statusEl.className = "text-[10px] font-bold mt-2 text-emerald-600";
-            } else { 
-                statusEl.textContent = "❌ Nie znaleziono podmiotu (może nie być płatnikiem VAT)."; 
-                statusEl.className = "text-[10px] font-bold mt-2 text-amber-500";
-            }
-        } catch (error) {
-            console.error("Błąd pobierania z MF:", error);
-            statusEl.textContent = `❌ ${error.message === "Failed to fetch" ? "Błąd połączenia/blokada CORS." : error.message}`; 
-            statusEl.className = "text-[10px] font-bold mt-2 text-red-500";
-        }
-    }
-
-    // --- ALGORYTM SCORINGOWY (Zastępuje wykresy) ---
+    // --- ALGORYTM SCORINGOWY (Bezpieczny dla pustych danych) ---
     function updateScoring() {
         syncClientDataToState();
+        const resultsContainer = document.getElementById('scoringResults');
         
-        // 1. Oblicz maksymalną możliwą pulę punktów za Zakres (Suma Wag)
         let maxScopePoints = 0;
         state.benefits.forEach(b => { maxScopePoints += (b.weight || 1); });
 
-        // 2. Znajdź najniższą wpisaną składkę > 0
         let validPremiums = state.insurers.map(tu => parseFloat(state.totals[tu.id]) || 0).filter(p => p > 0);
         let minPremium = validPremiums.length > 0 ? Math.min(...validPremiums) : 0;
 
         let tuScores = [];
 
-        // 3. Ocena każdego TU
         state.insurers.forEach(tu => {
             let scopePoints = 0;
             
-            // --- A. PUNKTY ZA ZAKRES ---
             state.benefits.forEach(b => {
                 let weight = b.weight || 1;
-                let currentSu = parseFloat(state.matrixData[b.id][tu.id]?.su) || 0;
+                // Bezpieczne sprawdzanie optional chaining, żeby nie wywaliło JS
+                let currentSu = parseFloat(state.matrixData[b.id]?.[tu.id]?.su) || 0;
                 
-                // Szukamy najwyższej sumy ubezpieczenia w danym wierszu dla wszystkich TU
                 let maxSuInRow = 0;
                 state.insurers.forEach(otherTu => {
-                    let otherSu = parseFloat(state.matrixData[b.id][otherTu.id]?.su) || 0;
+                    let otherSu = parseFloat(state.matrixData[b.id]?.[otherTu.id]?.su) || 0;
                     if (otherSu > maxSuInRow) maxSuInRow = otherSu;
                 });
 
-                // Jeśli to TU ma > 0 SU, dostaje proporcjonalną ilość punktów wynikającą z wagi
                 if (maxSuInRow > 0 && currentSu > 0) {
                     scopePoints += (currentSu / maxSuInRow) * weight;
                 }
             });
 
-            // Procentowa ocena zakresu
             let scopePercentage = maxScopePoints > 0 ? (scopePoints / maxScopePoints) * 100 : 0;
-
-            // --- B. PUNKTY ZA CENĘ ---
             let tuPremium = parseFloat(state.totals[tu.id]) || 0;
             let pricePercentage = 0;
             
             if (minPremium > 0 && tuPremium > 0) {
-                // Najtańszy dostaje 100%, reszta ułamek
                 pricePercentage = (minPremium / tuPremium) * 100;
             } else if (tuPremium === 0 && minPremium === 0) {
-                // Jeśli nie wpisano żadnych składek, nie zaniżamy wyniku ogólnego
                 pricePercentage = 100; 
             }
 
-            // --- C. WYNIK KOŃCOWY (70% Zakres, 30% Cena) ---
             let finalScore = (scopePercentage * 0.7) + (pricePercentage * 0.3);
 
             tuScores.push({
@@ -607,12 +531,8 @@
             });
         });
 
-        // 4. Sortowanie - od najwyższego wyniku
         tuScores.sort((a, b) => b.finalScore - a.finalScore);
 
-        // 5. Renderowanie Wyników (Podium)
-        const resultsContainer = document.getElementById('scoringResults');
-        
         if (tuScores.length === 0 || maxScopePoints === 0) {
             resultsContainer.innerHTML = '<p class="text-slate-500 italic col-span-3">Dodaj świadczenia i wpisz kwoty SU, aby wygenerować rekomendację.</p>';
             return;
@@ -660,7 +580,51 @@
         resultsContainer.innerHTML = html;
     }
 
-    // Odczyt danych klienta z UI do State
+    // --- GUS ---
+    async function pobierzDaneGUS() {
+        const nipInput = document.getElementById('nkNip').value.trim();
+        const cleanNip = nipInput.replace(/[\ \-]/gi, '');
+        const statusEl = document.getElementById('gusStatus');
+        
+        statusEl.classList.remove('hidden');
+        if (!cleanNip || cleanNip.length !== 10 || isNaN(cleanNip)) { 
+            statusEl.textContent = "Wpisz poprawny 10-cyfrowy NIP."; 
+            statusEl.className = "text-[10px] font-bold mt-2 text-red-500"; 
+            return; 
+        }
+        
+        statusEl.textContent = "⏳ Pobieranie z bazy MF..."; 
+        statusEl.className = "text-[10px] font-bold mt-2 text-blue-500";
+        
+        try {
+            const dzisiaj = new Date().toISOString().split('T')[0];
+            const url = `https://wl-api.mf.gov.pl/api/search/nip/${cleanNip}?date=${dzisiaj}`;
+            const res = await fetch(url);
+            
+            if (!res.ok) throw new Error("Błędny NIP lub błąd serwera MF.");
+            
+            const data = await res.json();
+            
+            if (data?.result?.subject?.name) {
+                const nazwaFirmy = data.result.subject.name;
+                document.getElementById('nkNazwa').value = nazwaFirmy;
+                state.client.nazwa = nazwaFirmy;
+                state.client.nip = cleanNip;
+                syncClientDataToState();
+                
+                statusEl.textContent = "✅ Pobrano dane firmy."; 
+                statusEl.className = "text-[10px] font-bold mt-2 text-emerald-600";
+            } else { 
+                statusEl.textContent = "❌ Brak na liście VAT."; 
+                statusEl.className = "text-[10px] font-bold mt-2 text-amber-500";
+            }
+        } catch (error) {
+            console.error("Błąd pobierania z MF:", error);
+            statusEl.textContent = "❌ Błąd połączenia / Błędny NIP."; 
+            statusEl.className = "text-[10px] font-bold mt-2 text-red-500";
+        }
+    }
+
     function syncClientDataToState() {
         state.client.nip = document.getElementById('nkNip').value;
         state.client.nazwa = document.getElementById('nkNazwa').value;
@@ -676,84 +640,7 @@
         document.getElementById('gusStatus').classList.add('hidden');
     }
 
-    // --- WYKRESY (Chart.js) ---
-    function updateCharts() {
-        syncClientDataToState();
-        const labels = state.insurers.map(tu => tu.name);
-        
-        // Dane do wykresu składki całkowitej (z ręcznego inputu na dole)
-        const premiumData = state.insurers.map(tu => parseFloat(state.totals[tu.id]) || 0);
-        
-        // Dane do wykresu SU (średnia z wpisanych wartości SU dla danego TU)
-        const suData = state.insurers.map(tu => {
-            let totalSu = 0;
-            let count = 0;
-            state.benefits.forEach(b => {
-                const val = parseFloat(state.matrixData[b.id][tu.id]?.su);
-                if(!isNaN(val) && val > 0) {
-                    totalSu += val;
-                    count++;
-                }
-            });
-            return count > 0 ? (totalSu / count).toFixed(2) : 0;
-        });
-
-        // 1. Wykres Składki Całkowitej
-        const ctxPremium = document.getElementById('premiumChart').getContext('2d');
-        if(charts.premium) charts.premium.destroy();
-        charts.premium = new Chart(ctxPremium, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Składka ręczna (PLN)',
-                    data: premiumData,
-                    backgroundColor: 'rgba(30, 58, 138, 0.7)', // brand-blue
-                    borderColor: 'rgba(30, 58, 138, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw} PLN` } }
-                },
-                scales: { y: { beginAtZero: true } }
-            }
-        });
-
-        // 2. Wykres Średniego SU
-        const ctxSu = document.getElementById('suChart').getContext('2d');
-        if(charts.su) charts.su.destroy();
-        charts.su = new Chart(ctxSu, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Średnie SU z wpisanych (PLN)',
-                    data: suData,
-                    backgroundColor: 'rgba(217, 119, 6, 0.7)', // brand-gold
-                    borderColor: 'rgba(217, 119, 6, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw} PLN` } }
-                },
-                scales: { y: { beginAtZero: true } }
-            }
-        });
-    }
-
-    // --- ZAPIS I ODCZYT (localStorage) ---
+    // --- ZAPIS/ODCZYT LOCALSTORAGE ---
     function saveOffer() {
         syncClientDataToState();
         if(!state.offerName || state.offerName.trim() === '') {
@@ -764,26 +651,16 @@
         const offersStr = localStorage.getItem('lifeaura_offers');
         let offers = offersStr ? JSON.parse(offersStr) : {};
         
-        // Zapis stanu pod nazwą oferty
         const keyId = Date.now().toString();
-        offers[keyId] = {
-            id: keyId,
-            name: state.offerName,
-            date: new Date().toLocaleString(),
-            data: JSON.stringify(state)
-        };
+        offers[keyId] = { id: keyId, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state) };
         
         localStorage.setItem('lifeaura_offers', JSON.stringify(offers));
         
-        // Animacja przycisku
         const btn = document.querySelector('button[onclick="saveOffer()"]');
         const oldText = btn.innerHTML;
         btn.innerHTML = '✅ Zapisano';
         btn.classList.add('bg-green-600');
-        setTimeout(() => {
-            btn.innerHTML = oldText;
-            btn.classList.remove('bg-green-600');
-        }, 2000);
+        setTimeout(() => { btn.innerHTML = oldText; btn.classList.remove('bg-green-600'); }, 2000);
     }
 
     function openLoadModal() {
@@ -793,10 +670,9 @@
         
         const offersStr = localStorage.getItem('lifeaura_offers');
         let offers = offersStr ? JSON.parse(offersStr) : {};
-        
         list.innerHTML = '';
-        const offerKeys = Object.keys(offers).sort((a,b) => b - a); // od najnowszych
         
+        const offerKeys = Object.keys(offers).sort((a,b) => b - a);
         if(offerKeys.length === 0) {
             list.innerHTML = '<p class="text-sm text-slate-500 italic text-center p-4">Brak zapisanych ofert.</p>';
             return;
@@ -806,10 +682,7 @@
             const offer = offers[k];
             list.innerHTML += `
                 <div class="flex justify-between items-center p-3 border border-slate-200 rounded hover:bg-slate-50">
-                    <div>
-                        <div class="font-bold text-brand-blue">${offer.name}</div>
-                        <div class="text-[10px] text-slate-500">${offer.date}</div>
-                    </div>
+                    <div><div class="font-bold text-brand-blue">${offer.name}</div><div class="text-[10px] text-slate-500">${offer.date}</div></div>
                     <div class="flex gap-2">
                         <button onclick="loadOffer('${k}')" class="text-xs bg-brand-blue text-white px-2 py-1 rounded hover:bg-blue-800">Wczytaj</button>
                         <button onclick="deleteOffer('${k}')" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200">Usuń</button>
@@ -819,9 +692,7 @@
         });
     }
 
-    function closeLoadModal() {
-        document.getElementById('loadModal').classList.add('hidden');
-    }
+    function closeLoadModal() { document.getElementById('loadModal').classList.add('hidden'); }
 
     function loadOffer(keyId) {
         const offersStr = localStorage.getItem('lifeaura_offers');
@@ -835,37 +706,33 @@
     }
 
     function deleteOffer(keyId) {
-        if(confirm('Na pewno usunąć tę ofertę z pamięci?')) {
+        if(confirm('Na pewno usunąć tę ofertę?')) {
             const offersStr = localStorage.getItem('lifeaura_offers');
             let offers = offersStr ? JSON.parse(offersStr) : {};
             delete offers[keyId];
             localStorage.setItem('lifeaura_offers', JSON.stringify(offers));
-            openLoadModal(); // odśwież listę
+            openLoadModal(); 
         }
     }
 
     // --- EKSPORT CSV ---
     function exportToCSV() {
         syncClientDataToState();
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
         
-        // Zbieranie danych
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Z BOM dla UTF-8 w Excelu
-        
-        // Metadane klienta
         csvContent += `Oferta:;${state.offerName}\n`;
         csvContent += `Klient:;${state.client.nazwa};NIP:;${state.client.nip};Zatrudnienie:;${state.client.zatrudnienie}\n\n`;
 
-        // Nagłówki matrycy (Kategoria, Świadczenie, TU1 SU, TU1 Składka...)
-        let headers = ["Kategoria", "Świadczenie"];
+        let headers = ["Kategoria", "Priorytet", "Świadczenie"];
         state.insurers.forEach(tu => {
             headers.push(`${tu.name} SU`);
             headers.push(`${tu.name} Składka`);
         });
         csvContent += headers.join(";") + "\n";
 
-        // Wiersze świadczeń
         state.benefits.forEach(b => {
-            let row = [b.category || "", b.name];
+            const weightName = b.weight === 3 ? "Krytyczne" : (b.weight === 2 ? "Ważne" : "Dodatkowe");
+            let row = [b.category || "", weightName, b.name];
             state.insurers.forEach(tu => {
                 const data = state.matrixData[b.id] && state.matrixData[b.id][tu.id] ? state.matrixData[b.id][tu.id] : { su: "", premium: "" };
                 row.push(data.su || "");
@@ -874,15 +741,13 @@
             csvContent += row.join(";") + "\n";
         });
 
-        // Wiersz podsumowania
-        let totalsRow = ["", "Składka końcowa (ręczna)"];
+        let totalsRow = ["", "", "Składka końcowa (ręczna)"];
         state.insurers.forEach(tu => {
-            totalsRow.push(""); // Puste pod kolumną SU
-            totalsRow.push(state.totals[tu.id] || "0"); // Składka pod kolumną składki
+            totalsRow.push("");
+            totalsRow.push(state.totals[tu.id] || "0"); 
         });
         csvContent += totalsRow.join(";") + "\n";
 
-        // Generowanie pliku i pobieranie
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -892,17 +757,13 @@
         document.body.removeChild(link);
     }
 
-    // --- INICJALIZACJA ---
+    // --- START APLIKACJI ---
     document.addEventListener('DOMContentLoaded', async () => {
-        // Nasłuchiwanie zmian na polach klienta dla synchronizacji state
         ['nkNip', 'nkNazwa', 'nkZatrudnienie', 'offerName'].forEach(id => {
             document.getElementById(id).addEventListener('change', syncClientDataToState);
         });
         
-        // Pobranie danych z Supabase przed pierwszym renderowaniem
-        await initSupabaseData();
-        
-        // Pierwsze renderowanie
+        await initSupabaseData(); // Próbuje połączyć z bazą, a w razie błędu przełącza na tryb "Mock"
         renderMatrix();
     });
 
