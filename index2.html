@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LIFEAURA — Porównywarka Życiowa B2B (SaaS)</title>
+  <title>LIFEAURA — Porównywarka Życiowa B2B</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -43,17 +43,23 @@
   <!-- Nawigacja / Pasek narzędzi -->
   <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50">
     <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
         <span class="text-2xl">🛡️</span>
-        <div>
+        <div class="flex items-baseline gap-2">
             <h1 class="text-xl font-bold tracking-tight">LIFEAURA</h1>
-            <p class="text-[10px] text-blue-200 uppercase tracking-wider">Porównywarka Życiowa B2B</p>
+            <span class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">B2B SaaS</span>
         </div>
       </div>
       
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Status Bazy Danych -->
+        <div id="dbStatusBadge" class="flex items-center gap-1.5 bg-slate-800 text-slate-300 px-2 py-1 rounded text-[10px] font-bold border border-slate-700 cursor-help" title="Sprawdzanie połączenia z Supabase...">
+            <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse" id="dbStatusDot"></span>
+            <span id="dbStatusText">Łączenie z bazą...</span>
+        </div>
+
         <div class="bg-blue-900/50 px-3 py-1 rounded border border-blue-700 flex items-center gap-2">
-            <span class="text-xs text-blue-300">Aktywna oferta:</span>
+            <span class="text-xs text-blue-300">Oferta:</span>
             <input type="text" id="offerName" value="Nowa Oferta" class="bg-transparent text-sm font-semibold text-white border-b border-dashed border-blue-400 focus:outline-none focus:border-white w-32">
         </div>
         
@@ -75,8 +81,6 @@
     <!-- Sekcja 1: Dane Klienta -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
         <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>🏢</span> Dane Klienta</h2>
-        <p class="text-sm text-slate-600 mb-4">Wprowadź dane podmiotu, dla którego przygotowywana jest matryca. Pobierz dane z GUS, aby przyspieszyć proces.</p>
-        
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1">NIP (do pobrania z MF)</label>
@@ -101,12 +105,12 @@
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
         <div class="p-5 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4 bg-slate-50/50">
             <div>
-                <h2 class="text-lg font-bold text-brand-blue flex items-center gap-2"><span>📊</span> Matryca Porównawcza i Wagi</h2>
-                <p class="text-sm text-slate-600 mt-1">Dodaj TU i Świadczenia. Przy każdym świadczeniu ustal priorytet dla Klienta (Krytyczne, Ważne, Dodatkowe).</p>
+                <h2 class="text-lg font-bold text-brand-blue flex items-center gap-2"><span>📊</span> Matryca Porównawcza i Priorytety</h2>
+                <p class="text-sm text-slate-600 mt-1">Dodaj TU i Świadczenia. Określ wagi świadczeń (Krytyczne, Ważne, Dodatkowe), aby system wyliczył rekomendację.</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="addBenefitModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors">➕ Dodaj Świadczenie</button>
-                <button onclick="addInsurerModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors">➕ Dodaj Towarzystwo (TU)</button>
+                <button onclick="addBenefitModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors shadow-sm">➕ Dodaj Świadczenie</button>
+                <button onclick="addInsurerModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium transition-colors shadow-sm">➕ Dodaj Towarzystwo (TU)</button>
             </div>
         </div>
 
@@ -130,7 +134,7 @@
     <!-- Sekcja 3: Rekomendacja i Scoring -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-10">
         <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>🏆</span> Rekomendacja Systemu</h2>
-        <p class="text-sm text-slate-600 mb-6">System automatycznie ocenia oferty analizując relację zakresu do ceny. Sumy ubezpieczenia są ważone według nadanych przez Ciebie priorytetów. <strong>Domyślne wagi to: Zakres (70% oceny), Składka (30% oceny).</strong></p>
+        <p class="text-sm text-slate-600 mb-6">Ocena automatyczna: Zakres ofertuje 70% oceny końcowej, a składka 30%. Oferty są oceniane relatywnie na podstawie najwyższych wprowadzonych wartości SU w danym wierszu oraz najtańszej składki całkowitej.</p>
         
         <div id="scoringResults" class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Tutaj wpadną kafelki z wynikami -->
@@ -139,7 +143,7 @@
 
   </main>
 
-  <!-- Modale -->
+  <!-- Modale (Okienka pop-up) -->
   <div id="loadModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
@@ -154,7 +158,7 @@
   <div id="insurerModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-bold text-brand-blue">Wybierz Towarzystwo (TU)</h3>
+              <h3 class="text-lg font-bold text-brand-blue">Wybierz Towarzystwo z Bazy</h3>
               <button onclick="closeInsurerModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
           </div>
           <div id="insurersDbList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll"></div>
@@ -174,60 +178,67 @@
   </div>
 
   <script>
-    // --- SUPABASE ORAZ DANE ZAPASOWE ---
-    const MOCK_DB = {
-        insurers: [
-            { id: 'tu1', name: 'Warta Życie' }, { id: 'tu2', name: 'PZU Życie' }, { id: 'tu3', name: 'Generali Życie' },
-            { id: 'tu4', name: 'Allianz Życie' }, { id: 'tu5', name: 'Nationale-Nederlanden' }, { id: 'tu6', name: 'UNIQA Życie' },
-            { id: 'tu7', name: 'Ergo Hestia Życie' }, { id: 'tu8', name: 'Compensa Życie' }, { id: 'tu9', name: 'Vienna Life' },
-            { id: 'tu10', name: 'Pru (Prudential)' }, { id: 'tu11', name: 'Saltus Życie' }, { id: 'tu12', name: 'Signal Iduna Życie' },
-            { id: 'tu13', name: 'TU Zdrowie' }, { id: 'tu14', name: 'Unum Życie' }, { id: 'tu15', name: 'TU Europa Życie' }
-        ],
-        risks: [
-            { id: 'r1', category: 'Życie', name: 'Zgon ubezpieczonego' },
-            { id: 'r2', category: 'Życie', name: 'Zgon w wyniku wypadku komunikacyjnego' },
-            { id: 'r3', category: 'Wypadki', name: 'Trwały uszczerbek na zdrowiu w NW' },
-            { id: 'r4', category: 'Wypadki', name: 'Złamanie kości' },
-            { id: 'r5', category: 'Zdrowie', name: 'Poważne zachorowanie ubezpieczonego' },
-            { id: 'r6', category: 'Zdrowie', name: 'Leczenie specjalistyczne' },
-            { id: 'r7', category: 'Szpital', name: 'Pobyt w szpitalu w wyniku choroby (za dzień)' },
-            { id: 'r10', category: 'Rodzina', name: 'Zgon współmałżonka' },
-            { id: 'r11', category: 'Rodzina', name: 'Zgon rodzica ubezpieczonego' }
-        ]
-    };
-
-    let dbData = { insurers: [], risks: [] };
-
-    // WAŻNE: Wpisz swoje prawdziwe dane Supabase poniżej. 
-    // Jeśli się nie połączy, system użyje MOCK_DB by aplikacja się nie zawiesiła.
+    // ==========================================
+    // ⚙️ KONFIGURACJA SUPABASE (Z TWOIMI KLUCZAMI)
+    // ==========================================
     const supabaseUrl = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
+
+    let dbData = { insurers: [], risks: [] };
     
-    let supabase = null;
-    try {
-        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    } catch(e) {
-        console.warn("Błędny URL Supabase, używam bazy lokalnej (Mock).");
+    // Baza zapasowa na wypadek braku tabel w Supabase, żeby aplikacja nie padła
+    const MOCK_DB = {
+        insurers: [{ id: 'tu_mock1', name: 'Przykładowe TU 1' }],
+        risks: [{ id: 'r_mock1', category: 'Przykładowa kategoria', name: 'Przykładowe ryzyko' }]
+    };
+
+    function updateDbStatus(type, message) {
+        const dot = document.getElementById('dbStatusDot');
+        const text = document.getElementById('dbStatusText');
+        const badge = document.getElementById('dbStatusBadge');
+        
+        dot.classList.remove('animate-pulse', 'bg-slate-500', 'bg-green-500', 'bg-red-500', 'bg-orange-500');
+        
+        if(type === 'success') {
+            dot.classList.add('bg-green-500');
+            text.textContent = 'Supabase: Połączono';
+            badge.classList.replace('bg-slate-800', 'bg-green-900');
+            badge.classList.replace('border-slate-700', 'border-green-700');
+            badge.title = message;
+        } else if (type === 'error') {
+            dot.classList.add('bg-orange-500');
+            text.textContent = 'Błąd odczytu z Bazy';
+            badge.classList.replace('bg-slate-800', 'bg-orange-900');
+            badge.classList.replace('border-slate-700', 'border-orange-700');
+            badge.title = message;
+        }
     }
 
     async function initSupabaseData() {
-        if (!supabase) {
-            dbData = { ...MOCK_DB };
-            return;
-        }
-
+        let supabase;
         try {
-            const { data: insurersData, error: insurersError } = await supabase.from('insurers').select('*');
-            if (insurersData && insurersData.length > 0) dbData.insurers = insurersData;
-            else dbData.insurers = MOCK_DB.insurers; // Fallback w razie pustej bazy
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
             
+            // Pobieranie insurers
+            const { data: insurersData, error: insurersError } = await supabase.from('insurers').select('*');
+            if (insurersError) throw new Error("Błąd insurers: " + insurersError.message);
+            
+            // Pobieranie risks
             const { data: risksData, error: risksError } = await supabase.from('risks').select('*').order('category');
-            if (risksData && risksData.length > 0) dbData.risks = risksData;
-            else dbData.risks = MOCK_DB.risks; // Fallback w razie pustej bazy
+            if (risksError) throw new Error("Błąd risks: " + risksError.message);
+            
+            if (insurersData && risksData) {
+                dbData.insurers = insurersData;
+                dbData.risks = risksData;
+                updateDbStatus('success', `Zsynchronizowano: ${insurersData.length} Towarzystw, ${risksData.length} Świadczeń.`);
+            } else {
+                throw new Error("Puste tabele w bazie.");
+            }
             
         } catch (error) {
-            console.error("Błąd połączenia z Supabase, ładuję dane awaryjne:", error);
+            console.error("Szczegóły błędu Supabase:", error);
             dbData = { ...MOCK_DB };
+            updateDbStatus('error', error.message + ' (Wczytano bazę awaryjną)');
         }
     }
 
@@ -235,11 +246,8 @@
     let state = {
         client: { nip: '', nazwa: '', zatrudnienie: '' },
         offerName: 'Nowa Oferta',
-        insurers: [ { id: 'tu1', name: 'Warta Życie' }, { id: 'tu2', name: 'PZU Życie' } ],
-        benefits: [
-            { id: 'r1', category: 'Życie', name: 'Zgon ubezpieczonego', weight: 3 },
-            { id: 'r5', category: 'Zdrowie', name: 'Poważne zachorowanie ubezpieczonego', weight: 2 }
-        ],
+        insurers: [], // Puste na start, dodajemy ręcznie z modala
+        benefits: [], // Puste na start, dodajemy ręcznie z modala
         matrixData: {},
         totals: {}
     };
@@ -267,30 +275,31 @@
         const tfoot = document.getElementById('matrixFooter');
 
         // Nagłówki
-        let headerHtml = `<th class="p-3 w-1/4 min-w-[250px] border-r border-slate-200">Kategoria / Świadczenie</th>`;
+        let headerHtml = `<th class="p-3 w-1/4 min-w-[250px] border-r border-slate-200 bg-slate-100">Kategoria / Świadczenie</th>`;
         state.insurers.forEach((tu) => {
             headerHtml += `
-                <th class="p-3 text-center border-r border-slate-200 relative group min-w-[180px]">
-                    <div class="font-bold w-[80%] mx-auto">${tu.name}</div>
-                    <button onclick="removeInsurer('${tu.id}')" class="absolute right-2 top-3 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity" title="Usuń TU">✕</button>
+                <th class="p-3 text-center border-r border-slate-200 relative group min-w-[200px] bg-slate-100">
+                    <div class="font-bold w-[90%] mx-auto truncate" title="${tu.name}">${tu.name}</div>
+                    <button onclick="removeInsurer('${tu.id}')" class="absolute right-2 top-3 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm" title="Usuń TU">✕</button>
                 </th>
             `;
         });
         thead.innerHTML = headerHtml;
 
-        // Grupowanie
+        // Grupowanie wg kategorii
         let groupedBenefits = {};
         state.benefits.forEach(b => {
-            if (!groupedBenefits[b.category]) groupedBenefits[b.category] = [];
-            groupedBenefits[b.category].push(b);
+            const cat = b.category || 'Inne';
+            if (!groupedBenefits[cat]) groupedBenefits[cat] = [];
+            groupedBenefits[cat].push(b);
         });
 
         // Ciało tabeli
         let bodyHtml = '';
         for (const [category, benefitsInCategory] of Object.entries(groupedBenefits)) {
             bodyHtml += `
-                <tr class="bg-slate-200/60 border-b border-slate-300">
-                    <td colspan="${state.insurers.length + 1}" class="px-3 py-2 text-xs font-black text-slate-800 uppercase tracking-widest">
+                <tr class="bg-blue-50/50 border-b border-slate-300">
+                    <td colspan="${state.insurers.length + 1}" class="px-4 py-2 text-xs font-black text-brand-blue uppercase tracking-widest">
                         📁 ${category}
                     </td>
                 </tr>
@@ -298,18 +307,18 @@
             
             benefitsInCategory.forEach((b) => {
                 let weight = b.weight || 1;
-                bodyHtml += `<tr class="border-b border-slate-200 hover:bg-slate-50 transition-colors">`;
+                bodyHtml += `<tr class="border-b border-slate-200 hover:bg-slate-50 transition-colors group/row">`;
                 bodyHtml += `
                     <td class="p-3 border-r border-slate-200 relative group pl-6 align-top pt-4">
                         <div class="mb-2">
                             <select onchange="updateBenefitWeight('${b.id}', this.value)" class="text-[10px] font-bold outline-none bg-slate-100 border border-slate-200 rounded px-1.5 py-1 text-slate-600 focus:border-brand-blue cursor-pointer transition-colors hover:bg-slate-200">
-                                <option value="3" ${weight === 3 ? 'selected' : ''}>🔥 Krytyczne (x3)</option>
-                                <option value="2" ${weight === 2 ? 'selected' : ''}>⭐️ Ważne (x2)</option>
-                                <option value="1" ${weight === 1 ? 'selected' : ''}>⚪️ Dodatkowe (x1)</option>
+                                <option value="3" ${weight === 3 ? 'selected' : ''}>🔥 Krytyczne (waga x3)</option>
+                                <option value="2" ${weight === 2 ? 'selected' : ''}>⭐️ Ważne (waga x2)</option>
+                                <option value="1" ${weight === 1 ? 'selected' : ''}>⚪️ Dodatkowe (waga x1)</option>
                             </select>
                         </div>
                         <div class="w-[90%] font-medium text-slate-800 leading-tight">${b.name}</div>
-                        <button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-4 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 transition-opacity" title="Usuń świadczenie">✕</button>
+                        <button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-4 text-red-400 opacity-0 group/row-hover:opacity-100 hover:text-red-600 transition-opacity bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm" title="Usuń świadczenie">✕</button>
                     </td>
                 `;
                 
@@ -318,13 +327,13 @@
                     bodyHtml += `
                         <td class="p-2 border-r border-slate-200 align-top">
                             <div class="flex flex-col gap-2">
-                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue">
+                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue transition-shadow">
                                     <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-2 py-1.5 border-r border-slate-200 w-12 text-center">SU</span>
-                                    <input type="number" step="1" value="${data.su}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'su', this.value)" placeholder="Kwota PLN" class="w-full px-2 py-1.5 text-sm outline-none">
+                                    <input type="number" step="1" value="${data.su}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'su', this.value)" placeholder="PLN" class="w-full px-2 py-1.5 text-sm outline-none">
                                 </div>
-                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue">
+                                <div class="flex items-center bg-white border border-slate-200 rounded shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue transition-shadow">
                                     <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-2 py-1.5 border-r border-slate-200 w-12 text-center" title="Składka jednostkowa">Skł.</span>
-                                    <input type="number" step="0.01" value="${data.premium}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'premium', this.value)" placeholder="Opcjonalna" class="w-full px-2 py-1.5 text-sm outline-none">
+                                    <input type="number" step="0.01" value="${data.premium}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'premium', this.value)" placeholder="Opcjonalnie" class="w-full px-2 py-1.5 text-sm outline-none text-slate-500">
                                 </div>
                             </div>
                         </td>
@@ -335,18 +344,18 @@
         }
         
         if(state.benefits.length === 0) {
-            bodyHtml = `<tr><td colspan="${state.insurers.length + 1}" class="text-center p-6 text-slate-500 italic">Brak świadczeń. Dodaj je z bazy za pomocą przycisku "Dodaj Świadczenie".</td></tr>`;
+            bodyHtml = `<tr><td colspan="${state.insurers.length + 1}" class="text-center p-8 text-slate-500 italic bg-white">Brak świadczeń. Użyj przycisku <span class="font-bold text-brand-blue">➕ Dodaj Świadczenie</span> powyżej, aby zbudować matrycę.</td></tr>`;
         }
         
         tbody.innerHTML = bodyHtml;
 
-        // Stopka
-        let footerHtml = `<tr><td class="p-4 font-bold text-right border-r border-slate-200">Składka miesięczna<br/><span class="text-xs font-normal text-slate-500">(Wpisz sumę)</span></td>`;
+        // Stopka z sumą
+        let footerHtml = `<tr><td class="p-4 font-bold text-right border-r border-slate-200 text-slate-700">Składka miesięczna<br/><span class="text-xs font-normal text-slate-500">(Wpisz sumę końcową)</span></td>`;
         state.insurers.forEach(tu => {
             const total = state.totals[tu.id] || '';
             footerHtml += `
                 <td class="p-3 border-r border-slate-200">
-                    <div class="flex items-center bg-white rounded shadow-inner border border-blue-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue">
+                    <div class="flex items-center bg-white rounded shadow-inner border border-blue-200 overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue transition-shadow">
                         <input type="number" step="0.01" value="${total}" oninput="updateTotal('${tu.id}', this.value)" placeholder="0.00" class="w-full p-2 text-center font-bold text-brand-blue outline-none text-lg">
                         <span class="pr-3 text-sm text-blue-400 font-bold">PLN</span>
                     </div>
@@ -396,33 +405,38 @@
         }
     }
 
-    // --- BAZA I MODALE ---
+    // --- OBSŁUGA BAZY SUPABASE I MODALI ---
     function addBenefitModal() {
         const modal = document.getElementById('riskModal');
         const list = document.getElementById('risksDbList');
         
         let groupedDb = {};
         dbData.risks.forEach(r => {
-            if(!groupedDb[r.category]) groupedDb[r.category] = [];
-            groupedDb[r.category].push(r);
+            const cat = r.category || 'Inne';
+            if(!groupedDb[cat]) groupedDb[cat] = [];
+            groupedDb[cat].push(r);
         });
 
         let html = '';
+        if (dbData.risks.length === 0) {
+            html = '<div class="p-4 text-center text-red-500 font-bold">Brak ryzyk w bazie danych. Upewnij się, że tabela "risks" w Supabase nie jest pusta.</div>';
+        }
+
         for(let cat in groupedDb) {
             html += `<div class="mb-4">
-                        <h4 class="font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded mb-2">${cat}</h4>
-                        <div class="space-y-1 pl-2">`;
+                        <h4 class="font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded mb-2 border border-slate-200 shadow-sm">${cat}</h4>
+                        <div class="space-y-1.5 pl-2">`;
             groupedDb[cat].forEach(r => {
                 const isAdded = state.benefits.some(b => b.id === r.id);
                 if(isAdded) {
                     html += `<div class="flex justify-between items-center p-2 text-sm text-slate-400 bg-slate-50 border border-slate-100 rounded">
                                 <span>${r.name}</span>
-                                <span class="text-xs font-bold px-2">Dodano</span>
+                                <span class="text-xs font-bold px-2 bg-slate-200 rounded py-0.5">Dodano</span>
                              </div>`;
                 } else {
-                    html += `<div class="flex justify-between items-center p-2 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition-colors group">
+                    html += `<div class="flex justify-between items-center p-2 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition-colors group cursor-pointer" onclick="selectRiskFromDb('${r.id}')">
                                 <span class="text-slate-800">${r.name}</span>
-                                <button onclick="selectRiskFromDb('${r.id}')" class="text-xs bg-white border border-brand-blue text-brand-blue group-hover:bg-brand-blue group-hover:text-white px-2 py-1 rounded transition-colors">Dodaj</button>
+                                <button class="text-xs bg-white border border-brand-blue text-brand-blue group-hover:bg-brand-blue group-hover:text-white px-2.5 py-1 rounded transition-colors">Dodaj</button>
                              </div>`;
                 }
             });
@@ -439,7 +453,7 @@
         if(risk && !state.benefits.some(b => b.id === risk.id)) {
             state.benefits.push({ id: risk.id, category: risk.category, name: risk.name, weight: 1 });
             renderMatrix();
-            addBenefitModal(); 
+            addBenefitModal(); // Odświeża listę w otwartym modalu (zmienia przycisk na "Dodano")
         }
     }
 
@@ -448,17 +462,21 @@
         const list = document.getElementById('insurersDbList');
         
         let html = '';
+        if (dbData.insurers.length === 0) {
+            html = '<div class="p-4 text-center text-red-500 font-bold">Brak TU w bazie danych. Upewnij się, że tabela "insurers" w Supabase nie jest pusta.</div>';
+        }
+
         dbData.insurers.forEach(tu => {
             const isAdded = state.insurers.some(i => i.id === tu.id);
             if(isAdded) {
                 html += `<div class="flex justify-between items-center p-3 text-sm text-slate-400 bg-slate-50 border border-slate-100 rounded">
                             <span class="font-bold">${tu.name}</span>
-                            <span class="text-xs font-bold px-2">Dodano</span>
+                            <span class="text-xs font-bold px-2 bg-slate-200 rounded py-0.5">Dodano</span>
                          </div>`;
             } else {
-                html += `<div class="flex justify-between items-center p-3 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition-colors group">
+                html += `<div class="flex justify-between items-center p-3 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition-colors group cursor-pointer" onclick="selectInsurerFromDb('${tu.id}')">
                             <span class="font-bold text-slate-800">${tu.name}</span>
-                            <button onclick="selectInsurerFromDb('${tu.id}')" class="text-xs bg-white border border-brand-blue text-brand-blue group-hover:bg-brand-blue group-hover:text-white px-3 py-1.5 rounded transition-colors">Wybierz</button>
+                            <button class="text-xs bg-white border border-brand-blue text-brand-blue group-hover:bg-brand-blue group-hover:text-white px-3 py-1.5 rounded transition-colors shadow-sm">Wybierz</button>
                          </div>`;
             }
         });
@@ -473,52 +491,61 @@
         if(tu && !state.insurers.some(i => i.id === tu.id)) {
             state.insurers.push({ id: tu.id, name: tu.name });
             renderMatrix();
-            addInsurerModal(); 
+            addInsurerModal(); // Odświeża listę
         }
     }
 
-    // --- ALGORYTM SCORINGOWY (Bezpieczny dla pustych danych) ---
+    // --- ALGORYTM SCORINGOWY (Bezpieczny i ulepszony) ---
     function updateScoring() {
         syncClientDataToState();
         const resultsContainer = document.getElementById('scoringResults');
         
+        // 1. Suma wag z wybranych ryzyk (do proporcji % zakresu)
         let maxScopePoints = 0;
         state.benefits.forEach(b => { maxScopePoints += (b.weight || 1); });
 
+        // 2. Szukanie najniższej podanej ceny końcowej
         let validPremiums = state.insurers.map(tu => parseFloat(state.totals[tu.id]) || 0).filter(p => p > 0);
         let minPremium = validPremiums.length > 0 ? Math.min(...validPremiums) : 0;
 
         let tuScores = [];
 
+        // 3. Ocena każdego TU
         state.insurers.forEach(tu => {
             let scopePoints = 0;
             
             state.benefits.forEach(b => {
                 let weight = b.weight || 1;
-                // Bezpieczne sprawdzanie optional chaining, żeby nie wywaliło JS
+                // Bezpieczne sprawdzanie (optional chaining)
                 let currentSu = parseFloat(state.matrixData[b.id]?.[tu.id]?.su) || 0;
                 
+                // Szukamy najwyższej sumy SU w danym wierszu u wszystkich ubezpieczycieli
                 let maxSuInRow = 0;
                 state.insurers.forEach(otherTu => {
                     let otherSu = parseFloat(state.matrixData[b.id]?.[otherTu.id]?.su) || 0;
                     if (otherSu > maxSuInRow) maxSuInRow = otherSu;
                 });
 
+                // Przydział punktów za ten wiersz
                 if (maxSuInRow > 0 && currentSu > 0) {
                     scopePoints += (currentSu / maxSuInRow) * weight;
                 }
             });
 
+            // Wynik Zakresu (70% wagi końcowej)
             let scopePercentage = maxScopePoints > 0 ? (scopePoints / maxScopePoints) * 100 : 0;
+            
+            // Wynik Ceny (30% wagi końcowej)
             let tuPremium = parseFloat(state.totals[tu.id]) || 0;
             let pricePercentage = 0;
             
             if (minPremium > 0 && tuPremium > 0) {
                 pricePercentage = (minPremium / tuPremium) * 100;
             } else if (tuPremium === 0 && minPremium === 0) {
-                pricePercentage = 100; 
+                pricePercentage = 100; // Jeśli u żadnego nie podano ceny, nie psujemy wyniku
             }
 
+            // Ostateczny Wynik
             let finalScore = (scopePercentage * 0.7) + (pricePercentage * 0.3);
 
             tuScores.push({
@@ -531,10 +558,11 @@
             });
         });
 
+        // 4. Sortowanie i Render
         tuScores.sort((a, b) => b.finalScore - a.finalScore);
 
         if (tuScores.length === 0 || maxScopePoints === 0) {
-            resultsContainer.innerHTML = '<p class="text-slate-500 italic col-span-3">Dodaj świadczenia i wpisz kwoty SU, aby wygenerować rekomendację.</p>';
+            resultsContainer.innerHTML = '<p class="text-slate-500 italic col-span-3 text-center p-6 bg-slate-50 rounded-lg border border-dashed border-slate-300">Dodaj minimum jedno TU oraz świadczenie i wypełnij pole SU, aby system mógł wygenerować rekomendację.</p>';
             return;
         }
 
@@ -546,30 +574,34 @@
             let isWinner = index === 0 && score.finalScore > 0;
             
             html += `
-                <div class="relative bg-slate-50 border ${isWinner ? 'border-brand-gold shadow-md' : 'border-slate-200'} rounded-xl p-5 flex flex-col transition-all duration-300">
+                <div class="relative bg-white border ${isWinner ? 'border-brand-gold shadow-lg ring-1 ring-brand-gold' : 'border-slate-200 shadow-sm'} rounded-xl p-5 flex flex-col transition-all duration-300">
                     ${isWinner ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full tracking-wider shadow-sm">Zwycięzca</div>' : ''}
                     
-                    <div class="flex items-center gap-3 mb-4 mt-2">
+                    <div class="flex items-center gap-3 mb-4 mt-2 border-b border-slate-100 pb-3">
                         <div class="text-3xl">${medal}</div>
                         <h3 class="text-lg font-bold text-brand-blue truncate" title="${score.name}">${score.name}</h3>
                     </div>
                     
-                    <div class="flex items-end gap-1 mb-4">
-                        <span class="text-4xl font-black ${isWinner ? 'text-brand-gold' : 'text-slate-700'}">${score.finalScore.toFixed(1)}</span>
-                        <span class="text-lg font-bold text-slate-400 mb-1">%</span>
+                    <div class="flex flex-col mb-4">
+                        <span class="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-1">Dopasowanie oferty</span>
+                        <div class="flex items-end gap-1">
+                            <span class="text-4xl font-black ${isWinner ? 'text-brand-gold' : 'text-slate-700'}">${score.finalScore.toFixed(1)}</span>
+                            <span class="text-lg font-bold text-slate-400 mb-1">%</span>
+                        </div>
                     </div>
                     
-                    <div class="space-y-2 text-sm mt-auto border-t border-slate-200 pt-4">
+                    <div class="space-y-2 text-sm mt-auto bg-slate-50 p-3 rounded-lg border border-slate-100">
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Jakość Zakresu (70%)</span>
+                            <span class="text-slate-500">Ocena Zakresu (Waga: 70%)</span>
                             <span class="font-bold text-slate-700">${score.scopeScore.toFixed(1)}%</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Ocena Składki (30%)</span>
+                            <span class="text-slate-500">Ocena Składki (Waga: 30%)</span>
                             <span class="font-bold text-slate-700">${score.priceScore.toFixed(1)}%</span>
                         </div>
-                        <div class="flex justify-between items-center bg-slate-100 px-2 py-1.5 rounded mt-3">
-                            <span class="text-slate-600 font-medium">Koszt dla pracownika</span>
+                        <div class="w-full h-px bg-slate-200 my-2"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600 font-medium">Składka dla klienta</span>
                             <span class="font-bold text-brand-blue">${score.premium > 0 ? score.premium.toFixed(2) + ' zł' : '-'}</span>
                         </div>
                     </div>
@@ -580,7 +612,7 @@
         resultsContainer.innerHTML = html;
     }
 
-    // --- GUS ---
+    // --- INTEGRACJA GUS (Biała Lista MF) ---
     async function pobierzDaneGUS() {
         const nipInput = document.getElementById('nkNip').value.trim();
         const cleanNip = nipInput.replace(/[\ \-]/gi, '');
@@ -593,7 +625,7 @@
             return; 
         }
         
-        statusEl.textContent = "⏳ Pobieranie z bazy MF..."; 
+        statusEl.textContent = "⏳ Odpytywanie Ministerstwa Finansów..."; 
         statusEl.className = "text-[10px] font-bold mt-2 text-blue-500";
         
         try {
@@ -601,8 +633,7 @@
             const url = `https://wl-api.mf.gov.pl/api/search/nip/${cleanNip}?date=${dzisiaj}`;
             const res = await fetch(url);
             
-            if (!res.ok) throw new Error("Błędny NIP lub błąd serwera MF.");
-            
+            if (!res.ok) throw new Error("Błąd MF.");
             const data = await res.json();
             
             if (data?.result?.subject?.name) {
@@ -612,14 +643,13 @@
                 state.client.nip = cleanNip;
                 syncClientDataToState();
                 
-                statusEl.textContent = "✅ Pobrano dane firmy."; 
+                statusEl.textContent = "✅ Pobrano dane z Białej Listy."; 
                 statusEl.className = "text-[10px] font-bold mt-2 text-emerald-600";
             } else { 
-                statusEl.textContent = "❌ Brak na liście VAT."; 
+                statusEl.textContent = "❌ Brak podmiotu na liście VAT MF."; 
                 statusEl.className = "text-[10px] font-bold mt-2 text-amber-500";
             }
         } catch (error) {
-            console.error("Błąd pobierania z MF:", error);
             statusEl.textContent = "❌ Błąd połączenia / Błędny NIP."; 
             statusEl.className = "text-[10px] font-bold mt-2 text-red-500";
         }
@@ -640,19 +670,25 @@
         document.getElementById('gusStatus').classList.add('hidden');
     }
 
-    // --- ZAPIS/ODCZYT LOCALSTORAGE ---
+    // --- ZAPIS I ODCZYT (LOCAL STORAGE) ---
     function saveOffer() {
         syncClientDataToState();
         if(!state.offerName || state.offerName.trim() === '') {
-            alert('Wprowadź nazwę oferty na górnym pasku przed zapisaniem.');
+            alert('Wprowadź nazwę oferty na górnym pasku, aby móc ją zapisać.');
             return;
         }
-
+        
         const offersStr = localStorage.getItem('lifeaura_offers');
         let offers = offersStr ? JSON.parse(offersStr) : {};
         
         const keyId = Date.now().toString();
-        offers[keyId] = { id: keyId, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state) };
+        offers[keyId] = { 
+            id: keyId, 
+            name: state.offerName, 
+            clientName: state.client.nazwa,
+            date: new Date().toLocaleString(), 
+            data: JSON.stringify(state) 
+        };
         
         localStorage.setItem('lifeaura_offers', JSON.stringify(offers));
         
@@ -672,20 +708,23 @@
         let offers = offersStr ? JSON.parse(offersStr) : {};
         list.innerHTML = '';
         
-        const offerKeys = Object.keys(offers).sort((a,b) => b - a);
+        const offerKeys = Object.keys(offers).sort((a,b) => b - a); // sortowanie od najnowszych
         if(offerKeys.length === 0) {
-            list.innerHTML = '<p class="text-sm text-slate-500 italic text-center p-4">Brak zapisanych ofert.</p>';
+            list.innerHTML = '<p class="text-sm text-slate-500 italic text-center p-4">Brak ofert zapisanych w pamięci przeglądarki.</p>';
             return;
         }
 
         offerKeys.forEach(k => {
             const offer = offers[k];
             list.innerHTML += `
-                <div class="flex justify-between items-center p-3 border border-slate-200 rounded hover:bg-slate-50">
-                    <div><div class="font-bold text-brand-blue">${offer.name}</div><div class="text-[10px] text-slate-500">${offer.date}</div></div>
+                <div class="flex justify-between items-center p-3 border border-slate-200 rounded hover:bg-slate-50 transition-colors">
+                    <div>
+                        <div class="font-bold text-brand-blue">${offer.name}</div>
+                        <div class="text-[10px] text-slate-500">${offer.date} ${offer.clientName ? '| Klient: ' + offer.clientName : ''}</div>
+                    </div>
                     <div class="flex gap-2">
-                        <button onclick="loadOffer('${k}')" class="text-xs bg-brand-blue text-white px-2 py-1 rounded hover:bg-blue-800">Wczytaj</button>
-                        <button onclick="deleteOffer('${k}')" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200">Usuń</button>
+                        <button onclick="loadOffer('${k}')" class="text-xs bg-brand-blue text-white px-3 py-1.5 rounded hover:bg-blue-800 shadow-sm transition-colors">Wczytaj</button>
+                        <button onclick="deleteOffer('${k}')" class="text-xs bg-red-100 text-red-600 px-2 py-1.5 rounded hover:bg-red-200 transition-colors" title="Usuń z pamięci">🗑️</button>
                     </div>
                 </div>
             `;
@@ -706,33 +745,36 @@
     }
 
     function deleteOffer(keyId) {
-        if(confirm('Na pewno usunąć tę ofertę?')) {
+        if(confirm('Na pewno trwale usunąć tę ofertę z pamięci?')) {
             const offersStr = localStorage.getItem('lifeaura_offers');
             let offers = offersStr ? JSON.parse(offersStr) : {};
             delete offers[keyId];
             localStorage.setItem('lifeaura_offers', JSON.stringify(offers));
-            openLoadModal(); 
+            openLoadModal(); // Odśwież listę po skasowaniu
         }
     }
 
-    // --- EKSPORT CSV ---
+    // --- EKSPORT DO CSV (EXCEL) ---
     function exportToCSV() {
         syncClientDataToState();
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM dla znaków polskich w Excelu
         
-        csvContent += `Oferta:;${state.offerName}\n`;
-        csvContent += `Klient:;${state.client.nazwa};NIP:;${state.client.nip};Zatrudnienie:;${state.client.zatrudnienie}\n\n`;
+        csvContent += `Dane oferty:;${state.offerName}\n`;
+        csvContent += `Klient:;${state.client.nazwa};NIP:;${state.client.nip};Pracownicy:;${state.client.zatrudnienie}\n\n`;
 
-        let headers = ["Kategoria", "Priorytet", "Świadczenie"];
-        state.insurers.forEach(tu => {
-            headers.push(`${tu.name} SU`);
-            headers.push(`${tu.name} Składka`);
+        // Nagłówki
+        let headers = ["Kategoria", "Waga dla Klienta", "Świadczenie"];
+        state.insurers.forEach(tu => { 
+            headers.push(`${tu.name} - Suma Ubezpieczenia (SU)`); 
+            headers.push(`${tu.name} - Składka jednostkowa`); 
         });
         csvContent += headers.join(";") + "\n";
 
+        // Wiersze ryzyk
         state.benefits.forEach(b => {
-            const weightName = b.weight === 3 ? "Krytyczne" : (b.weight === 2 ? "Ważne" : "Dodatkowe");
+            const weightName = b.weight === 3 ? "Krytyczne (x3)" : (b.weight === 2 ? "Ważne (x2)" : "Dodatkowe (x1)");
             let row = [b.category || "", weightName, b.name];
+            
             state.insurers.forEach(tu => {
                 const data = state.matrixData[b.id] && state.matrixData[b.id][tu.id] ? state.matrixData[b.id][tu.id] : { su: "", premium: "" };
                 row.push(data.su || "");
@@ -741,29 +783,34 @@
             csvContent += row.join(";") + "\n";
         });
 
-        let totalsRow = ["", "", "Składka końcowa (ręczna)"];
-        state.insurers.forEach(tu => {
-            totalsRow.push("");
-            totalsRow.push(state.totals[tu.id] || "0"); 
+        // Wiersz Składki Końcowej
+        let totalsRow = ["", "", "Składka Miesięczna (Suma)"];
+        state.insurers.forEach(tu => { 
+            totalsRow.push(""); // Puste pod SU
+            totalsRow.push(state.totals[tu.id] || "0"); // Składka wpisana pod Składkami
         });
         csvContent += totalsRow.join(";") + "\n";
 
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Lifeaura_Matryca_${state.offerName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `Lifeaura_Oferta_${state.offerName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
 
-    // --- START APLIKACJI ---
+    // --- INICJALIZACJA PRZY STARCIE ---
     document.addEventListener('DOMContentLoaded', async () => {
+        // Podpięcie eventów zapisujących dane z nagłówka do stanu aplikacji
         ['nkNip', 'nkNazwa', 'nkZatrudnienie', 'offerName'].forEach(id => {
             document.getElementById(id).addEventListener('change', syncClientDataToState);
         });
         
-        await initSupabaseData(); // Próbuje połączyć z bazą, a w razie błędu przełącza na tryb "Mock"
+        // Pobierz dane z Twojej bazy Supabase
+        await initSupabaseData();
+        
+        // Wyrenderuj pustą matrycę gotową do pracy
         renderMatrix();
     });
 
