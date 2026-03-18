@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LIFEAURA — Porównywarka B2B v1.7</title>
+  <title>LIFEAURA — Porównywarka B2B v1.8</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -32,7 +32,7 @@
         <span class="text-2xl">🛡️</span>
         <div class="flex items-baseline gap-2">
             <h1 class="text-xl font-bold tracking-tight">LIFEAURA</h1>
-            <span class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v1.7</span>
+            <span class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v1.8</span>
         </div>
       </div>
       
@@ -121,9 +121,9 @@
   </div>
 
   <script>
-    // ⚙️ KONFIGURACJA SUPABASE (Zaktualizowane klucze)
-    const SB_URL = 'https://glphioldqqgbmccmufnm.supabase.co';
-    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdscGhpb2xkcXFnYm1jY211Zm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODMxNjcsImV4cCI6MjA4ODY1OTE2N30.I2n7q7s7cCiSKaPXJunfGefCADuvxur3XhGY1qAXGbk';
+    // ⚙️ KONFIGURACJA SUPABASE (Zaktualizowane klucze podane przez Ciebie)
+    const SB_URL = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
 
     let dbData = { insurers: [], risks: [] };
     
@@ -330,10 +330,10 @@
         }
         state.offerName = currentInput;
 
-        let offers = JSON.parse(localStorage.getItem('lifeaura_db_v16') || '{}');
+        let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}');
         const k = Date.now().toString(); 
         offers[k] = { id: k, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state) };
-        localStorage.setItem('lifeaura_db_v16', JSON.stringify(offers)); 
+        localStorage.setItem('lifeaura_db_v18', JSON.stringify(offers)); 
         
         const btn = document.querySelector('button[onclick="saveOffer()"]');
         const old = btn.innerHTML; btn.innerHTML = '✅ Zapisano'; btn.classList.add('bg-green-600'); 
@@ -341,7 +341,7 @@
     }
     
     function openLoadModal() {
-        let offers = JSON.parse(localStorage.getItem('lifeaura_db_v16') || '{}');
+        let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}');
         let html = ''; Object.keys(offers).sort((a,b)=>b-a).forEach(k => {
             let o = offers[k]; html += `<div class="flex justify-between items-center p-3 border border-slate-200 rounded mb-2 bg-slate-50 hover:bg-slate-100 transition-colors"><div><div class="font-bold text-brand-blue">${o.name}</div><div class="text-[10px] text-slate-500">${o.date}</div></div><div class="flex gap-2"><button onclick="loadOffer('${k}')" class="bg-brand-blue text-white text-xs px-3 py-1.5 rounded hover:bg-blue-800 transition-colors">Wczytaj</button><button onclick="deleteOffer('${k}')" class="bg-red-100 text-red-600 text-xs px-2.5 py-1.5 rounded hover:bg-red-200 transition-colors" title="Usuń">🗑️</button></div></div>`;
         });
@@ -349,8 +349,8 @@
     }
     
     function closeLoadModal() { document.getElementById('loadModal').classList.add('hidden'); }
-    function loadOffer(k) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v16') || '{}'); if(offers[k]) { state = JSON.parse(offers[k].data); syncUI(); renderMatrix(); closeLoadModal(); } }
-    function deleteOffer(k) { if(confirm('Usunąć tę ofertę?')) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v16') || '{}'); delete offers[k]; localStorage.setItem('lifeaura_db_v16', JSON.stringify(offers)); openLoadModal(); } }
+    function loadOffer(k) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}'); if(offers[k]) { state = JSON.parse(offers[k].data); syncUI(); renderMatrix(); closeLoadModal(); } }
+    function deleteOffer(k) { if(confirm('Usunąć tę ofertę?')) { let offers = JSON.parse(localStorage.getItem('lifeaura_db_v18') || '{}'); delete offers[k]; localStorage.setItem('lifeaura_db_v18', JSON.stringify(offers)); openLoadModal(); } }
 
     function exportToCSV() {
         let currentInput = document.getElementById('offerName').value.trim();
