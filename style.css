@@ -1,0 +1,55 @@
+.matrix-scroll::-webkit-scrollbar { 
+    height: 8px; 
+    width: 8px; 
+}
+.matrix-scroll::-webkit-scrollbar-track { 
+    background: #f1f5f9; 
+    border-radius: 4px; 
+}
+.matrix-scroll::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; 
+    border-radius: 4px; 
+}
+.matrix-scroll::-webkit-scrollbar-thumb:hover { 
+    background: #94a3b8; 
+}
+.modal-overlay { 
+    background-color: rgba(0, 0, 0, 0.5); 
+    backdrop-filter: blur(2px); 
+}
+
+/* Ukrywamy elementy podczas generowania PDF */
+.pdf-export-mode .no-pdf { 
+    display: none !important; 
+}
+
+/* Ukrywamy elementy dla trybu Klienta (Read-Only) */
+.client-mode .no-client { 
+    display: none !important; 
+}
+
+/* Poprawka na ucinanie tabeli w PDF */
+.pdf-export-mode .matrix-scroll,
+.pdf-export-mode .overflow-x-auto { 
+    overflow: visible !important; 
+    max-width: none !important;
+}
+
+/* v2.2 Style dla ładnych inputów z formatowaniem */
+.su-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.su-input {
+    width: 100%;
+    padding-right: 35px; /* Miejsce na PLN */
+}
+.su-currency {
+    position: absolute;
+    right: 8px;
+    color: #94a3b8;
+    font-size: 0.7rem;
+    font-weight: 700;
+    pointer-events: none;
+}
