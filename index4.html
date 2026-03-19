@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AURA LIFE — Porównywarka B2B v2.0</title>
+  <title>AURA LIFE — Porównywarka B2B v2.2</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,26 +16,8 @@
     }
   </script>
   
-  <style>
-    .matrix-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
-    .matrix-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-    .matrix-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .matrix-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
-    
-    /* Ukrywamy elementy podczas generowania PDF */
-    .pdf-export-mode .no-pdf { display: none !important; }
-    
-    /* Ukrywamy elementy dla trybu Klienta (Read-Only) */
-    .client-mode .no-client { display: none !important; }
-
-    /* Poprawka na ucinanie tabeli w PDF */
-    .pdf-export-mode .matrix-scroll,
-    .pdf-export-mode .overflow-x-auto { 
-        overflow: visible !important; 
-        max-width: none !important;
-    }
-  </style>
+  <!-- Podłączenie zewnętrznego arkusza stylów -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
@@ -46,7 +28,7 @@
         <span class="text-2xl">🛡️</span>
         <div class="flex items-baseline gap-2">
             <h1 class="text-xl font-bold tracking-tight">AURA LIFE</h1>
-            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.0</span>
+            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.2</span>
         </div>
       </div>
       
@@ -111,13 +93,13 @@
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-4">
         <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>🏆</span> Rekomendacja Systemu</h2>
         <p class="text-sm text-slate-600 mb-6">Zakres (70% oceny), Składka (30% oceny). Oferty oceniane są relatywnie (Suma Ubezpieczenia odniesiona do max SU w rzędzie).</p>
-        <div id="scoringResults" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        <div id="scoringResults" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div> <!-- Klasa grid-cols zostanie nadpisana przez JS v2.2 -->
     </section>
   </main>
 
   <footer class="bg-slate-100 border-t border-slate-200 text-slate-500 py-3 text-center text-sm mt-auto shadow-inner flex justify-center items-center gap-2">
       <div class="font-medium">Aura Consulting sp. z o.o.</div>
-      <span class="no-client text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.0</span>
+      <span class="no-client text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.2</span>
   </footer>
 
   <!-- Modale Lokalnego Wczytywania i Bazy Ryzyk -->
@@ -156,7 +138,7 @@
 
   <script>
     // WERSJONOWANIE SYSTEMU
-    const APP_VERSION = 'v2.0';
+    const APP_VERSION = 'v2.2'; /* v2.2: podbicie wersji */
     document.getElementById('appVersionBadge').textContent = APP_VERSION;
     document.getElementById('footerVersion').textContent = APP_VERSION;
     
@@ -173,15 +155,58 @@
     let isClientView = false;
 
     // Funkcja sortująca wg sztywnych wytycznych
+    /* v2.1: kategoria ŻYCIE na początku, v2.2 zachowane bez zmian */
     function getCategoryWeight(cat) {
         let c = (cat || '').toLowerCase();
-        if(c.includes('zgon')) return 1;
-        if(c.includes('uszczerb')) return 2;
-        if(c.includes('rodzin')) return 3;
-        if(c.includes('zdrowi') || c.includes('zachorow')) return 4;
-        if(c.includes('szpital')) return 5;
-        if(c.includes('pozostał') || c.includes('inne')) return 6;
+        if(c.includes('życi') || c.includes('zyci')) return 1; 
+        if(c.includes('zgon')) return 2;
+        if(c.includes('uszczerb')) return 3;
+        if(c.includes('rodzin')) return 4;
+        if(c.includes('zdrowi') || c.includes('zachorow')) return 5;
+        if(c.includes('szpital')) return 6;
+        if(c.includes('pozostał') || c.includes('inne')) return 7;
         return 99; // Domślnie na koniec
+    }
+
+    /* v2.2 Formater waluty z odstępami tysięcy, bez miejsc po przecinku (jeśli okrągłe) */
+    const currencyFormatter = new Intl.NumberFormat('pl-PL', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    });
+
+    /* v2.2 Funkcja pomocnicza do parsowania sformatowanej liczby na czystą liczbę float */
+    function parseFormattedNumber(val) {
+        if (!val) return 0;
+        // Usuwamy wszystko co nie jest cyfrą, minusem lub przecinkiem (zamienionym na kropkę)
+        let cleaned = val.toString().replace(/[^\d,-]/g, '').replace(',', '.');
+        let parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+    }
+
+    /* v2.2 Obsługa oninput na polach z kwotami */
+    function handleSuInput(bId, tuId, inputEl) {
+        // Zapisujemy "czystą" liczbę do state (bez spacji i liter)
+        let rawValue = inputEl.value;
+        // Podmieniamy wartość w input na sformatowaną wersję np 1 000 000
+        let parsedVal = parseFormattedNumber(rawValue);
+        
+        // Zapisujemy do state (tutaj trzymamy "czystą" wartość jako string np. "100000")
+        state.matrixData[bId][tuId]['su'] = rawValue;
+        
+        updateScoring();
+    }
+    
+    /* v2.2 Obsługa opuszczenia pola, żeby ładnie sformatować wynik na ekranie */
+    function handleSuBlur(inputEl) {
+       let rawValue = inputEl.value;
+       let parsedVal = parseFormattedNumber(rawValue);
+       if (parsedVal > 0) {
+           inputEl.value = currencyFormatter.format(parsedVal);
+       } else if(rawValue !== "") {
+           // Jeśli ktoś wpisał bzdury, przywróć "czystą" wartość żeby widział co zepsuł
+           inputEl.value = rawValue;
+       }
     }
 
     function updateDbStatus(type, message) {
@@ -244,9 +269,12 @@
                 <div class="font-bold w-[90%] mx-auto truncate text-sm" title="${tu.name}">${tu.name}</div>`;
                 
             if (isClientView) {
-                let p = state.totals[tu.id] ? `${state.totals[tu.id]} PLN` : '-';
+                /* v2.2 Formatowanie składki również */
+                let p_raw = parseFormattedNumber(state.totals[tu.id]);
+                let p = p_raw > 0 ? `${currencyFormatter.format(p_raw)} PLN` : '-';
                 headerHtml += `<div class="mt-2 text-brand-blue font-bold text-xs">${p}</div>`;
             } else {
+                /* v2.2 Formatowanie składki input - zostawiam type="number" tu celowo żeby łatwiej wpisywac komórką */
                 headerHtml += `<div class="mt-2 flex items-center justify-center gap-1 bg-white border border-slate-300 rounded shadow-inner overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue mx-auto w-24">
                     <input type="number" value="${state.totals[tu.id]||''}" oninput="updateTotal('${tu.id}', this.value)" placeholder="Składka" class="w-full px-2 py-1 text-xs text-center font-bold text-brand-blue outline-none">
                     <span class="text-[9px] text-slate-400 font-bold pr-2">PLN</span>
@@ -291,13 +319,28 @@
                 
                 state.insurers.forEach(tu => {
                     const data = state.matrixData[b.id][tu.id];
+                    let rawSu = data.su || '';
+                    /* v2.2 Wstępne formatowanie jeśli w state jest np 100000 to na start pokaz 100 000 */
+                    let parsedSu = parseFormattedNumber(rawSu);
+                    let displaySu = parsedSu > 0 ? currencyFormatter.format(parsedSu) : rawSu;
+
                     bodyHtml += `<td class="p-2 border-r border-slate-200 align-middle">`;
                     if (isClientView) {
-                        bodyHtml += `<div class="text-xs font-medium text-slate-700 text-center">${data.su || '-'}</div>`;
+                        /* v2.2 Formatowanie widoku klienta */
+                        let clientDisplay = parsedSu > 0 ? `${displaySu} PLN` : (rawSu || '-');
+                        bodyHtml += `<div class="text-xs font-medium text-slate-700 text-center">${clientDisplay}</div>`;
                     } else {
+                        /* v2.2 Zmiana input na text aby mozna bylo robic odstepy "1 000 000" i dodano PLN w srodku diva */
                         bodyHtml += `<div class="flex bg-white border border-slate-200 rounded overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue transition-shadow">
                             <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-1.5 py-1 border-r border-slate-200 flex items-center justify-center min-w-[30px]">SU</span>
-                            <input type="number" value="${data.su}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'su', this.value)" placeholder="PLN" class="w-full px-2 py-1 text-xs outline-none font-medium text-slate-700">
+                            <div class="su-input-wrapper w-full">
+                                <input type="text" value="${displaySu}" 
+                                    oninput="handleSuInput('${b.id}', '${tu.id}', this)" 
+                                    onblur="handleSuBlur(this)"
+                                    placeholder="Kwota" 
+                                    class="su-input px-2 py-1 text-xs outline-none font-medium text-slate-700 text-right pr-8">
+                                <span class="su-currency">PLN</span>
+                            </div>
                         </div>`;
                     }
                     bodyHtml += `</td>`;
@@ -312,7 +355,6 @@
         updateScoring();
     }
 
-    function updateMatrixData(bId, tuId, field, val) { if(state.matrixData[bId]?.[tuId]) { state.matrixData[bId][tuId][field] = val; if(field==='su') updateScoring(); } }
     function updateTotal(tuId, val) { state.totals[tuId] = val; updateScoring(); }
     function updateBenefitWeight(id, w) { const b = state.benefits.find(x => x.id === id); if(b) { b.weight = parseInt(w); updateScoring(); } }
     function removeBenefit(id) { state.benefits = state.benefits.filter(b => b.id !== id); delete state.matrixData[id]; renderMatrix(); }
@@ -350,27 +392,50 @@
 
     function updateScoring() {
         let maxScope = 0; state.benefits.forEach(b => maxScope += (b.weight || 1));
-        let validPremiums = state.insurers.map(tu => parseFloat(state.totals[tu.id]) || 0).filter(p => p > 0);
+        
+        /* v2.2 Aktualizacja wyciagania premiums pod zmieniony system kwot */
+        let validPremiums = state.insurers.map(tu => parseFormattedNumber(state.totals[tu.id])).filter(p => p > 0);
         let minPremium = validPremiums.length > 0 ? Math.min(...validPremiums) : 0;
         let scores = [];
 
         state.insurers.forEach(tu => {
             let scopePts = 0;
             state.benefits.forEach(b => {
-                let currentSu = parseFloat(state.matrixData[b.id]?.[tu.id]?.su) || 0;
+                /* v2.2 Parsowanie kwot na z "1 000 000" do float 100000.0 */
+                let currentSu = parseFormattedNumber(state.matrixData[b.id]?.[tu.id]?.su);
                 let maxSuRow = 0;
-                state.insurers.forEach(t => { let s = parseFloat(state.matrixData[b.id]?.[t.id]?.su)||0; if(s > maxSuRow) maxSuRow = s; });
+                state.insurers.forEach(t => { 
+                    let s = parseFormattedNumber(state.matrixData[b.id]?.[t.id]?.su); 
+                    if(s > maxSuRow) maxSuRow = s; 
+                });
                 if (maxSuRow > 0 && currentSu > 0) scopePts += (currentSu / maxSuRow) * (b.weight || 1);
             });
             let scopePerc = maxScope > 0 ? (scopePts / maxScope) * 100 : 0;
-            let prem = parseFloat(state.totals[tu.id]) || 0;
+            let prem = parseFormattedNumber(state.totals[tu.id]);
             let pricePerc = (minPremium > 0 && prem > 0) ? (minPremium / prem) * 100 : (prem === 0 && minPremium === 0 ? 100 : 0);
             scores.push({ name: tu.name, total: (scopePerc * 0.7) + (pricePerc * 0.3), scope: scopePerc, price: pricePerc, prem: prem });
         });
 
         scores.sort((a,b) => b.total - a.total);
         const cont = document.getElementById('scoringResults');
-        if (scores.length === 0 || maxScope === 0) { cont.innerHTML = '<p class="col-span-3 text-center text-slate-500 italic p-6 bg-slate-50 rounded-lg border border-dashed border-slate-300">Dodaj minimum jedno TU oraz świadczenie i wypełnij pole SU, aby system mógł wygenerować rekomendację.</p>'; return; }
+        if (scores.length === 0 || maxScope === 0) { 
+            cont.innerHTML = '<p class="col-span-full text-center text-slate-500 italic p-6 bg-slate-50 rounded-lg border border-dashed border-slate-300">Dodaj minimum jedno TU oraz świadczenie i wypełnij pole SU, aby system mógł wygenerować rekomendację.</p>'; 
+            return; 
+        }
+
+        /* v2.2 Dynamiczny Layout (Grid) */
+        let gridClasses = 'grid gap-6 ';
+        if (scores.length <= 5) {
+            gridClasses += `grid-cols-1 md:grid-cols-${scores.length}`; // 1 wiersz, od 1 do 5 elementow (Tailwind obsluguje do grid-cols-5 natywnie by default, w klasach ponizej robimy to inlinowo)
+            cont.style.gridTemplateColumns = `repeat(${scores.length}, minmax(0, 1fr))`;
+        } else {
+            cont.style.gridTemplateColumns = `repeat(3, minmax(0, 1fr))`; // default dla wiecej niz 5 to po 3 w rzedzie.
+            if(window.innerWidth > 1200 && scores.length >= 8) {
+               cont.style.gridTemplateColumns = `repeat(4, minmax(0, 1fr))`; // jesli duzo to 4
+            }
+        }
+        
+        cont.className = gridClasses;
 
         let html = '';
         scores.forEach((s, i) => {
@@ -383,7 +448,7 @@
                     <div class="flex justify-between"><span class="text-slate-500">Ocena Zakresu (Waga: 70%)</span><span class="font-bold">${s.scope.toFixed(1)}%</span></div>
                     <div class="flex justify-between"><span class="text-slate-500">Ocena Składki (Waga: 30%)</span><span class="font-bold">${s.price.toFixed(1)}%</span></div>
                     <div class="h-px bg-slate-200 my-1"></div>
-                    <div class="flex justify-between"><span class="text-slate-600 font-medium">Składka końcowa</span><span class="font-bold text-brand-blue">${s.prem>0?s.prem.toFixed(2)+' zł':'-'}</span></div>
+                    <div class="flex justify-between"><span class="text-slate-600 font-medium">Składka końcowa</span><span class="font-bold text-brand-blue">${s.prem>0?currencyFormatter.format(s.prem)+' zł':'-'}</span></div>
                 </div></div>`;
         });
         cont.innerHTML = html;
@@ -454,8 +519,6 @@
         btn.innerHTML = '⏳ Trwa eksport...'; btn.disabled = true;
 
         const element = document.getElementById('exportContent');
-        // Zwiększamy obszar renderowania w oparciu o naturalną szerokość ukrytej w overflow tabeli 
-        // to uchroni ją przed ucinaniem.
         const opt = {
             margin:       0.3,
             filename:     `AURA_LIFE_${state.offerName}.pdf`,
