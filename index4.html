@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pl" class="bg-slate-50 antialiased">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AURA LIFE — Porównywarka B2B v1.9</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { 'brand-blue': '#1e3a8a', 'brand-gold': '#d97706' }, fontFamily: { sans: ['Inter', 'sans-serif'] } } }
+    }
+  </script>
+  
+  <style>
+    .matrix-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .matrix-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .matrix-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .matrix-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+    
+    /* Ukrywanie elementów podczas generowania PDF */
+    .pdf-export-mode .no-pdf { display: none !important; }
+    
+    /* Ukrywanie elementów w trybie Klienta */
+    .client-mode .no-client { display: none !important; }
+  </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+  <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50 no-pdf no-client">
+    <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🛡️</span>
+        <div class="flex items-baseline gap-2">
+            <h1 class="text-xl font-bold tracking-tight">AURA LIFE</h1>
+            <span class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v1.9</span>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3 flex-wrap">
+        <div id="dbStatusBadge" class="flex items-center gap-1.5 bg-slate-800 text-slate-300 px-2 py-1 rounded text-[10px] font-bold border border-slate-700 cursor-help" title="Sprawdzanie połączenia...">
+            <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse" id="dbStatusDot"></span>
+            <span id="dbStatusText">Łączenie...</span>
+        </div>
+
+        <div class="bg-blue-900/50 px-3 py-1 rounded border border-blue-700 flex items-center gap-2">
+            <span class="text-xs text-blue-300">Oferta:</span>
+            <input type="text" id="offerName" placeholder="Zostaw puste dla automatu" value="" class="bg-transparent text-sm font-semibold text-white border-b border-dashed border-blue-400 focus:outline-none focus:border-white w-48 placeholder-blue-300">
+        </div>
+        
+        <button onclick="saveOffer()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">💾 Zapisz Lokalnie</button>
+        <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📂 Wczytaj</button>
+        <button id="btnGenerateLink" onclick="saveToDbAndGenerateLink()" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm text-white border border-yellow-700">🔗 Wyślij Klientowi</button>
+        <button id="btnExportPdf" onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📄 PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Pasek klienta (Widoczny tylko w trybie klienta) -->
+  <header class="bg-brand-gold text-white shadow-md sticky top-0 z-50 hidden" id="clientHeader">
+    <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🛡️</span>
+        <h1 class="text-xl font-bold tracking-tight">Rekomendacja Ofertowa dla: <span id="clientOfferName" class="italic font-medium"></span></h1>
+      </div>
+    </div>
+  </header>
+
+  <main id="exportContent" class="container mx-auto px-4 py-6 flex-grow flex flex-col gap-6">
+
+    <!-- Wiadomość dla klienta -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-2 flex flex-col gap-2 relative">
+      <h2 class="text-sm font-bold text-brand-blue flex items-center gap-2">💬 Wiadomość do Oferty / Notatka</h2>
+      <textarea id="brokerMessageInput" class="w-full text-sm border border-slate-300 rounded p-3 outline-none focus:border-brand-blue no-client bg-slate-50" rows="3" placeholder="Napisz tu wiadomość, którą chcesz, by Klient zobaczył (np. Dzień dobry, zgodnie z ustaleniami przesyłam zestawienie...)" oninput="state.brokerMessage = this.value"></textarea>
+      
+      <!-- Miejsce na wiadomość w trybie klienta -->
+      <div id="brokerMessageDisplay" class="text-sm text-slate-800 whitespace-pre-wrap hidden p-4 bg-blue-50 border-l-4 border-brand-blue rounded-r font-medium"></div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4 bg-slate-50/50">
+            <div>
+                <h2 class="text-lg font-bold text-brand-blue flex items-center gap-2"><span>📊</span> Matryca Porównawcza i Priorytety</h2>
+                <p class="text-sm text-slate-600 mt-1 no-client">Dodaj Towarzystwa i Świadczenia z bazy. Określ wagi (Krytyczne, Ważne, Dodatkowe), aby system wyliczył rekomendację.</p>
+            </div>
+            <div class="flex gap-2 no-pdf no-client">
+                <button onclick="addBenefitModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium shadow-sm transition-colors">➕ Dodaj Świadczenie</button>
+                <button onclick="addInsurerModal()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3 py-1.5 rounded font-medium shadow-sm transition-colors">➕ Dodaj Towarzystwo (TU)</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto matrix-scroll p-0">
+            <table class="w-full text-left border-collapse min-w-[600px]" id="matrixTable">
+                <thead><tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide border-b border-slate-300" id="matrixHeader"></tr></thead>
+                <tbody id="matrixBody" class="text-sm"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-4">
+        <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>🏆</span> Rekomendacja Systemu</h2>
+        <p class="text-sm text-slate-600 mb-6">Zakres (70% oceny), Składka (30% oceny). Oferty oceniane są relatywnie (Suma Ubezpieczenia odniesiona do max SU w rzędzie).</p>
+        <div id="scoringResults" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+    </section>
+  </main>
+
+  <footer class="bg-slate-100 border-t border-slate-200 text-slate-500 py-3 text-center text-sm mt-auto shadow-inner">
+      <div class="container mx-auto px-4 font-medium flex justify-center items-center gap-2">
+          <span>Aura Consulting sp. z o.o.</span>
+          <span class="no-client text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">Tryb Brokera</span>
+      </div>
+  </footer>
+
+  <!-- Modal generowania linku -->
+  <div id="linkModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2"><span>🔗</span> Oferta gotowa do wysłania!</h3>
+            <button onclick="closeLinkModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+        </div>
+        <p class="text-sm text-slate-600 mb-4">Oferta została pomyślnie zapisana w bazie. Prześlij poniższy link swojemu Klientowi. Klient zobaczy zestawienie w trybie "tylko do odczytu".</p>
+        
+        <div class="flex items-center gap-2 mb-6">
+            <input type="text" id="generatedLinkInput" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-sm text-slate-700 focus:outline-none" readonly>
+            <button onclick="copyGeneratedLink()" class="bg-brand-blue hover:bg-blue-800 text-white px-4 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap">Kopiuj</button>
+        </div>
+
+        <button onclick="closeLinkModal()" class="w-full bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition-colors">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- Modal - Wczytaj z LocalStorage -->
+  <div id="loadModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
+          <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-brand-blue">Wczytaj ofertę (Lokalnie)</h3>
+              <button onclick="closeLoadModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+          </div>
+          <div id="offersList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll"></div>
+          <button onclick="closeLoadModal()" class="w-full bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition-colors">Zamknij</button>
+      </div>
+  </div>
+
+  <!-- Modal - Towarzystwa -->
+  <div id="insurerModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
+          <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-brand-blue">Wybierz Towarzystwo</h3>
+              <button onclick="closeInsurerModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+          </div>
+          <div id="insurersDbList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll"></div>
+          <button onclick="closeInsurerModal()" class="w-full bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition-colors">Zamknij</button>
+      </div>
+  </div>
+
+  <!-- Modal - Świadczenia -->
+  <div id="riskModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 flex flex-col max-h-[80vh]">
+          <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-bold text-brand-blue">Wybierz Świadczenia</h3>
+              <button onclick="closeRiskModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
+          </div>
+          <div id="risksDbList" class="flex-grow overflow-y-auto space-y-4 mb-4 pr-2 matrix-scroll"></div>
+          <button onclick="closeRiskModal()" class="w-full bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition-colors">Zamknij</button>
+      </div>
+  </div>
+
+  <script>
+    const SB_URL = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
+    const DB_KEY = 'auralife_db_v19';
+
+    // Inicjalizacja Supabase Client w zakresie globalnym
+    window.supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    
+    let dbData = { insurers: [], risks: [] };
+    const MOCK_DB = { insurers: [{ id: 'tu1', name: 'Warta' }], risks: [{ id: 'r1', category: 'Życie ubezpieczonego', name: 'Zgon ubezpieczonego' }] };
+
+    let state = { offerName: '', brokerMessage: '', insurers: [], benefits: [], matrixData: {}, totals: {} };
+
+    // FUNKCJA: Kolejność wyświetlania kategorii ryzyk
+    function getCategorySortWeight(cat) {
+        let normalized = (cat || '').toLowerCase().trim();
+        if (normalized.includes('zgon')) return 1;
+        if (normalized.includes('uszczerb')) return 2;
+        if (normalized.includes('rodzin')) return 3;
+        if (normalized.includes('zdrowi') || normalized.includes('zachorow')) return 4;
+        if (normalized.includes('szpital')) return 5;
+        if (normalized.includes('pozostał') || normalized.includes('inne')) return 6;
+        return 99; // Fallback
+    }
+
+    function updateDbStatus(type, message) {
+        const dot = document.getElementById('dbStatusDot');
+        const text = document.getElementById('dbStatusText');
+        const badge = document.getElementById('dbStatusBadge');
+        if(!dot || !text || !badge) return; // Ukryte w widoku klienta
+        dot.classList.remove('animate-pulse', 'bg-slate-500', 'bg-green-500', 'bg-red-500', 'bg-orange-500');
+        
+        if(type === 'success') {
+            dot.classList.add('bg-green-500'); text.textContent = 'Połączono (Supabase)';
+            badge.classList.replace('bg-slate-800', 'bg-green-900'); badge.classList.replace('border-slate-700', 'border-green-700'); badge.title = message;
+        } else {
+            dot.classList.add('bg-red-500'); text.textContent = 'Błąd Połączenia';
+            badge.classList.replace('bg-slate-800', 'bg-red-900'); badge.classList.replace('border-slate-700', 'border-red-700'); badge.title = message;
+        }
+    }
+
+    async function initSupabaseData() {
+        try {
+            const { data: insData, error: insErr } = await window.supabaseClient.from('life_insurers').select('*');
+            if (insErr) throw new Error(insErr.message);
+            const { data: riskData, error: riskErr } = await window.supabaseClient.from('life_risks').select('*');
+            if (riskErr) throw new Error(riskErr.message);
+            
+            if (insData && riskData && insData.length > 0) {
+                const cleanedInsData = insData.map(tu => ({ 
+                    ...tu, 
+                    name: tu.name.replace(/\s*Życie/gi, '').trim() 
+                }));
+
+                dbData.insurers = cleanedInsData; 
+                dbData.risks = riskData;
+                updateDbStatus('success', `Pobrano ${insData.length} TU i ${riskData.length} ryzyk.`);
+            } else { throw new Error("Brak rekordów w tabelach life_."); }
+        } catch (error) {
+            console.error(error); dbData = { ...MOCK_DB }; updateDbStatus('error', error.message);
+        }
+    }
+
+    function generateAutoName() {
+        if (state.insurers.length === 0) return `Kalkulacja_${new Date().toISOString().slice(0,10)}`;
+        let initials = state.insurers.map(tu => {
+            return tu.name.split(/[\s-]+/).map(word => word.charAt(0).toUpperCase()).join('');
+        }).join('-');
+        let dateStr = new Date().toISOString().slice(0,10);
+        return `${initials}_${dateStr}`;
+    }
+
+    function renderMatrix() {
+        state.benefits.forEach(b => { if(!state.matrixData[b.id]) state.matrixData[b.id] = {}; state.insurers.forEach(tu => { if(!state.matrixData[b.id][tu.id]) state.matrixData[b.id][tu.id] = {su:''}; }); });
+        state.insurers.forEach(tu => { if(state.totals[tu.id] === undefined) state.totals[tu.id] = ''; });
+
+        const thead = document.getElementById('matrixHeader'); 
+        const tbody = document.getElementById('matrixBody'); 
+        
+        // --- BUDOWA NAGŁÓWKA ---
+        let headerHtml = `<th class="p-2 w-1/4 min-w-[220px] border-r border-slate-200 bg-slate-100 align-top"><div class="pt-2 pl-2">Kategoria / Świadczenie</div></th>`;
+        // Nowa kolumna Wagi
+        headerHtml += `<th class="p-2 w-28 border-r border-slate-200 bg-slate-100 align-top text-center"><div class="pt-2">Waga ocenna</div></th>`;
+        
+        state.insurers.forEach(tu => {
+            headerHtml += `<th class="p-2 text-center border-r border-slate-200 relative group min-w-[120px] bg-slate-100 align-top">
+                <div class="font-bold w-[90%] mx-auto truncate text-sm" title="${tu.name}">${tu.name}</div>`;
+                
+            if(window.isClientView) {
+                // W trybie klienta pokazujemy tylko wynik składki jako tekst
+                let premVal = state.totals[tu.id] ? `${state.totals[tu.id]} PLN` : '-';
+                headerHtml += `<div class="mt-2 text-center text-xs font-bold text-brand-blue bg-white border border-slate-200 rounded py-1 w-24 mx-auto">${premVal}</div>`;
+            } else {
+                // W trybie brokera - input
+                headerHtml += `<div class="mt-2 flex items-center justify-center gap-1 bg-white border border-slate-300 rounded shadow-inner overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue mx-auto w-24">
+                    <input type="number" value="${state.totals[tu.id]||''}" oninput="updateTotal('${tu.id}', this.value)" placeholder="Składka" class="w-full px-2 py-1 text-xs text-center font-bold text-brand-blue outline-none">
+                    <span class="text-[9px] text-slate-400 font-bold pr-2">PLN</span>
+                </div>
+                <button onclick="removeInsurer('${tu.id}')" class="absolute right-1 top-2 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all no-pdf no-client">✕</button>`;
+            }
+            headerHtml += `</th>`;
+        });
+        thead.innerHTML = headerHtml;
+
+        // --- BUDOWA CIAŁA TABELI ---
+        let grouped = {};
+        state.benefits.forEach(b => { const c = b.category || 'Inne'; if(!grouped[c]) grouped[c] = []; grouped[c].push(b); });
+
+        // Sortowanie wg sztywnego klucza Zgony -> Uszczerbki -> Rodzina -> Zdrowie -> Szpitale -> Pozostałe
+        let sortedCategories = Object.keys(grouped).sort((a, b) => getCategorySortWeight(a) - getCategorySortWeight(b));
+
+        let bodyHtml = '';
+        sortedCategories.forEach(cat => {
+            const items = grouped[cat];
+            bodyHtml += `<tr class="bg-blue-50/50 border-b border-slate-300"><td colspan="${state.insurers.length+2}" class="px-3 py-1.5 text-xs font-black text-brand-blue uppercase tracking-widest border-r border-slate-
