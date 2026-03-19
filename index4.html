@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AURA LIFE — Porównywarka B2B v2.2</title>
+  <title>AURA LIFE — Porównywarka B2B v2.3</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,7 +16,6 @@
     }
   </script>
   
-  <!-- Podłączenie zewnętrznego arkusza stylów -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
@@ -28,7 +27,7 @@
         <span class="text-2xl">🛡️</span>
         <div class="flex items-baseline gap-2">
             <h1 class="text-xl font-bold tracking-tight">AURA LIFE</h1>
-            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.2</span>
+            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.3</span>
         </div>
       </div>
       
@@ -93,13 +92,16 @@
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-4">
         <h2 class="text-lg font-bold text-brand-blue mb-2 flex items-center gap-2"><span>🏆</span> Rekomendacja Systemu</h2>
         <p class="text-sm text-slate-600 mb-6">Zakres (70% oceny), Składka (30% oceny). Oferty oceniane są relatywnie (Suma Ubezpieczenia odniesiona do max SU w rzędzie).</p>
-        <div id="scoringResults" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div> <!-- Klasa grid-cols zostanie nadpisana przez JS v2.2 -->
+        <div id="scoringResults" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div> 
     </section>
   </main>
 
-  <footer class="bg-slate-100 border-t border-slate-200 text-slate-500 py-3 text-center text-sm mt-auto shadow-inner flex justify-center items-center gap-2">
-      <div class="font-medium">Aura Consulting sp. z o.o.</div>
-      <span class="no-client text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.2</span>
+  <footer class="bg-slate-100 border-t border-slate-200 text-slate-500 py-4 text-center text-xs mt-auto shadow-inner flex flex-col justify-center items-center gap-2">
+      <div class="font-medium max-w-5xl px-4 leading-relaxed">
+          Aura Consulting spółka z ograniczoną odpowiedzialnością z siedzibą w Warszawie przy ul. Bolkowskiej 2A lokal 28, wpisana do Krajowego Rejestru Sądowego pod numerem 0000426835 przez Sąd Rejonowy dla m.st. Warszawy, XII Wydział Gospodarczy Krajowego Rejestru Sądowego, REGON 341302033, kapitał zakładowy 34.000 zł.<br>
+          Zezwolenie Komisji Nadzoru Finansowego nr 1972/13, wpis w rejestrze brokerów ubezpieczeniowych pod numerem 00001851/U.
+      </div>
+      <span class="no-client text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.3</span>
   </footer>
 
   <!-- Modale Lokalnego Wczytywania i Bazy Ryzyk -->
@@ -138,12 +140,12 @@
 
   <script>
     // WERSJONOWANIE SYSTEMU
-    const APP_VERSION = 'v2.2'; /* v2.2: podbicie wersji */
+    const APP_VERSION = 'v2.3';
     document.getElementById('appVersionBadge').textContent = APP_VERSION;
     document.getElementById('footerVersion').textContent = APP_VERSION;
     
-    // Klucz do LocalStorage oparty na wersji
-    const DB_KEY = 'auralife_db_' + APP_VERSION.replace('.', ''); 
+    // JEDNA WSPÓLNA BAZA LOKALNA DLA WSZYSTKICH WERSJI (Niezmienna)
+    const DB_KEY = 'auralife_db_v19'; 
 
     const SB_URL = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
@@ -155,7 +157,6 @@
     let isClientView = false;
 
     // Funkcja sortująca wg sztywnych wytycznych
-    /* v2.1: kategoria ŻYCIE na początku, v2.2 zachowane bez zmian */
     function getCategoryWeight(cat) {
         let c = (cat || '').toLowerCase();
         if(c.includes('życi') || c.includes('zyci')) return 1; 
@@ -168,43 +169,32 @@
         return 99; // Domślnie na koniec
     }
 
-    /* v2.2 Formater waluty z odstępami tysięcy, bez miejsc po przecinku (jeśli okrągłe) */
     const currencyFormatter = new Intl.NumberFormat('pl-PL', {
         style: 'decimal',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     });
 
-    /* v2.2 Funkcja pomocnicza do parsowania sformatowanej liczby na czystą liczbę float */
     function parseFormattedNumber(val) {
         if (!val) return 0;
-        // Usuwamy wszystko co nie jest cyfrą, minusem lub przecinkiem (zamienionym na kropkę)
         let cleaned = val.toString().replace(/[^\d,-]/g, '').replace(',', '.');
         let parsed = parseFloat(cleaned);
         return isNaN(parsed) ? 0 : parsed;
     }
 
-    /* v2.2 Obsługa oninput na polach z kwotami */
     function handleSuInput(bId, tuId, inputEl) {
-        // Zapisujemy "czystą" liczbę do state (bez spacji i liter)
         let rawValue = inputEl.value;
-        // Podmieniamy wartość w input na sformatowaną wersję np 1 000 000
         let parsedVal = parseFormattedNumber(rawValue);
-        
-        // Zapisujemy do state (tutaj trzymamy "czystą" wartość jako string np. "100000")
         state.matrixData[bId][tuId]['su'] = rawValue;
-        
         updateScoring();
     }
     
-    /* v2.2 Obsługa opuszczenia pola, żeby ładnie sformatować wynik na ekranie */
     function handleSuBlur(inputEl) {
        let rawValue = inputEl.value;
        let parsedVal = parseFormattedNumber(rawValue);
        if (parsedVal > 0) {
            inputEl.value = currencyFormatter.format(parsedVal);
        } else if(rawValue !== "") {
-           // Jeśli ktoś wpisał bzdury, przywróć "czystą" wartość żeby widział co zepsuł
            inputEl.value = rawValue;
        }
     }
@@ -213,7 +203,7 @@
         const dot = document.getElementById('dbStatusDot');
         const text = document.getElementById('dbStatusText');
         const badge = document.getElementById('dbStatusBadge');
-        if(!dot || !text || !badge) return; // Chroni przed bledem gdy ukryte
+        if(!dot || !text || !badge) return; 
         dot.classList.remove('animate-pulse', 'bg-slate-500', 'bg-green-500', 'bg-red-500', 'bg-orange-500');
         
         if(type === 'success') {
@@ -261,7 +251,6 @@
         const tbody = document.getElementById('matrixBody'); 
         
         let headerHtml = `<th class="p-2 w-1/3 min-w-[280px] border-r border-slate-200 bg-slate-100 align-top"><div class="pt-2 pl-2">Kategoria / Świadczenie</div></th>`;
-        // Nowa kolumna Wagi na prawo od Ryzyk
         headerHtml += `<th class="p-2 w-24 border-r border-slate-200 bg-slate-100 align-top text-center"><div class="pt-2">Waga</div></th>`;
 
         state.insurers.forEach(tu => {
@@ -269,12 +258,10 @@
                 <div class="font-bold w-[90%] mx-auto truncate text-sm" title="${tu.name}">${tu.name}</div>`;
                 
             if (isClientView) {
-                /* v2.2 Formatowanie składki również */
                 let p_raw = parseFormattedNumber(state.totals[tu.id]);
                 let p = p_raw > 0 ? `${currencyFormatter.format(p_raw)} PLN` : '-';
                 headerHtml += `<div class="mt-2 text-brand-blue font-bold text-xs">${p}</div>`;
             } else {
-                /* v2.2 Formatowanie składki input - zostawiam type="number" tu celowo żeby łatwiej wpisywac komórką */
                 headerHtml += `<div class="mt-2 flex items-center justify-center gap-1 bg-white border border-slate-300 rounded shadow-inner overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue mx-auto w-24">
                     <input type="number" value="${state.totals[tu.id]||''}" oninput="updateTotal('${tu.id}', this.value)" placeholder="Składka" class="w-full px-2 py-1 text-xs text-center font-bold text-brand-blue outline-none">
                     <span class="text-[9px] text-slate-400 font-bold pr-2">PLN</span>
@@ -288,7 +275,6 @@
         let grouped = {};
         state.benefits.forEach(b => { const c = b.category || 'Inne'; if(!grouped[c]) grouped[c] = []; grouped[c].push(b); });
 
-        // Sortowanie wg sztywnych wytycznych
         let sortedCategories = Object.keys(grouped).sort((a, b) => getCategoryWeight(a) - getCategoryWeight(b));
 
         let bodyHtml = '';
@@ -320,17 +306,14 @@
                 state.insurers.forEach(tu => {
                     const data = state.matrixData[b.id][tu.id];
                     let rawSu = data.su || '';
-                    /* v2.2 Wstępne formatowanie jeśli w state jest np 100000 to na start pokaz 100 000 */
                     let parsedSu = parseFormattedNumber(rawSu);
                     let displaySu = parsedSu > 0 ? currencyFormatter.format(parsedSu) : rawSu;
 
                     bodyHtml += `<td class="p-2 border-r border-slate-200 align-middle">`;
                     if (isClientView) {
-                        /* v2.2 Formatowanie widoku klienta */
                         let clientDisplay = parsedSu > 0 ? `${displaySu} PLN` : (rawSu || '-');
                         bodyHtml += `<div class="text-xs font-medium text-slate-700 text-center">${clientDisplay}</div>`;
                     } else {
-                        /* v2.2 Zmiana input na text aby mozna bylo robic odstepy "1 000 000" i dodano PLN w srodku diva */
                         bodyHtml += `<div class="flex bg-white border border-slate-200 rounded overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue transition-shadow">
                             <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-1.5 py-1 border-r border-slate-200 flex items-center justify-center min-w-[30px]">SU</span>
                             <div class="su-input-wrapper w-full">
@@ -393,7 +376,6 @@
     function updateScoring() {
         let maxScope = 0; state.benefits.forEach(b => maxScope += (b.weight || 1));
         
-        /* v2.2 Aktualizacja wyciagania premiums pod zmieniony system kwot */
         let validPremiums = state.insurers.map(tu => parseFormattedNumber(state.totals[tu.id])).filter(p => p > 0);
         let minPremium = validPremiums.length > 0 ? Math.min(...validPremiums) : 0;
         let scores = [];
@@ -401,7 +383,6 @@
         state.insurers.forEach(tu => {
             let scopePts = 0;
             state.benefits.forEach(b => {
-                /* v2.2 Parsowanie kwot na z "1 000 000" do float 100000.0 */
                 let currentSu = parseFormattedNumber(state.matrixData[b.id]?.[tu.id]?.su);
                 let maxSuRow = 0;
                 state.insurers.forEach(t => { 
@@ -423,15 +404,14 @@
             return; 
         }
 
-        /* v2.2 Dynamiczny Layout (Grid) */
         let gridClasses = 'grid gap-6 ';
         if (scores.length <= 5) {
-            gridClasses += `grid-cols-1 md:grid-cols-${scores.length}`; // 1 wiersz, od 1 do 5 elementow (Tailwind obsluguje do grid-cols-5 natywnie by default, w klasach ponizej robimy to inlinowo)
+            gridClasses += `grid-cols-1 md:grid-cols-${scores.length}`; 
             cont.style.gridTemplateColumns = `repeat(${scores.length}, minmax(0, 1fr))`;
         } else {
-            cont.style.gridTemplateColumns = `repeat(3, minmax(0, 1fr))`; // default dla wiecej niz 5 to po 3 w rzedzie.
+            cont.style.gridTemplateColumns = `repeat(3, minmax(0, 1fr))`; 
             if(window.innerWidth > 1200 && scores.length >= 8) {
-               cont.style.gridTemplateColumns = `repeat(4, minmax(0, 1fr))`; // jesli duzo to 4
+               cont.style.gridTemplateColumns = `repeat(4, minmax(0, 1fr))`; 
             }
         }
         
@@ -552,7 +532,7 @@
                 const supabase = window.supabase.createClient(SB_URL, SB_KEY);
                 const { data, error } = await supabase.from('life_offers').select('*').eq('id', offerId).single();
                 
-                if (error) throw error; // Wymusza wejście w blok catch jeśli odczyt z bazy się nie powiedzie
+                if (error) throw error; 
 
                 if(data) {
                     state = data.data;
