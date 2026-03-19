@@ -414,8 +414,6 @@
 
         try {
             const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-            // Musisz upewnić się, że w Supabase istnieje tabela 'life_offers' 
-            // z kolumnami: id (uuid), data (jsonb), wiadomosc (text), version (text)
             const { data, error } = await supabase.from('life_offers').insert([
                 { data: state, wiadomosc: state.brokerMessage, version: APP_VERSION }
             ]).select();
@@ -425,10 +423,10 @@
             const offerId = data[0].id;
             const link = `${window.location.origin}${window.location.pathname}?offerId=${offerId}&view=client`;
             
-            prompt('Skopiuj poniższy link i wyślij swojemu Klientowi:', link);
+            prompt('Zapisano w bazie! Skopiuj poniższy link i wyślij swojemu Klientowi:', link);
         } catch(err) {
             console.error(err);
-            alert('Wystąpił błąd podczas zapisu do chmury. Sprawdź, czy tabela life_offers jest poprawnie utworzona w Supabase.');
+            alert(`Błąd bazy danych: ${err.message || 'Brak uprawnień lub nieprawidłowa tabela'}\n\nUpewnij się, że w Supabase istnieje tabela 'life_offers' z kolumnami: id, data, wiadomosc, version.`);
         } finally {
             btn.innerHTML = old;
             btn.disabled = false;
@@ -492,6 +490,9 @@
             try {
                 const supabase = window.supabase.createClient(SB_URL, SB_KEY);
                 const { data, error } = await supabase.from('life_offers').select('*').eq('id', offerId).single();
+                
+                if (error) throw error; // Wymusza wejście w blok catch jeśli odczyt z bazy się nie powiedzie
+
                 if(data) {
                     state = data.data;
                     document.getElementById('brokerMessage').value = data.wiadomosc || '';
@@ -506,7 +507,7 @@
                 }
             } catch(e) {
                 console.error("Błąd podczas pobierania oferty z chmury:", e);
-                alert("Nie udało się pobrać oferty. Link może być nieprawidłowy lub wygasł.");
+                alert(`Nie udało się pobrać oferty: ${e.message || 'Link może być nieprawidłowy, wygasł lub brakuje uprawnień w bazie.'}`);
             }
         }
 
