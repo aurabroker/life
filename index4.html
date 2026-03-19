@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AURA LIFE — Porównywarka B2B v2.3</title>
+  <title>AURA LIFE — Porównywarka B2B v2.5</title> <!-- v2.5 -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -16,7 +16,45 @@
     }
   </script>
   
-  <link rel="stylesheet" href="style.css">
+  <style>
+    .matrix-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .matrix-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+    .matrix-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .matrix-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+    
+    /* Ukrywamy elementy podczas generowania PDF */
+    .pdf-export-mode .no-pdf { display: none !important; }
+    
+    /* Ukrywamy elementy dla trybu Klienta (Read-Only) */
+    .client-mode .no-client { display: none !important; }
+
+    /* Poprawka na ucinanie tabeli w PDF */
+    .pdf-export-mode .matrix-scroll,
+    .pdf-export-mode .overflow-x-auto { 
+        overflow: visible !important; 
+        max-width: none !important;
+    }
+
+    /* Style dla ładnych inputów z formatowaniem */
+    .su-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .su-input {
+        width: 100%;
+        padding-right: 35px; /* Miejsce na PLN */
+    }
+    .su-currency {
+        position: absolute;
+        right: 8px;
+        color: #94a3b8;
+        font-size: 0.7rem;
+        font-weight: 700;
+        pointer-events: none;
+    }
+  </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
@@ -27,7 +65,7 @@
         <span class="text-2xl">🛡️</span>
         <div class="flex items-baseline gap-2">
             <h1 class="text-xl font-bold tracking-tight">AURA LIFE</h1>
-            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.3</span>
+            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.5</span> <!-- v2.5 -->
         </div>
       </div>
       
@@ -43,8 +81,8 @@
         </div>
         
         <button onclick="saveToCloud(false)" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm">💾 ZAPISZ OFERTĘ</button>
-        <button onclick="saveToCloud(true)" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm border border-green-700">🔗 Link dla Klienta</button>
-        <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-2 py-1.5 rounded text-xs font-medium transition-colors shadow-sm text-slate-300" title="Wczytaj starą ofertę z pamięci przeglądarki">📂 Lokalne</button>
+        <button id="btnClientLink" onclick="saveToCloud(true)" class="hidden bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm border border-green-700">🔗 Link dla Klienta</button>
+        <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-2 py-1.5 rounded text-xs font-medium transition-colors shadow-sm text-slate-300" title="Wczytaj zapisaną ofertę">📂 OFERTY</button>
         <button id="btnExportPdf" onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📄 PDF</button>
       </div>
     </div>
@@ -60,8 +98,8 @@
 
   <main id="exportContent" class="container mx-auto px-4 py-6 flex-grow flex flex-col gap-6">
 
-    <!-- Wiadomość / Notatka -->
-    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-2">
+    <!-- Wiadomość / Notatka - v2.5 domyślnie dodane hidden i id -->
+    <section id="noteSection" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-2">
         <h2 class="text-sm font-bold text-brand-blue flex items-center gap-2 mb-2">💬 Notatka do Oferty</h2>
         <!-- Edycja dla brokera -->
         <textarea id="brokerMessage" class="w-full bg-slate-50 border border-slate-300 rounded p-3 text-sm focus:border-brand-blue outline-none no-client" rows="2" placeholder="Napisz wiadomość do Klienta, którą zobaczy po otwarciu linku..."></textarea>
@@ -101,14 +139,14 @@
           Aura Consulting spółka z ograniczoną odpowiedzialnością z siedzibą w Warszawie przy ul. Bolkowskiej 2A lokal 28, wpisana do Krajowego Rejestru Sądowego pod numerem 0000426835 przez Sąd Rejonowy dla m.st. Warszawy, XII Wydział Gospodarczy Krajowego Rejestru Sądowego, REGON 341302033, kapitał zakładowy 34.000 zł.<br>
           Zezwolenie Komisji Nadzoru Finansowego nr 1972/13, wpis w rejestrze brokerów ubezpieczeniowych pod numerem 00001851/U.
       </div>
-      <span class="no-client text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.3</span>
+      <span class="no-client text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.5</span> <!-- v2.5 -->
   </footer>
 
   <!-- Modale Lokalnego Wczytywania i Bazy Ryzyk -->
   <div id="loadModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-bold text-brand-blue">Wczytaj ofertę</h3>
+              <h3 class="text-lg font-bold text-brand-blue">Zapisane Oferty</h3>
               <button onclick="closeLoadModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
           </div>
           <div id="offersList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll"></div>
@@ -140,7 +178,8 @@
 
   <script>
     // WERSJONOWANIE SYSTEMU
-    const APP_VERSION = 'v2.3';
+    /* v2.5: Podbicie wersji zgodnie z poleceniem ukrycia notatki na start */
+    const APP_VERSION = 'v2.5';
     document.getElementById('appVersionBadge').textContent = APP_VERSION;
     document.getElementById('footerVersion').textContent = APP_VERSION;
     
@@ -399,9 +438,25 @@
 
         scores.sort((a,b) => b.total - a.total);
         const cont = document.getElementById('scoringResults');
+        const btnClientLink = document.getElementById('btnClientLink');
+        const noteSection = document.getElementById('noteSection'); /* v2.5: Referencja do sekcji notatki */
+
         if (scores.length === 0 || maxScope === 0) { 
             cont.innerHTML = '<p class="col-span-full text-center text-slate-500 italic p-6 bg-slate-50 rounded-lg border border-dashed border-slate-300">Dodaj minimum jedno TU oraz świadczenie i wypełnij pole SU, aby system mógł wygenerować rekomendację.</p>'; 
+            if(btnClientLink) btnClientLink.classList.add('hidden');
+            if(noteSection) noteSection.classList.add('hidden'); /* v2.5: Ukrywamy notatkę gdy brak wyników */
             return; 
+        }
+
+        if(btnClientLink) btnClientLink.classList.remove('hidden'); 
+        
+        /* v2.5: Logika widoczności notatki. W trybie klienta ukrywamy sekcję, jeśli broker nic nie napisał */
+        if(noteSection) {
+            if (isClientView && !state.brokerMessage) {
+                noteSection.classList.add('hidden');
+            } else {
+                noteSection.classList.remove('hidden');
+            }
         }
 
         let gridClasses = 'grid gap-6 ';
@@ -438,10 +493,20 @@
     function syncUI() { document.getElementById('offerName').value = state.offerName; }
 
     async function saveToCloud(isForClient) {
+        if (state.insurers.length === 0 || state.benefits.length === 0) {
+            alert('Nie można zapisać pustej oferty. Dodaj minimum jedno Towarzystwo i jedno Świadczenie.');
+            return;
+        }
+
         let currentInput = document.getElementById('offerName').value.trim();
         if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; }
         state.offerName = currentInput;
         state.brokerMessage = document.getElementById('brokerMessage').value;
+
+        let localId = Date.now().toString();
+        let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+        offers[localId] = { id: localId, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state), v: APP_VERSION };
+        localStorage.setItem(DB_KEY, JSON.stringify(offers));
 
         const btn = event.currentTarget;
         const oldHtml = btn.innerHTML;
@@ -463,11 +528,15 @@
                 prompt('Gotowe! Skopiuj ten link i wyślij swojemu Klientowi:', link);
             } else {
                 window.history.replaceState(null, '', '?offerId=' + offerId);
-                alert('✅ Zapisano pomyślnie w chmurze!\n\nObecny adres w oknie przeglądarki został zaktualizowany. Możesz skopiować ten link, aby wrócić do edycji na dowolnym komputerze.');
+                alert('✅ Zapisano pomyślnie w chmurze!\n\nObecny adres w oknie przeglądarki został zaktualizowany. Oferta jest też widoczna w zakładce [📂 OFERTY].');
             }
         } catch(err) {
             console.error(err);
-            alert(`Błąd bazy danych: ${err.message || 'Brak uprawnień lub nieprawidłowa tabela'}\n\nUpewnij się, że w Supabase istnieje tabela 'life_offers' (użyj skryptu SQL).`);
+            if(isForClient) {
+                alert(`Błąd połączenia z chmurą! (Brak odpowiedniej tabeli w Supabase).\n\nNie udało się wygenerować linku, ale Twoja oferta ZOSTAŁA BEZPIECZNIE ZAPISANA w zakładce [📂 OFERTY].`);
+            } else {
+                alert(`✅ Oferta zapisana lokalnie w [📂 OFERTY]!\n\n(Uwaga: Kopia w chmurze nie powiodła się przez błąd bazy Supabase, więc link w adresie przeglądarki nie zadziała na innym komputerze).`);
+            }
         } finally {
             btn.innerHTML = oldHtml;
             btn.disabled = false;
@@ -476,10 +545,18 @@
     
     function openLoadModal() {
         let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
-        let html = ''; Object.keys(offers).sort((a,b)=>b-a).forEach(k => {
+        let html = ''; 
+        
+        Object.keys(offers).sort((a,b) => {
+            let numA = parseInt(a) || 0;
+            let numB = parseInt(b) || 0;
+            return numB - numA;
+        }).forEach(k => {
             let o = offers[k]; html += `<div class="flex justify-between items-center p-3 border border-slate-200 rounded mb-2 bg-slate-50 hover:bg-slate-100 transition-colors"><div><div class="font-bold text-brand-blue">${o.name}</div><div class="text-[10px] text-slate-500">${o.date} | ${o.v || 'v1.x'}</div></div><div class="flex gap-2"><button onclick="loadOffer('${k}')" class="bg-brand-blue text-white text-xs px-3 py-1.5 rounded hover:bg-blue-800 transition-colors">Wczytaj</button><button onclick="deleteOffer('${k}')" class="bg-red-100 text-red-600 text-xs px-2.5 py-1.5 rounded hover:bg-red-200 transition-colors" title="Usuń">🗑️</button></div></div>`;
         });
-        document.getElementById('offersList').innerHTML = html || '<p class="text-sm text-slate-500 italic p-4 text-center">Brak lokalnie zapisanych ofert</p>'; document.getElementById('loadModal').classList.remove('hidden');
+        
+        document.getElementById('offersList').innerHTML = html || '<p class="text-sm text-slate-500 italic p-4 text-center">Brak lokalnie zapisanych ofert</p>'; 
+        document.getElementById('loadModal').classList.remove('hidden');
     }
     
     function closeLoadModal() { document.getElementById('loadModal').classList.add('hidden'); }
@@ -487,6 +564,11 @@
     function deleteOffer(k) { if(confirm('Usunąć tę ofertę?')) { let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}'); delete offers[k]; localStorage.setItem(DB_KEY, JSON.stringify(offers)); openLoadModal(); } }
 
     function exportToPDF() {
+        if (state.insurers.length === 0 || state.benefits.length === 0) {
+            alert('Nie można wyeksportować pustej oferty. Dodaj minimum jedno Towarzystwo i jedno Świadczenie.');
+            return;
+        }
+
         let currentInput = document.getElementById('offerName').value.trim();
         if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; state.offerName = currentInput; }
         
