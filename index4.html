@@ -28,6 +28,13 @@
     
     /* Ukrywamy elementy dla trybu Klienta (Read-Only) */
     .client-mode .no-client { display: none !important; }
+
+    /* Poprawka na ucinanie tabeli w PDF */
+    .pdf-export-mode .matrix-scroll,
+    .pdf-export-mode .overflow-x-auto { 
+        overflow: visible !important; 
+        max-width: none !important;
+    }
   </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
@@ -54,9 +61,9 @@
             <input type="text" id="offerName" placeholder="Zostaw puste dla automatu" value="" class="bg-transparent text-sm font-semibold text-white border-b border-dashed border-blue-400 focus:outline-none focus:border-white w-48 placeholder-blue-300">
         </div>
         
-        <button onclick="saveOffer()" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">💾 Lokalnie</button>
-        <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📂 Wczytaj</button>
-        <button onclick="saveToCloudAndShare()" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm border border-green-700">🔗 Wyślij Klientowi</button>
+        <button onclick="saveToCloud(false)" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm">💾 ZAPISZ OFERTĘ</button>
+        <button onclick="saveToCloud(true)" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm border border-green-700">🔗 Link dla Klienta</button>
+        <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-2 py-1.5 rounded text-xs font-medium transition-colors shadow-sm text-slate-300" title="Wczytaj starą ofertę z pamięci przeglądarki">📂 Lokalne</button>
         <button id="btnExportPdf" onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📄 PDF</button>
       </div>
     </div>
@@ -385,30 +392,14 @@
     function syncOfferDataToState() { state.offerName = document.getElementById('offerName').value; }
     function syncUI() { document.getElementById('offerName').value = state.offerName; }
 
-    function saveOffer() {
+    async function saveToCloud(isForClient) {
         let currentInput = document.getElementById('offerName').value.trim();
         if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; }
         state.offerName = currentInput;
         state.brokerMessage = document.getElementById('brokerMessage').value;
 
-        let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
-        const k = Date.now().toString(); 
-        offers[k] = { id: k, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state), v: APP_VERSION };
-        localStorage.setItem(DB_KEY, JSON.stringify(offers)); 
-        
-        const btn = document.querySelector('button[onclick="saveOffer()"]');
-        const old = btn.innerHTML; btn.innerHTML = '✅ Zapisano'; btn.classList.add('bg-green-600'); 
-        setTimeout(()=> { btn.innerHTML = old; btn.classList.remove('bg-green-600'); }, 2000);
-    }
-    
-    async function saveToCloudAndShare() {
-        let currentInput = document.getElementById('offerName').value.trim();
-        if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; }
-        state.offerName = currentInput;
-        state.brokerMessage = document.getElementById('brokerMessage').value;
-
-        const btn = document.querySelector('button[onclick="saveToCloudAndShare()"]');
-        const old = btn.innerHTML;
+        const btn = event.currentTarget;
+        const oldHtml = btn.innerHTML;
         btn.innerHTML = '⏳ Zapisywanie...';
         btn.disabled = true;
 
@@ -421,14 +412,19 @@
             if(error) throw error;
             
             const offerId = data[0].id;
-            const link = `${window.location.origin}${window.location.pathname}?offerId=${offerId}&view=client`;
             
-            prompt('Zapisano w bazie! Skopiuj poniższy link i wyślij swojemu Klientowi:', link);
+            if(isForClient) {
+                const link = `${window.location.origin}${window.location.pathname}?offerId=${offerId}&view=client`;
+                prompt('Gotowe! Skopiuj ten link i wyślij swojemu Klientowi:', link);
+            } else {
+                window.history.replaceState(null, '', '?offerId=' + offerId);
+                alert('✅ Zapisano pomyślnie w chmurze!\n\nObecny adres w oknie przeglądarki został zaktualizowany. Możesz skopiować ten link, aby wrócić do edycji na dowolnym komputerze.');
+            }
         } catch(err) {
             console.error(err);
-            alert(`Błąd bazy danych: ${err.message || 'Brak uprawnień lub nieprawidłowa tabela'}\n\nUpewnij się, że w Supabase istnieje tabela 'life_offers' z kolumnami: id, data, wiadomosc, version.`);
+            alert(`Błąd bazy danych: ${err.message || 'Brak uprawnień lub nieprawidłowa tabela'}\n\nUpewnij się, że w Supabase istnieje tabela 'life_offers' (użyj skryptu SQL).`);
         } finally {
-            btn.innerHTML = old;
+            btn.innerHTML = oldHtml;
             btn.disabled = false;
         }
     }
@@ -438,7 +434,7 @@
         let html = ''; Object.keys(offers).sort((a,b)=>b-a).forEach(k => {
             let o = offers[k]; html += `<div class="flex justify-between items-center p-3 border border-slate-200 rounded mb-2 bg-slate-50 hover:bg-slate-100 transition-colors"><div><div class="font-bold text-brand-blue">${o.name}</div><div class="text-[10px] text-slate-500">${o.date} | ${o.v || 'v1.x'}</div></div><div class="flex gap-2"><button onclick="loadOffer('${k}')" class="bg-brand-blue text-white text-xs px-3 py-1.5 rounded hover:bg-blue-800 transition-colors">Wczytaj</button><button onclick="deleteOffer('${k}')" class="bg-red-100 text-red-600 text-xs px-2.5 py-1.5 rounded hover:bg-red-200 transition-colors" title="Usuń">🗑️</button></div></div>`;
         });
-        document.getElementById('offersList').innerHTML = html || '<p class="text-sm text-slate-500 italic p-4 text-center">Brak zapisanych ofert</p>'; document.getElementById('loadModal').classList.remove('hidden');
+        document.getElementById('offersList').innerHTML = html || '<p class="text-sm text-slate-500 italic p-4 text-center">Brak lokalnie zapisanych ofert</p>'; document.getElementById('loadModal').classList.remove('hidden');
     }
     
     function closeLoadModal() { document.getElementById('loadModal').classList.add('hidden'); }
@@ -458,11 +454,13 @@
         btn.innerHTML = '⏳ Trwa eksport...'; btn.disabled = true;
 
         const element = document.getElementById('exportContent');
+        // Zwiększamy obszar renderowania w oparciu o naturalną szerokość ukrytej w overflow tabeli 
+        // to uchroni ją przed ucinaniem.
         const opt = {
             margin:       0.3,
             filename:     `AURA_LIFE_${state.offerName}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 },
+            html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth + 100 },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
 
