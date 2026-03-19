@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AURA LIFE — Porównywarka B2B v1.9</title>
+  <title>AURA LIFE — Porównywarka B2B v2.0</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,22 +23,23 @@
     .matrix-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .modal-overlay { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
     
-    /* Ukrywanie elementów podczas generowania PDF */
+    /* Ukrywamy elementy podczas generowania PDF */
     .pdf-export-mode .no-pdf { display: none !important; }
     
-    /* Ukrywanie elementów w trybie Klienta */
+    /* Ukrywamy elementy dla trybu Klienta (Read-Only) */
     .client-mode .no-client { display: none !important; }
   </style>
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
+  <!-- Pasek Brokera -->
   <header class="bg-brand-blue text-white shadow-md sticky top-0 z-50 no-pdf no-client">
     <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🛡️</span>
         <div class="flex items-baseline gap-2">
             <h1 class="text-xl font-bold tracking-tight">AURA LIFE</h1>
-            <span class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v1.9</span>
+            <span id="appVersionBadge" class="bg-blue-800 text-blue-200 text-xs font-bold px-2 py-0.5 rounded border border-blue-700">v2.0</span>
         </div>
       </div>
       
@@ -53,33 +54,31 @@
             <input type="text" id="offerName" placeholder="Zostaw puste dla automatu" value="" class="bg-transparent text-sm font-semibold text-white border-b border-dashed border-blue-400 focus:outline-none focus:border-white w-48 placeholder-blue-300">
         </div>
         
-        <button onclick="saveOffer()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">💾 Zapisz Lokalnie</button>
+        <button onclick="saveOffer()" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">💾 Lokalnie</button>
         <button onclick="openLoadModal()" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📂 Wczytaj</button>
-        <button id="btnGenerateLink" onclick="saveToDbAndGenerateLink()" class="bg-brand-gold hover:bg-yellow-600 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm text-white border border-yellow-700">🔗 Wyślij Klientowi</button>
+        <button onclick="saveToCloudAndShare()" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-sm font-bold transition-colors shadow-sm border border-green-700">🔗 Wyślij Klientowi</button>
         <button id="btnExportPdf" onclick="exportToPDF()" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm">📄 PDF</button>
       </div>
     </div>
   </header>
 
-  <!-- Pasek klienta (Widoczny tylko w trybie klienta) -->
-  <header class="bg-brand-gold text-white shadow-md sticky top-0 z-50 hidden" id="clientHeader">
-    <div class="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-3">
+  <!-- Pasek Klienta -->
+  <header id="clientHeader" class="bg-brand-gold text-white shadow-md sticky top-0 z-50 hidden no-pdf">
+    <div class="container mx-auto px-4 py-3 flex items-center gap-3">
         <span class="text-2xl">🛡️</span>
-        <h1 class="text-xl font-bold tracking-tight">Rekomendacja Ofertowa dla: <span id="clientOfferName" class="italic font-medium"></span></h1>
-      </div>
+        <h1 class="text-xl font-bold tracking-tight">Rekomendacja Ofertowa: <span id="clientOfferNameTitle" class="italic"></span></h1>
     </div>
   </header>
 
   <main id="exportContent" class="container mx-auto px-4 py-6 flex-grow flex flex-col gap-6">
 
-    <!-- Wiadomość dla klienta -->
-    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-2 flex flex-col gap-2 relative">
-      <h2 class="text-sm font-bold text-brand-blue flex items-center gap-2">💬 Wiadomość do Oferty / Notatka</h2>
-      <textarea id="brokerMessageInput" class="w-full text-sm border border-slate-300 rounded p-3 outline-none focus:border-brand-blue no-client bg-slate-50" rows="3" placeholder="Napisz tu wiadomość, którą chcesz, by Klient zobaczył (np. Dzień dobry, zgodnie z ustaleniami przesyłam zestawienie...)" oninput="state.brokerMessage = this.value"></textarea>
-      
-      <!-- Miejsce na wiadomość w trybie klienta -->
-      <div id="brokerMessageDisplay" class="text-sm text-slate-800 whitespace-pre-wrap hidden p-4 bg-blue-50 border-l-4 border-brand-blue rounded-r font-medium"></div>
+    <!-- Wiadomość / Notatka -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-2">
+        <h2 class="text-sm font-bold text-brand-blue flex items-center gap-2 mb-2">💬 Notatka do Oferty</h2>
+        <!-- Edycja dla brokera -->
+        <textarea id="brokerMessage" class="w-full bg-slate-50 border border-slate-300 rounded p-3 text-sm focus:border-brand-blue outline-none no-client" rows="2" placeholder="Napisz wiadomość do Klienta, którą zobaczy po otwarciu linku..."></textarea>
+        <!-- Wyświetlanie dla klienta -->
+        <div id="clientMessageDisplay" class="hidden text-sm text-slate-800 bg-blue-50 border-l-4 border-brand-blue p-4 rounded-r font-medium whitespace-pre-wrap"></div>
     </section>
 
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
@@ -109,36 +108,16 @@
     </section>
   </main>
 
-  <footer class="bg-slate-100 border-t border-slate-200 text-slate-500 py-3 text-center text-sm mt-auto shadow-inner">
-      <div class="container mx-auto px-4 font-medium flex justify-center items-center gap-2">
-          <span>Aura Consulting sp. z o.o.</span>
-          <span class="no-client text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded">Tryb Brokera</span>
-      </div>
+  <footer class="bg-slate-100 border-t border-slate-200 text-slate-500 py-3 text-center text-sm mt-auto shadow-inner flex justify-center items-center gap-2">
+      <div class="font-medium">Aura Consulting sp. z o.o.</div>
+      <span class="no-client text-xs bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-bold" id="footerVersion">v2.0</span>
   </footer>
 
-  <!-- Modal generowania linku -->
-  <div id="linkModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 flex flex-col">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-brand-gold flex items-center gap-2"><span>🔗</span> Oferta gotowa do wysłania!</h3>
-            <button onclick="closeLinkModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
-        </div>
-        <p class="text-sm text-slate-600 mb-4">Oferta została pomyślnie zapisana w bazie. Prześlij poniższy link swojemu Klientowi. Klient zobaczy zestawienie w trybie "tylko do odczytu".</p>
-        
-        <div class="flex items-center gap-2 mb-6">
-            <input type="text" id="generatedLinkInput" class="w-full bg-slate-50 border border-slate-300 rounded p-2 text-sm text-slate-700 focus:outline-none" readonly>
-            <button onclick="copyGeneratedLink()" class="bg-brand-blue hover:bg-blue-800 text-white px-4 py-2 rounded text-sm font-medium transition-colors whitespace-nowrap">Kopiuj</button>
-        </div>
-
-        <button onclick="closeLinkModal()" class="w-full bg-slate-100 hover:bg-slate-200 py-2 rounded font-medium transition-colors">Zamknij</button>
-    </div>
-  </div>
-
-  <!-- Modal - Wczytaj z LocalStorage -->
+  <!-- Modale Lokalnego Wczytywania i Bazy Ryzyk -->
   <div id="loadModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
-              <h3 class="text-lg font-bold text-brand-blue">Wczytaj ofertę (Lokalnie)</h3>
+              <h3 class="text-lg font-bold text-brand-blue">Wczytaj ofertę</h3>
               <button onclick="closeLoadModal()" class="text-slate-400 hover:text-slate-700 font-bold">✕</button>
           </div>
           <div id="offersList" class="flex-grow overflow-y-auto space-y-2 mb-4 pr-2 matrix-scroll"></div>
@@ -146,7 +125,6 @@
       </div>
   </div>
 
-  <!-- Modal - Towarzystwa -->
   <div id="insurerModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
@@ -158,7 +136,6 @@
       </div>
   </div>
 
-  <!-- Modal - Świadczenia -->
   <div id="riskModal" class="fixed inset-0 modal-overlay hidden z-[100] flex items-center justify-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 flex flex-col max-h-[80vh]">
           <div class="flex justify-between items-center mb-4">
@@ -171,35 +148,40 @@
   </div>
 
   <script>
+    // WERSJONOWANIE SYSTEMU
+    const APP_VERSION = 'v2.0';
+    document.getElementById('appVersionBadge').textContent = APP_VERSION;
+    document.getElementById('footerVersion').textContent = APP_VERSION;
+    
+    // Klucz do LocalStorage oparty na wersji
+    const DB_KEY = 'auralife_db_' + APP_VERSION.replace('.', ''); 
+
     const SB_URL = 'https://kukvgsjrmrqtzhkszzum.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3Znc2pybXJxdHpoa3N6enVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTI0NzYsImV4cCI6MjA4ODQ4ODQ3Nn0.wOB-4CJTcRksSUY7WD7CXEccTKNxPIVF8AT8hczS5zY';
-    const DB_KEY = 'auralife_db_v19';
-
-    // Inicjalizacja Supabase Client w zakresie globalnym
-    window.supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
     
     let dbData = { insurers: [], risks: [] };
     const MOCK_DB = { insurers: [{ id: 'tu1', name: 'Warta' }], risks: [{ id: 'r1', category: 'Życie ubezpieczonego', name: 'Zgon ubezpieczonego' }] };
 
     let state = { offerName: '', brokerMessage: '', insurers: [], benefits: [], matrixData: {}, totals: {} };
+    let isClientView = false;
 
-    // FUNKCJA: Kolejność wyświetlania kategorii ryzyk
-    function getCategorySortWeight(cat) {
-        let normalized = (cat || '').toLowerCase().trim();
-        if (normalized.includes('zgon')) return 1;
-        if (normalized.includes('uszczerb')) return 2;
-        if (normalized.includes('rodzin')) return 3;
-        if (normalized.includes('zdrowi') || normalized.includes('zachorow')) return 4;
-        if (normalized.includes('szpital')) return 5;
-        if (normalized.includes('pozostał') || normalized.includes('inne')) return 6;
-        return 99; // Fallback
+    // Funkcja sortująca wg sztywnych wytycznych
+    function getCategoryWeight(cat) {
+        let c = (cat || '').toLowerCase();
+        if(c.includes('zgon')) return 1;
+        if(c.includes('uszczerb')) return 2;
+        if(c.includes('rodzin')) return 3;
+        if(c.includes('zdrowi') || c.includes('zachorow')) return 4;
+        if(c.includes('szpital')) return 5;
+        if(c.includes('pozostał') || c.includes('inne')) return 6;
+        return 99; // Domślnie na koniec
     }
 
     function updateDbStatus(type, message) {
         const dot = document.getElementById('dbStatusDot');
         const text = document.getElementById('dbStatusText');
         const badge = document.getElementById('dbStatusBadge');
-        if(!dot || !text || !badge) return; // Ukryte w widoku klienta
+        if(!dot || !text || !badge) return; // Chroni przed bledem gdy ukryte
         dot.classList.remove('animate-pulse', 'bg-slate-500', 'bg-green-500', 'bg-red-500', 'bg-orange-500');
         
         if(type === 'success') {
@@ -213,17 +195,16 @@
 
     async function initSupabaseData() {
         try {
-            const { data: insData, error: insErr } = await window.supabaseClient.from('life_insurers').select('*');
+            const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            const { data: insData, error: insErr } = await supabase.from('life_insurers').select('*');
             if (insErr) throw new Error(insErr.message);
-            const { data: riskData, error: riskErr } = await window.supabaseClient.from('life_risks').select('*');
+            const { data: riskData, error: riskErr } = await supabase.from('life_risks').select('*');
             if (riskErr) throw new Error(riskErr.message);
             
             if (insData && riskData && insData.length > 0) {
                 const cleanedInsData = insData.map(tu => ({ 
-                    ...tu, 
-                    name: tu.name.replace(/\s*Życie/gi, '').trim() 
+                    ...tu, name: tu.name.replace(/\s*Życie/gi, '').trim() 
                 }));
-
                 dbData.insurers = cleanedInsData; 
                 dbData.risks = riskData;
                 updateDbStatus('success', `Pobrano ${insData.length} TU i ${riskData.length} ryzyk.`);
@@ -235,9 +216,7 @@
 
     function generateAutoName() {
         if (state.insurers.length === 0) return `Kalkulacja_${new Date().toISOString().slice(0,10)}`;
-        let initials = state.insurers.map(tu => {
-            return tu.name.split(/[\s-]+/).map(word => word.charAt(0).toUpperCase()).join('');
-        }).join('-');
+        let initials = state.insurers.map(tu => tu.name.split(/[\s-]+/).map(word => word.charAt(0).toUpperCase()).join('')).join('-');
         let dateStr = new Date().toISOString().slice(0,10);
         return `${initials}_${dateStr}`;
     }
@@ -249,39 +228,291 @@
         const thead = document.getElementById('matrixHeader'); 
         const tbody = document.getElementById('matrixBody'); 
         
-        // --- BUDOWA NAGŁÓWKA ---
-        let headerHtml = `<th class="p-2 w-1/4 min-w-[220px] border-r border-slate-200 bg-slate-100 align-top"><div class="pt-2 pl-2">Kategoria / Świadczenie</div></th>`;
-        // Nowa kolumna Wagi
-        headerHtml += `<th class="p-2 w-28 border-r border-slate-200 bg-slate-100 align-top text-center"><div class="pt-2">Waga ocenna</div></th>`;
-        
+        let headerHtml = `<th class="p-2 w-1/3 min-w-[280px] border-r border-slate-200 bg-slate-100 align-top"><div class="pt-2 pl-2">Kategoria / Świadczenie</div></th>`;
+        // Nowa kolumna Wagi na prawo od Ryzyk
+        headerHtml += `<th class="p-2 w-24 border-r border-slate-200 bg-slate-100 align-top text-center"><div class="pt-2">Waga</div></th>`;
+
         state.insurers.forEach(tu => {
             headerHtml += `<th class="p-2 text-center border-r border-slate-200 relative group min-w-[120px] bg-slate-100 align-top">
                 <div class="font-bold w-[90%] mx-auto truncate text-sm" title="${tu.name}">${tu.name}</div>`;
                 
-            if(window.isClientView) {
-                // W trybie klienta pokazujemy tylko wynik składki jako tekst
-                let premVal = state.totals[tu.id] ? `${state.totals[tu.id]} PLN` : '-';
-                headerHtml += `<div class="mt-2 text-center text-xs font-bold text-brand-blue bg-white border border-slate-200 rounded py-1 w-24 mx-auto">${premVal}</div>`;
+            if (isClientView) {
+                let p = state.totals[tu.id] ? `${state.totals[tu.id]} PLN` : '-';
+                headerHtml += `<div class="mt-2 text-brand-blue font-bold text-xs">${p}</div>`;
             } else {
-                // W trybie brokera - input
                 headerHtml += `<div class="mt-2 flex items-center justify-center gap-1 bg-white border border-slate-300 rounded shadow-inner overflow-hidden focus-within:ring-2 focus-within:ring-brand-blue mx-auto w-24">
                     <input type="number" value="${state.totals[tu.id]||''}" oninput="updateTotal('${tu.id}', this.value)" placeholder="Składka" class="w-full px-2 py-1 text-xs text-center font-bold text-brand-blue outline-none">
                     <span class="text-[9px] text-slate-400 font-bold pr-2">PLN</span>
                 </div>
-                <button onclick="removeInsurer('${tu.id}')" class="absolute right-1 top-2 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all no-pdf no-client">✕</button>`;
+                <button onclick="removeInsurer('${tu.id}')" class="absolute right-1 top-2 text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-4 h-4 text-xs flex items-center justify-center shadow-sm transition-all no-pdf">✕</button>`;
             }
             headerHtml += `</th>`;
         });
         thead.innerHTML = headerHtml;
 
-        // --- BUDOWA CIAŁA TABELI ---
         let grouped = {};
         state.benefits.forEach(b => { const c = b.category || 'Inne'; if(!grouped[c]) grouped[c] = []; grouped[c].push(b); });
 
-        // Sortowanie wg sztywnego klucza Zgony -> Uszczerbki -> Rodzina -> Zdrowie -> Szpitale -> Pozostałe
-        let sortedCategories = Object.keys(grouped).sort((a, b) => getCategorySortWeight(a) - getCategorySortWeight(b));
+        // Sortowanie wg sztywnych wytycznych
+        let sortedCategories = Object.keys(grouped).sort((a, b) => getCategoryWeight(a) - getCategoryWeight(b));
 
         let bodyHtml = '';
         sortedCategories.forEach(cat => {
             const items = grouped[cat];
-            bodyHtml += `<tr class="bg-blue-50/50 border-b border-slate-300"><td colspan="${state.insurers.length+2}" class="px-3 py-1.5 text-xs font-black text-brand-blue uppercase tracking-widest border-r border-slate-
+            bodyHtml += `<tr class="bg-blue-50/50 border-b border-slate-300"><td colspan="${state.insurers.length+2}" class="px-2 py-1.5 text-xs font-black text-brand-blue uppercase tracking-widest">📁 ${cat}</td></tr>`;
+            items.forEach(b => {
+                let w = b.weight || 1;
+                
+                bodyHtml += `<tr class="border-b border-slate-200 hover:bg-slate-50 group/row transition-colors">
+                    <td class="p-2 border-r border-slate-200 relative group pl-4 align-middle">
+                        <span class="font-medium text-slate-800 leading-tight text-xs">${b.name}</span>
+                        ${!isClientView ? `<button onclick="removeBenefit('${b.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 text-red-400 opacity-0 group/row-hover:opacity-100 hover:text-red-600 bg-white rounded-full w-5 h-5 text-xs flex items-center justify-center shadow-sm transition-all no-pdf">✕</button>` : ''}
+                    </td>
+                    <td class="p-2 border-r border-slate-200 align-middle text-center">`;
+                
+                if (isClientView) {
+                    let wTxt = w === 3 ? '🔥 Kryt.' : w === 2 ? '⭐️ Ważne' : '⚪️ Dodat.';
+                    bodyHtml += `<span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded border border-slate-200">${wTxt}</span>`;
+                } else {
+                    bodyHtml += `<select onchange="updateBenefitWeight('${b.id}', this.value)" class="text-[10px] font-bold outline-none bg-slate-100 border border-slate-200 rounded px-1.5 py-1 text-slate-600 focus:border-brand-blue transition-colors hover:bg-slate-200 cursor-pointer w-full text-center">
+                        <option value="3" ${w===3?'selected':''}>🔥 Kryt.</option>
+                        <option value="2" ${w===2?'selected':''}>⭐️ Ważne</option>
+                        <option value="1" ${w===1?'selected':''}>⚪️ Dodat.</option>
+                    </select>`;
+                }
+                bodyHtml += `</td>`;
+                
+                state.insurers.forEach(tu => {
+                    const data = state.matrixData[b.id][tu.id];
+                    bodyHtml += `<td class="p-2 border-r border-slate-200 align-middle">`;
+                    if (isClientView) {
+                        bodyHtml += `<div class="text-xs font-medium text-slate-700 text-center">${data.su || '-'}</div>`;
+                    } else {
+                        bodyHtml += `<div class="flex bg-white border border-slate-200 rounded overflow-hidden focus-within:ring-1 focus-within:ring-brand-blue transition-shadow">
+                            <span class="bg-slate-100 text-[10px] font-bold text-slate-500 px-1.5 py-1 border-r border-slate-200 flex items-center justify-center min-w-[30px]">SU</span>
+                            <input type="number" value="${data.su}" oninput="updateMatrixData('${b.id}', '${tu.id}', 'su', this.value)" placeholder="PLN" class="w-full px-2 py-1 text-xs outline-none font-medium text-slate-700">
+                        </div>`;
+                    }
+                    bodyHtml += `</td>`;
+                });
+                bodyHtml += `</tr>`;
+            });
+        });
+
+        if(state.benefits.length === 0 && !isClientView) bodyHtml = `<tr><td colspan="${state.insurers.length+2}" class="text-center p-6 text-slate-500 italic bg-white text-sm">Brak świadczeń. Użyj przycisku <span class="font-bold text-brand-blue">➕ Dodaj Świadczenie</span> powyżej, aby zbudować matrycę.</td></tr>`;
+        tbody.innerHTML = bodyHtml;
+
+        updateScoring();
+    }
+
+    function updateMatrixData(bId, tuId, field, val) { if(state.matrixData[bId]?.[tuId]) { state.matrixData[bId][tuId][field] = val; if(field==='su') updateScoring(); } }
+    function updateTotal(tuId, val) { state.totals[tuId] = val; updateScoring(); }
+    function updateBenefitWeight(id, w) { const b = state.benefits.find(x => x.id === id); if(b) { b.weight = parseInt(w); updateScoring(); } }
+    function removeBenefit(id) { state.benefits = state.benefits.filter(b => b.id !== id); delete state.matrixData[id]; renderMatrix(); }
+    function removeInsurer(id) { state.insurers = state.insurers.filter(t => t.id !== id); delete state.totals[id]; renderMatrix(); }
+
+    function addBenefitModal() {
+        let grouped = {}; dbData.risks.forEach(r => { const c = r.category || 'Inne'; if(!grouped[c]) grouped[c]=[]; grouped[c].push(r); });
+        let sortedCategories = Object.keys(grouped).sort((a, b) => getCategoryWeight(a) - getCategoryWeight(b));
+
+        let html = dbData.risks.length === 0 ? '<div class="p-4 text-red-500 font-bold text-center">Brak ryzyk w Supabase.</div>' : '';
+        sortedCategories.forEach(cat => {
+            html += `<div class="mb-4"><h4 class="font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded mb-2 border border-slate-200 shadow-sm">${cat}</h4><div class="space-y-1.5 pl-2">`;
+            grouped[cat].forEach(r => {
+                const isAdded = state.benefits.some(b => b.id === r.id);
+                if(isAdded) html += `<div class="flex justify-between items-center p-2 text-sm text-slate-400 bg-slate-50 border border-slate-100 rounded"><span>${r.name}</span><span class="text-xs bg-slate-200 rounded px-2 py-0.5 font-bold">Dodano</span></div>`;
+                else html += `<div class="flex justify-between items-center p-2 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded cursor-pointer group transition-colors" onclick="selectRiskFromDb('${r.id}')"><span class="text-slate-800">${r.name}</span><button class="text-xs bg-white text-brand-blue border border-brand-blue rounded px-2.5 py-1 group-hover:bg-brand-blue group-hover:text-white transition-colors">Dodaj</button></div>`;
+            });
+            html += `</div></div>`;
+        });
+        document.getElementById('risksDbList').innerHTML = html; document.getElementById('riskModal').classList.remove('hidden');
+    }
+    function closeRiskModal() { document.getElementById('riskModal').classList.add('hidden'); }
+    function selectRiskFromDb(id) { const r = dbData.risks.find(x => x.id === id); if(r && !state.benefits.some(b => b.id === id)) { state.benefits.push({...r, weight: 1}); renderMatrix(); addBenefitModal(); } }
+
+    function addInsurerModal() {
+        let html = dbData.insurers.length === 0 ? '<div class="p-4 text-red-500 font-bold text-center">Brak TU w Supabase.</div>' : '';
+        dbData.insurers.forEach(tu => {
+            if(state.insurers.some(i => i.id === tu.id)) html += `<div class="flex justify-between items-center p-3 text-sm text-slate-400 bg-slate-50 border border-slate-100 rounded"><span class="font-bold">${tu.name}</span><span class="text-xs px-2 bg-slate-200 rounded py-0.5 font-bold">Dodano</span></div>`;
+            else html += `<div class="flex justify-between items-center p-3 text-sm hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded cursor-pointer group transition-colors" onclick="selectInsurerFromDb('${tu.id}')"><span class="font-bold text-slate-800">${tu.name}</span><button class="text-xs bg-white text-brand-blue border border-brand-blue rounded px-3 py-1.5 group-hover:bg-brand-blue group-hover:text-white transition-colors shadow-sm">Wybierz</button></div>`;
+        });
+        document.getElementById('insurersDbList').innerHTML = html; document.getElementById('insurerModal').classList.remove('hidden');
+    }
+    function closeInsurerModal() { document.getElementById('insurerModal').classList.add('hidden'); }
+    function selectInsurerFromDb(id) { const tu = dbData.insurers.find(x => x.id === id); if(tu && !state.insurers.some(i => i.id === id)) { state.insurers.push({...tu}); renderMatrix(); addInsurerModal(); } }
+
+    function updateScoring() {
+        let maxScope = 0; state.benefits.forEach(b => maxScope += (b.weight || 1));
+        let validPremiums = state.insurers.map(tu => parseFloat(state.totals[tu.id]) || 0).filter(p => p > 0);
+        let minPremium = validPremiums.length > 0 ? Math.min(...validPremiums) : 0;
+        let scores = [];
+
+        state.insurers.forEach(tu => {
+            let scopePts = 0;
+            state.benefits.forEach(b => {
+                let currentSu = parseFloat(state.matrixData[b.id]?.[tu.id]?.su) || 0;
+                let maxSuRow = 0;
+                state.insurers.forEach(t => { let s = parseFloat(state.matrixData[b.id]?.[t.id]?.su)||0; if(s > maxSuRow) maxSuRow = s; });
+                if (maxSuRow > 0 && currentSu > 0) scopePts += (currentSu / maxSuRow) * (b.weight || 1);
+            });
+            let scopePerc = maxScope > 0 ? (scopePts / maxScope) * 100 : 0;
+            let prem = parseFloat(state.totals[tu.id]) || 0;
+            let pricePerc = (minPremium > 0 && prem > 0) ? (minPremium / prem) * 100 : (prem === 0 && minPremium === 0 ? 100 : 0);
+            scores.push({ name: tu.name, total: (scopePerc * 0.7) + (pricePerc * 0.3), scope: scopePerc, price: pricePerc, prem: prem });
+        });
+
+        scores.sort((a,b) => b.total - a.total);
+        const cont = document.getElementById('scoringResults');
+        if (scores.length === 0 || maxScope === 0) { cont.innerHTML = '<p class="col-span-3 text-center text-slate-500 italic p-6 bg-slate-50 rounded-lg border border-dashed border-slate-300">Dodaj minimum jedno TU oraz świadczenie i wypełnij pole SU, aby system mógł wygenerować rekomendację.</p>'; return; }
+
+        let html = '';
+        scores.forEach((s, i) => {
+            let win = i === 0 && s.total > 0;
+            html += `<div class="relative bg-white border ${win ? 'border-brand-gold ring-1 ring-brand-gold shadow-lg' : 'border-slate-200 shadow-sm'} rounded-xl p-5 flex flex-col transition-all duration-300">
+                ${win ? '<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full tracking-wider shadow-sm">Zwycięzca</div>' : ''}
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-3 mb-4"><div class="text-3xl">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1+'.'}</div><h3 class="font-bold text-brand-blue truncate">${s.name}</h3></div>
+                <div class="mb-4"><span class="text-xs text-slate-500 font-semibold uppercase">Dopasowanie oferty</span><div class="flex items-end gap-1"><span class="text-4xl font-black ${win?'text-brand-gold':'text-slate-700'}">${s.total.toFixed(1)}</span><span class="text-lg font-bold text-slate-400">%</span></div></div>
+                <div class="space-y-2 text-sm bg-slate-50 p-3 rounded-lg border border-slate-100 mt-auto">
+                    <div class="flex justify-between"><span class="text-slate-500">Ocena Zakresu (Waga: 70%)</span><span class="font-bold">${s.scope.toFixed(1)}%</span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Ocena Składki (Waga: 30%)</span><span class="font-bold">${s.price.toFixed(1)}%</span></div>
+                    <div class="h-px bg-slate-200 my-1"></div>
+                    <div class="flex justify-between"><span class="text-slate-600 font-medium">Składka końcowa</span><span class="font-bold text-brand-blue">${s.prem>0?s.prem.toFixed(2)+' zł':'-'}</span></div>
+                </div></div>`;
+        });
+        cont.innerHTML = html;
+    }
+
+    function syncOfferDataToState() { state.offerName = document.getElementById('offerName').value; }
+    function syncUI() { document.getElementById('offerName').value = state.offerName; }
+
+    function saveOffer() {
+        let currentInput = document.getElementById('offerName').value.trim();
+        if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; }
+        state.offerName = currentInput;
+        state.brokerMessage = document.getElementById('brokerMessage').value;
+
+        let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+        const k = Date.now().toString(); 
+        offers[k] = { id: k, name: state.offerName, date: new Date().toLocaleString(), data: JSON.stringify(state), v: APP_VERSION };
+        localStorage.setItem(DB_KEY, JSON.stringify(offers)); 
+        
+        const btn = document.querySelector('button[onclick="saveOffer()"]');
+        const old = btn.innerHTML; btn.innerHTML = '✅ Zapisano'; btn.classList.add('bg-green-600'); 
+        setTimeout(()=> { btn.innerHTML = old; btn.classList.remove('bg-green-600'); }, 2000);
+    }
+    
+    async function saveToCloudAndShare() {
+        let currentInput = document.getElementById('offerName').value.trim();
+        if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; }
+        state.offerName = currentInput;
+        state.brokerMessage = document.getElementById('brokerMessage').value;
+
+        const btn = document.querySelector('button[onclick="saveToCloudAndShare()"]');
+        const old = btn.innerHTML;
+        btn.innerHTML = '⏳ Zapisywanie...';
+        btn.disabled = true;
+
+        try {
+            const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            // Musisz upewnić się, że w Supabase istnieje tabela 'life_offers' 
+            // z kolumnami: id (uuid), data (jsonb), wiadomosc (text), version (text)
+            const { data, error } = await supabase.from('life_offers').insert([
+                { data: state, wiadomosc: state.brokerMessage, version: APP_VERSION }
+            ]).select();
+            
+            if(error) throw error;
+            
+            const offerId = data[0].id;
+            const link = `${window.location.origin}${window.location.pathname}?offerId=${offerId}&view=client`;
+            
+            prompt('Skopiuj poniższy link i wyślij swojemu Klientowi:', link);
+        } catch(err) {
+            console.error(err);
+            alert('Wystąpił błąd podczas zapisu do chmury. Sprawdź, czy tabela life_offers jest poprawnie utworzona w Supabase.');
+        } finally {
+            btn.innerHTML = old;
+            btn.disabled = false;
+        }
+    }
+    
+    function openLoadModal() {
+        let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+        let html = ''; Object.keys(offers).sort((a,b)=>b-a).forEach(k => {
+            let o = offers[k]; html += `<div class="flex justify-between items-center p-3 border border-slate-200 rounded mb-2 bg-slate-50 hover:bg-slate-100 transition-colors"><div><div class="font-bold text-brand-blue">${o.name}</div><div class="text-[10px] text-slate-500">${o.date} | ${o.v || 'v1.x'}</div></div><div class="flex gap-2"><button onclick="loadOffer('${k}')" class="bg-brand-blue text-white text-xs px-3 py-1.5 rounded hover:bg-blue-800 transition-colors">Wczytaj</button><button onclick="deleteOffer('${k}')" class="bg-red-100 text-red-600 text-xs px-2.5 py-1.5 rounded hover:bg-red-200 transition-colors" title="Usuń">🗑️</button></div></div>`;
+        });
+        document.getElementById('offersList').innerHTML = html || '<p class="text-sm text-slate-500 italic p-4 text-center">Brak zapisanych ofert</p>'; document.getElementById('loadModal').classList.remove('hidden');
+    }
+    
+    function closeLoadModal() { document.getElementById('loadModal').classList.add('hidden'); }
+    function loadOffer(k) { let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}'); if(offers[k]) { state = JSON.parse(offers[k].data); syncUI(); document.getElementById('brokerMessage').value = state.brokerMessage || ''; renderMatrix(); closeLoadModal(); } }
+    function deleteOffer(k) { if(confirm('Usunąć tę ofertę?')) { let offers = JSON.parse(localStorage.getItem(DB_KEY) || '{}'); delete offers[k]; localStorage.setItem(DB_KEY, JSON.stringify(offers)); openLoadModal(); } }
+
+    function exportToPDF() {
+        let currentInput = document.getElementById('offerName').value.trim();
+        if(!currentInput) { currentInput = generateAutoName(); document.getElementById('offerName').value = currentInput; state.offerName = currentInput; }
+        
+        document.querySelectorAll('input').forEach(el => { if(el.type === 'number' || el.type === 'text') el.setAttribute('value', el.value); });
+        document.querySelectorAll('select').forEach(el => { Array.from(el.options).forEach(opt => { if(opt.value === el.value) opt.setAttribute('selected', 'selected'); else opt.removeAttribute('selected'); }); });
+
+        document.body.classList.add('pdf-export-mode');
+        const btn = document.getElementById('btnExportPdf');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Trwa eksport...'; btn.disabled = true;
+
+        const element = document.getElementById('exportContent');
+        const opt = {
+            margin:       0.3,
+            filename:     `AURA_LIFE_${state.offerName}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            btn.innerHTML = originalText; btn.disabled = false; document.body.classList.remove('pdf-export-mode');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        const offerId = params.get('offerId');
+        isClientView = params.get('view') === 'client';
+
+        if(isClientView) {
+            document.body.classList.add('client-mode');
+            document.getElementById('clientHeader').classList.remove('hidden');
+        }
+
+        document.getElementById('offerName').addEventListener('change', syncOfferDataToState);
+        document.getElementById('brokerMessage').addEventListener('change', () => state.brokerMessage = document.getElementById('brokerMessage').value);
+        
+        await initSupabaseData(); 
+        
+        if(offerId) {
+            try {
+                const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+                const { data, error } = await supabase.from('life_offers').select('*').eq('id', offerId).single();
+                if(data) {
+                    state = data.data;
+                    document.getElementById('brokerMessage').value = data.wiadomosc || '';
+                    if(isClientView) {
+                        document.getElementById('clientOfferNameTitle').textContent = state.offerName || 'Porównanie B2B';
+                        if(data.wiadomosc) {
+                            const msgBox = document.getElementById('clientMessageDisplay');
+                            msgBox.textContent = data.wiadomosc;
+                            msgBox.classList.remove('hidden');
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Błąd podczas pobierania oferty z chmury:", e);
+                alert("Nie udało się pobrać oferty. Link może być nieprawidłowy lub wygasł.");
+            }
+        }
+
+        syncUI();
+        renderMatrix();
+    });
+  </script>
+</body>
+</html>
