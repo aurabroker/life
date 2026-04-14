@@ -16,7 +16,7 @@
             https://cdn.quilljs.com
             https://cdn.jsdelivr.net;
           font-src https://fonts.gstatic.com;
-          img-src 'self' data: blob: https://www.transparenttextures.com;
+          img-src 'self' data: blob: https://www.transparenttextures.com https://img.youtube.com;
           connect-src 'self' https://kukvgsjrmrqtzhkszzum.supabase.co;
           frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com;
           object-src 'none';
@@ -275,6 +275,21 @@
         <textarea id="cmsExcerpt" rows="2"
                   class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-purple text-sm text-slate-600"
                   placeholder="Wstęp, który zachęci do kliknięcia..."></textarea>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">
+          Link do YouTube (miniaturka na liście artykułów)
+        </label>
+        <div class="flex gap-3 items-start">
+          <input type="url" id="cmsThumbnail"
+                 class="flex-grow bg-slate-50 border border-slate-200 rounded-xl p-3 outline-none focus:border-brand-purple text-sm text-slate-600"
+                 placeholder="https://www.youtube.com/watch?v=..."
+                 oninput="previewThumbnail(this.value)">
+          <div id="thumbPreview"
+               class="w-24 h-16 rounded-xl bg-slate-100 border border-slate-200 flex-shrink-0 bg-cover bg-center hidden"></div>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Miniaturka pojawi się automatycznie na karcie artykułu w siatce bloga.</p>
       </div>
 
       <div>
