@@ -43,6 +43,27 @@ function escapeHtml(str) {
 }
 
 
+// Wyciąga ID filmu z dowolnego formatu URL YouTube
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
+  ];
+  for (const re of patterns) {
+    const m = url.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function youtubeThumbnail(url) {
+  const id = extractYouTubeId(url);
+  if (!id) return null;
+  return 'https://img.youtube.com/vi/' + id + '/maxresdefault.jpg';
+}
+
+
 // =============================================================================
 //  AUTORYZACJA
 // =============================================================================
@@ -232,7 +253,7 @@ async function loadPublishedArticles() {
 
   const { data, error } = await SB_CLIENT
     .from('aura_articles')
-    .select('id, title, excerpt, tags, published_at')
+    .select('id, title, excerpt, tags, published_at, thumbnail_url')
     .eq('status', 'published')
     .contains('platforms', ['AuraBenefits'])
     .order('published_at', { ascending: false });
@@ -250,23 +271,32 @@ async function loadPublishedArticles() {
     return;
   }
 
-  grid.innerHTML = data.map(art => `
-    <div class="glass-card rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full"
+  grid.innerHTML = data.map(art => {
+    const thumb = youtubeThumbnail(art.thumbnail_url);
+    const thumbHtml = thumb
+      ? `<div class="article-thumb" style="background-image:url('${thumb}')">
+           <div class="article-thumb-overlay"></div>
+         </div>`
+      : '';
+    const tagsHtml = (art.tags || []).slice(0, 2).map(t =>
+      `<span class="bg-indigo-50 text-brand-purple text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${escapeHtml(t)}</span>`
+    ).join('') + (art.tags?.length > 2 ? `<span class="text-slate-400 text-xs font-bold">...</span>` : '');
+
+    return `
+    <div class="glass-card rounded-3xl shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer border border-slate-200 flex flex-col h-full overflow-hidden"
          onclick="openArticle('${escapeHtml(String(art.id))}')">
-      <div class="flex gap-2 mb-5">
-        ${(art.tags || []).slice(0, 2).map(t =>
-          `<span class="bg-indigo-50 text-brand-purple text-[10px] px-2 py-1 rounded font-black uppercase tracking-wider">${escapeHtml(t)}</span>`
-        ).join('')}
-        ${(art.tags?.length > 2) ? `<span class="text-slate-400 text-xs font-bold px-1 py-1">...</span>` : ''}
+      ${thumbHtml}
+      <div class="p-8 flex flex-col flex-grow">
+        <div class="flex gap-2 mb-4">${tagsHtml}</div>
+        <h3 class="text-xl font-black text-brand-navy mb-3 line-clamp-3 leading-snug">${escapeHtml(art.title)}</h3>
+        <p class="text-slate-500 text-sm mb-6 flex-grow line-clamp-3">${escapeHtml(art.excerpt || '')}</p>
+        <div class="border-t border-slate-100 pt-4 flex justify-between items-center text-xs font-bold text-slate-400">
+          <span>${new Date(art.published_at).toLocaleDateString('pl-PL')}</span>
+          <span class="text-brand-purple">Czytaj całość →</span>
+        </div>
       </div>
-      <h3 class="text-2xl font-black text-brand-navy mb-4 line-clamp-3 leading-snug">${escapeHtml(art.title)}</h3>
-      <p class="text-slate-500 text-sm mb-8 flex-grow line-clamp-4">${escapeHtml(art.excerpt || '')}</p>
-      <div class="border-t border-slate-100 pt-5 flex justify-between items-center text-xs font-bold text-slate-400">
-        <span>${new Date(art.published_at).toLocaleDateString('pl-PL')}</span>
-        <span class="text-brand-purple">Czytaj całość →</span>
-      </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 
@@ -356,6 +386,7 @@ function openNewArticleModal() {
   document.getElementById('cmsTitle').value   = '';
   document.getElementById('cmsExcerpt').value = '';
   document.getElementById('cmsTags').value    = '';
+  document.getElementById('cmsThumbnail').value = '';
   document.getElementById('plat_aurabenefits').checked  = true;
   document.getElementById('plat_grupowe').checked        = false;
   document.getElementById('plat_utratadochodu').checked  = false;
@@ -375,6 +406,7 @@ async function editArticleInCms(id) {
   document.getElementById('cmsTitle').value   = data.title;
   document.getElementById('cmsExcerpt').value = data.excerpt || '';
   document.getElementById('cmsTags').value    = (data.tags || []).join(', ');
+  document.getElementById('cmsThumbnail').value = data.thumbnail_url || '';
 
   const platforms = data.platforms || ['AuraBenefits'];
   document.getElementById('plat_aurabenefits').checked  = platforms.includes('AuraBenefits');
@@ -400,6 +432,7 @@ async function saveArticle(desiredStatus) {
   const excerpt     = document.getElementById('cmsExcerpt').value.trim();
   const tagsStr     = document.getElementById('cmsTags').value.trim();
   const contentHtml = quillInstance.root.innerHTML;
+  const thumbnailUrl = document.getElementById('cmsThumbnail').value.trim();
 
   const platforms = [];
   if (document.getElementById('plat_aurabenefits').checked)  platforms.push('AuraBenefits');
@@ -416,6 +449,7 @@ async function saveArticle(desiredStatus) {
   const payload = {
     title, excerpt, content: contentHtml,
     tags, platforms,
+    thumbnail_url: thumbnailUrl || null,
     status: desiredStatus,
     ai_generated: false
   };
@@ -457,3 +491,19 @@ window.onload = async () => {
   await checkAuthAndUpdateUI();
   handleHashChange();
 };
+
+
+// =============================================================================
+//  PODGLĄD MINIATURKI W FORMULARZU CMS
+// =============================================================================
+function previewThumbnail(url) {
+  const el = document.getElementById('thumbPreview');
+  const thumb = youtubeThumbnail(url);
+  if (thumb) {
+    el.style.backgroundImage = `url('${thumb}')`;
+    el.classList.remove('hidden');
+  } else {
+    el.style.backgroundImage = '';
+    el.classList.add('hidden');
+  }
+}
